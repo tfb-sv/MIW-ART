@@ -1,0 +1,18 @@
+cd C:\Users\nural\OneDrive\Masaüstü\MARTree3_emb
+cd C:\Users\WS001\Desktop\MARTree3_emb
+
+python train.py --df_loc "clintox" --tokenization bpe
+
+python evaluate.py
+python evaluate.py > results_log_bace.txt
+
+python train.py --df_loc "bbbp2k" --tokenization bpe
+
+python train.py --df_loc "hiv" --tokenization bpe
+
+python train.py --df_loc "tox21" --tokenization bpe
+
+python train.py --df_loc "bace" --tokenization bpe
+
+
+
