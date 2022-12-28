@@ -325,7 +325,7 @@ if __name__ == '__main__':
     parser.add_argument('--ckpt', default="")
     parser.add_argument('--cuda', default=True, action='store_true')
     parser.add_argument('--tokenization', default='bpe', choices=['bpe', 'cha'], help='byte-pair encoding or character-based')
-    parser.add_argument('--mode', default='emb', choices=['vis', 'val', 'ins', 'emb'], help='visualization, validation or inspection')
+    parser.add_argument('--mode', default='val', choices=['vis', 'val', 'ins', 'emb'], help='visualization, validation, inspection or embedding')
     parser.add_argument('--batch-size', default=32, type=int)   
     parser.add_argument('--task', default='clf', choices=['clf', 'reg'], help='classification or regression')
     parser.add_argument('--file_name', default="")

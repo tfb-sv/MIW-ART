@@ -159,7 +159,9 @@ def train(args):
                         ground_truth.extend(labels)
                     elif args.task == "reg":
                         train_loss = train_iter(args, train_batch, *trpack) #torch.Tensor([0.25]) #                                  
-                train_loss_list.append(train_loss.item())           
+                train_loss_list.append(train_loss.item())   
+                pbar_train.set_description(f'    |  CELoss: {train_loss.item():.4f}  |  Epoch {epoch_num+1}  |')
+                pbar_train.update()
                 ########################################################################################
                 if (batch_iter + 1) % num_train_batches == 0:                  
                     train_loss_mean = torch.mean(torch.Tensor(train_loss_list)).item()
@@ -204,6 +206,7 @@ def train(args):
                                 is_checkpoint = True
                             valid_accuracy = (total_correct / data.valid_size)*100
                             pbar_val.set_description(f'    |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}  |  Epoch {epoch_num+1}  |')
+                            pbar_val.update()
                         elif args.task == "reg":
                             if val_loss_mean < best_val_loss:   # regression için < olmalı NRL NURAAAAL 
                                 best_val_loss = val_loss_mean

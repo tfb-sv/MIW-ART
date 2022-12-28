@@ -126,7 +126,7 @@ class TheData(object):
         data_smiles = data['smiles'].apply(self.encode_bpe_smiles, encoding_vocab_path=self.encoding_vocab_path)
         chemicals, l_chems = self.chem_tokenizer.identify_words(data_smiles, padding_len=self.max_smi_len, out_type='int', seq_type="smi")       
         proteins, l_prots = 1, 2 #self.prot_tokenizer.identify_words(data["aa_sequence"], padding_len=self.max_prot_len, out_type='int', seq_type="prot")
-        labels = 1   # data["affinity_score"]
+        labels = data["affinity_score"]
         return np.array(chemicals), np.array(proteins), np.array(labels), np.array(l_chems), np.array(l_prots)
         
     def get_cha_data(self, data, mode=""):
