@@ -1,16 +1,39 @@
+##############################################
+##############################################
+
 activate torch-rdkit
 
+##############################################
+##############################################
+
+python -m visdom.server
+
+http://localhost:8097
+
+##############################################
+##############################################
 
 cd C:\Users\nural\OneDrive\Masaüstü\ART-Mol
 cd C:\Users\WS001\Desktop\ART-Mol
 
+##############################################
+##############################################
 
-python train.py --df_loc "bbbp2k" --tokenization bpe
-python train.py --df_loc "hiv" --tokenization bpe
-python train.py --df_loc "tox21" --tokenization bpe
-python train.py --df_loc "bace" --tokenization bpe
-python train.py --df_loc "clintox" --tokenization bpe
+python train.py --df_loc "bbbp2k"
+python train.py --df_loc "hiv"
+python train.py --df_loc "tox21"
+python train.py --df_loc "bace"
+python train.py --df_loc "clintox"
 
+##############################################
+##############################################
 
 python evaluate.py
-python evaluate.py > results_log_bace.txt
+
+##############################################
+##############################################
+
+
+
+
+

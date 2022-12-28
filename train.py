@@ -20,6 +20,7 @@ import numpy as np
 import copy
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import auc
+from plot_losses import TorchLossPlotter
 # import matplotlib.pyplot as plt
 torch.manual_seed(0)
 
@@ -97,7 +98,7 @@ def train(args):
     model_kwargs = { k:v for k,v in vars(args).items() if k in
                    { 'model_type', 'leaf_rnn_type', 'rank_input', 'word_dim', 'tree_hidden_dim', 
                      'DTA_hidden_dim', 'dropout', 'use_batchnorm', 'task', 'mode', 'tokenization', 
-                     'molecule', 'df_loc'}}
+                     'molecule', 'df_loc', "cv_cnt"}}
     model = Model(**vars(args))
     # if args.pre_train != "":
         # model.load_state_dict(torch.load(args.pre_train), strict=False)   # strict, 1e1 eşleşmezse hata vermesini engelliyor, isim eşleşmesine bakıyor
@@ -164,7 +165,7 @@ def train(args):
                 pbar_train.update()
                 ########################################################################################
                 if (batch_iter + 1) % num_train_batches == 0:                  
-                    train_loss_mean = torch.mean(torch.Tensor(train_loss_list)).item()
+                    train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
                     if args.model_type == "RL":
                         train_rl_loss_mean = torch.mean(torch.Tensor(train_rl_loss_list)).item()
                     if args.task == "clf":              
@@ -193,20 +194,24 @@ def train(args):
                         prcs.append(prc_score)
                         rocs.append(roc_score)
                         if args.task == "reg": 
-                            val_loss_mean = torch.mean(torch.Tensor(val_loss_list)).item()
+                            val_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                         elif args.task == "clf":
                             val_loss_mean = roc_score                       
                         ########################################################################################
                         is_checkpoint = False                      
                         if args.task == "clf":
+                            valid_accuracy = (total_correct / data.valid_size) * 100
+                            val_ce_mean = np.round(torch.mean(torch.Tensor(valid_loss_list)).item(), 4)
                             if val_loss_mean > best_val_loss:   # val_loss_mean artık roc_score
                                 best_val_loss = val_loss_mean   # best_val_loss da artık roc_score lool :)
                                 model_filename = (f'm-{val_loss_mean:.4f}.pkl')
                                 model_path = args.save_dir + "/" + args.df_loc[5:] + "-" + model_filename
                                 is_checkpoint = True
-                            valid_accuracy = (total_correct / data.valid_size)*100
-                            pbar_val.set_description(f'    |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}  |  Epoch {epoch_num+1}  |')
-                            pbar_val.update()
+                                pbar_val.set_description(f'    |  MODEL SAVED!  |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}  |  Epoch {epoch_num+1}  |')
+                                pbar_val.update()
+                            else:
+                                pbar_val.set_description(f'    |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}  |  Epoch {epoch_num+1}  |')
+                                pbar_val.update()
                         elif args.task == "reg":
                             if val_loss_mean < best_val_loss:   # regression için < olmalı NRL NURAAAAL 
                                 best_val_loss = val_loss_mean
@@ -215,6 +220,14 @@ def train(args):
                                 is_checkpoint = True
                         if is_checkpoint:
                             save_checkpoint(model, model_kwargs, model_path)
+                        ########################################################################################
+                        graph_title = args.df_loc[5:].upper()
+                        line_name_t = "Train" + "_" + str(args.cv_cnt)
+                        line_name_v = "Val" + "_" + str(args.cv_cnt)
+                        plotter.plot('CELoss', line_name_t, graph_title, epoch_num, train_loss_mean)
+                        plotter.plot('ROC', line_name_v, graph_title, epoch_num, val_loss_mean)   #roc-auc score, not ce!
+                        plotter.plot('CELoss', line_name_v, graph_title, epoch_num, val_ce_mean)
+                        plotter.plot('Acc', line_name_v, graph_title, epoch_num, valid_accuracy)
                         ########################################################################################
                         print("\n")
     print(f"\n    |  TRAINING HAS BEEN COMPLETED!  |  Best Val ROC-AUC = % {max(rocs):.4f}  |   Best Val PRC-AUC = % {max(prcs):.4f}  |\n")
@@ -228,6 +241,7 @@ def save_checkpoint(model, model_kwargs, path):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--cv_cnt', default=0, type=int)
     parser.add_argument('--df_loc', required=True) 
     parser.add_argument('--save-dir', default='results')
     parser.add_argument('--model-type', default='STG', choices=['RL', 'STG'])
@@ -271,24 +285,30 @@ def main():
     ########################################################################################
     df_loc_orj = copy.deepcopy(str(args.df_loc))
     start = time.time()
+    args.cv_cnt = 0
     for a1 in [64, 32]:
         for a2 in [300, 500]:
             for a3 in [0.3, 0.5]:
-                args.batch_size = a1
-                args.tree_hidden_dim = a2
-                args.dropout = a3
-                for k, v in vars(args).items():
-                    logging.info(k+':'+str(v))
-                for i in range(3):   # for file_no in [122, 123, 124]:                   
-                    file_loc = "data/" + str(df_loc_orj)   #  + str(file_no)
-                    print("\n>>", file_loc, "is started to 3Fold training procedure.\n")
-                    args.df_loc = file_loc
-                    train(args)
+                for a4 in ["bpe", "cha"]:
+                    args.batch_size = a1
+                    args.tree_hidden_dim = a2
+                    args.dropout = a3
+                    args.tokenization = a4
+                    for k, v in vars(args).items():
+                        logging.info(k+':'+str(v))
+                    for i in range(3):   # for file_no in [122, 123, 124]:                   
+                        file_loc = "data/" + str(df_loc_orj)   #  + str(file_no)
+                        print("\n>>", file_loc, "is started to training procedure.\n")
+                        args.df_loc = file_loc
+                        train(args)
+                    args.cv_cnt += 1
     end = time.time()
     total = np.round(((end - start) / 60), 2)
     print("\n>>", total, "minutes passed.")
 
 if __name__ == '__main__':
+    global plotter
+    plotter = TorchLossPlotter(env_name = 'ARTM')
     main()
 
 
