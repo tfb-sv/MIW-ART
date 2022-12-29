@@ -65,7 +65,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 ########################################################################################
 ########################################################################################
 
-def train(args, cnt, cv_keyz):
+def train(args, cnt, cv_keyz, data):
     ########################################################################################
     # prmz = {"batch_size": args.batch_size,
     #         "tree_hidden_dim": args.tree_hidden_dim,
@@ -73,15 +73,13 @@ def train(args, cnt, cv_keyz):
     #         "tokenization": args.tokenization}
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
-    wandb.init(project="ART-Mol", config=prmz)
+    project_name = "ART-Mol" + "_" + args.data_name.upper()
+    run_name = "hyp_" + str(cnt)
+    token_note = args.tokenization
+    wandb.init(project=project_name, config=prmz, name=run_name, notes=token_note)
     ##########################
-    data = data_loaderX(args)
     num_train_batches = data.num_train_batches
     num_valid_batches = data.num_valid_batches
-    ##########################
-    if args.is_visdom:
-        from utils.plot_losses import TorchLossPlotter
-        plotter = TorchLossPlotter(env_name = 'ARTM')
     ########################################################################################
     modelX = ARTM_model
     model = modelX(args)
@@ -124,8 +122,7 @@ def train(args, cnt, cv_keyz):
         best_metric = 10
     ##########################
     trpack = [model, params, criterion, optimizer]
-    ##########################
-    print("\n")  
+    evpack = []
     ##########################
     # wandb.watch(model, log_freq=5)
     ########################################################################################
@@ -159,12 +156,12 @@ def train(args, cnt, cv_keyz):
                         ##########################
                         for valid_batch in data.generator("valid"):                           
                             if args.task == "clf":
-                                _, val_loss, curr_correct, labels, preds = eval_iter(valid_batch, model, args.task, args.mode)
+                                _, val_loss, curr_correct, labels, preds = eval_iter(valid_batch, model, args.task, args.mode)   # *evpack)
                                 total_correct += curr_correct
                                 predictions.extend(preds)
                                 ground_truth.extend(labels)
                             # elif args.task == "reg": 
-                            #     _, val_loss = eval_iter(valid_batch, model, args.task)
+                            #     _, val_loss = eval_iter(valid_batch, model, args.task)   # *evpack)
                             val_loss_list.append(val_loss.item())
                         ########################################################################################
                         train_accuracy = (total_correct / data.train_size)   # * 100
@@ -210,28 +207,28 @@ def train(args, cnt, cv_keyz):
                             plotter.plot('Accuracy', line_name_v, graph_title, epoch_num, valid_accuracy)   
                         ##########################
                         wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": val_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
-                        ##########################
-                        # print("\n")
                         ########################################################################################
     wandb.finish()
-    # print(f"\n\n>>  Best ROC-AUC = % {max(rocs):.4f}  |   Best PRC-AUC = % {max(prcs):.4f}")
-    print(f"\n>>  {args.data_name.upper()} Training {cnt} is COMPLETED.  <<\n")
+    # print(f"\n\n>>  Best ROC-AUC = % {max(rocs):.4f}")
+    print(f"\n>>  {args.data_name.upper()} Training hyp_{cnt} is COMPLETED.  <<\n")
     ########################################################################################
 
 ########################################################################################
 ########################################################################################
 
-def main():
+def main(args):
     ########################################################################################
-    args = load_args()
-    ######################################################################################## a simple log file, the same content as stdout
+    ### a simple log file, the same content as stdout
     if os.path.exists(args.save_dir):
         shutil.rmtree(args.save_dir)
     ##########################
     os.mkdir(args.save_dir)
     ##########################
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s')
-    logFormatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
+    logging.basicConfig(level=logging.INFO, 
+                        format=frmt,
+                        datefmt='|  %Y-%m-%d  |  %H:%M:%S  |')
+    logFormatter = logging.Formatter(frmt)
     rootLogger = logging.getLogger()
     fileHandler = logging.FileHandler(os.path.join(args.save_dir, 'stdout.log'))
     fileHandler.setFormatter(logFormatter)
@@ -245,14 +242,18 @@ def main():
     cv_vals = list(cv_all.values())
     all_cv = list(itertools.product(*cv_vals))
     ##########################
-    print("\n")
+    data = data_loaderX(args)
+    ##########################
+    print(f"\n\n>>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
         if k not in cv_keys:
-            logging.info(k + ' = ' + str(v))
+            if k != "vocab":
+                logging.info(k + ' = ' + str(v))
     ##########################
     for cv_no in range(len(all_cv)):
         cv = all_cv[cv_no] 
-        print(f"\n\n>>  {args.data_name.upper()} Training {cv_no} STARTED.  <<\n\n")
+        print(f"\n\n>>  {args.data_name.upper()} Training hyp_{cv_no} STARTED.  <<")
+        print(f"\n>>  Cross-validation Hyperparameters:\n")
         ##########################
         for param_no in range(len(cv_keys)):
             setattr(args, cv_keys[param_no], cv[param_no])
@@ -262,11 +263,11 @@ def main():
                 logging.info(k + ' = ' + str(v))
         print("\n")
         ##########################
-        train(args, cv_no, cv_keys)
+        train(args, cv_no, cv_keys, data)
     ##########################
     end = time.time()
     total = np.round(((end - start) / 60), 2)
-    print("\n>> ", total, "minutes elapsed.")
+    print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")   # tüm cv'ler için geçen süre !! cvler is_cv olsun ?
     ########################################################################################
 
 #######################################################################################
@@ -290,7 +291,7 @@ def load_args():
                         help='dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm')
     parser.add_argument('--DTA_hidden_dim', default=1024, type=int)
     parser.add_argument('--dropout', default=0.3, type=float)
-    parser.add_argument('--tokenization', default='bpe', choices=['bpe', 'cha'])
+    parser.add_argument('--tokenization', default='cha', choices=['bpe', 'cha'])
     parser.add_argument('--use_batchnorm', default=True, action='store_true')
     parser.add_argument('--task', default='clf', choices=['clf', 'reg'])
     ##########################
@@ -311,7 +312,13 @@ def load_args():
 ########################################################################################
 
 if __name__ == '__main__':
-    main()
+    args = load_args()
+    if args.is_visdom:
+        from utils.plot_losses import TorchLossPlotter
+        global plotter
+        env_namex= "ART-Mol" + "_" + args.data_name.upper()
+        plotter = TorchLossPlotter(env_name = env_namex)
+    main(args)
 
 ########################################################################################
 ########################################################################################

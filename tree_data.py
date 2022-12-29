@@ -83,8 +83,8 @@ class data_loaderX(object):
         self.num_valid_batches = math.ceil(len(self.valid_dataset) / args.batch_size)        
         self.train_size = len(self.train_dataset)
         self.valid_size = len(self.valid_dataset)        
-        print(f"\n    |  TRAIN SET SIZE: {self.train_size} data  |")
-        print(f"    |  VALID SET SIZE: {self.valid_size} data  |\n")        
+        print(f"\n\n    |  TRAIN SET SIZE: {self.train_size} data  |")
+        print(f"    |  VALID SET SIZE: {self.valid_size} data  |")        
         args.num_words = len(self.vocab_l)
         args.vocab = self   # ???
         ######################################################################################## ???

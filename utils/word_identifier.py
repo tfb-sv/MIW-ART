@@ -4,7 +4,7 @@ from tokenizers.trainers import BpeTrainer, UnigramTrainer
 from tokenizers.pre_tokenizers import WhitespaceSplit
 import json
 
-with open("vocabs/decoder_bpe_main_dict.json", "r") as f:
+with open("utils/vocabs/decoder_bpe_main_dict.json", "r") as f:
     decoder_dict_main = json.load(f)
 
 class WordIdentifier:
