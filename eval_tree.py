@@ -1,9 +1,11 @@
+########################################################################################
+
 import argparse
 import numpy as np
 import torch
 from torch import nn
-from model.SingleModel import SingleModel
-from dataLoader import TheData
+from model.tree_model import ARTM_model
+from tree_data import data_loaderX
 from ete3 import Tree
 from tqdm import tqdm
 import pandas as pd
@@ -14,34 +16,44 @@ from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
 import os
 torch.manual_seed(0)
 
+########################################################################################
+
 def invert_dict(d):
     return { v:k for k,v in d.items() }
+
+########################################################################################
 
 def eval_iter(batch, model, task, mode):
     model.eval()
     if task == "clf":
         model_arg = batch[0]
         labels = batch[1]
-        if mode == "emb":
-            logits = model(**model_arg) #actually not logits, but hyp_h matrix
-            return logits
-    elif task == "reg":
-        model_arg, labels = batch
+        # if mode == "emb":
+        #     logits = model(**model_arg)   # actually not logits, but hyp_h matrix
+        #     return logits
+    # elif task == "reg":
+    #     model_arg, labels = batch
     logits, _ = model(**model_arg)
     if task == "clf":
         labels_pred = logits.max(1)[1]
         num_correct = torch.eq(labels, labels_pred).long().sum().item()  
         criterion = nn.CrossEntropyLoss()
         loss = criterion(input=logits, target=labels)
-        return logits, loss, num_correct, labels.cpu().detach().numpy().tolist(), labels_pred.cpu().detach().numpy().tolist()   # NRL
-    elif task == "reg":
-        logits = logits.view(-1)
-        criterion = nn.MSELoss()
-        loss = criterion(input=logits, target=labels)
-        return logits, loss
+        labelsx = labels.cpu().detach().numpy().tolist()   # NRL
+        labels_predx = labels_pred.cpu().detach().numpy().tolist()   # NRL
+        return logits, loss, num_correct, labelsx, labels_predx
+    # elif task == "reg":
+    #     logits = logits.view(-1)
+    #     criterion = nn.MSELoss()
+    #     loss = criterion(input=logits, target=labels)
+    #     return logits, loss
+
+########################################################################################
 
 def legal(s):
     return s.replace(',', '<comma>')
+
+########################################################################################
 
 def ids2words(ids, decoder_dict, tokenization):
     sentence = []
@@ -52,6 +64,8 @@ def ids2words(ids, decoder_dict, tokenization):
             word = decoder_dict[str(ids[i])]
         sentence.append(word)
     return sentence
+
+########################################################################################
 
 def postOrder(root):
     def recursion(node):
@@ -65,38 +79,14 @@ def postOrder(root):
             return '(%s,%s)%s' % (left, right, legal(node.word))
     return recursion(root)+';'
 
+########################################################################################
+
 def visualizeTree(postOrderStr):
     t = Tree(postOrderStr, format=8)
     t_ascii = t.get_ascii(show_internal=True)
     print(t_ascii)
-    
-# def gradeNodes(postOrderStr, freq_dict, chem_id, test_loss):  # ex
-    # t = Tree(postOrderStr, format=8)
-    # newick = str(t.write())
-    # chem_id = (chem_id, newick)   # chem_id aslında smiles.
-    # root = t.get_tree_root()
-    # _, max_point = root.get_farthest_leaf()
-    # max_point += 1
-    # token_once = []
-    # for node in t.traverse("levelorder"):
-        # if node.name == "-":
-            # continue
-        # point = max_point - t.get_distance(root, node)
-        # if node.name in freq_dict:   # eğer token sözlükte varsa (token = ligand'ın bpe parçası)
-            # temp_point = freq_dict[node.name][0] 
-            # temp_cnt1 = freq_dict[node.name][1]
-            # temp_cnt2 = freq_dict[node.name][2]
-            # temp_cnt3 = freq_dict[node.name][3]   # list of chem_ids(smiles+newick)
-            # loss_total = freq_dict[node.name][4]
-            # temp_cnt3.append(chem_id)
-            # if node.name not in token_once:   # unique_repeat counter aslında ya
-                # temp_cnt2 += 1
-            # freq_dict[node.name] = [(temp_point + point), (temp_cnt1 + 1), temp_cnt2, temp_cnt3, (loss_total + test_loss)]
-        # else:   # eğer token sözlükte yoksa
-            # freq_dict[node.name] = [point, 1, 1, [chem_id], test_loss]
-        # if node.name not in token_once:   # unique_repeat counter aslında ya
-            # token_once.append(node.name)
-    # return freq_dict, max_point
+
+########################################################################################
     
 def gradeNodes(postOrderStr, freq_dict, smi, test_loss):
     t = Tree(postOrderStr, format=8)
@@ -128,12 +118,16 @@ def gradeNodes(postOrderStr, freq_dict, smi, test_loss):
                 freq_dict[token] = temp               
     return freq_dict
 
+########################################################################################
+
 def recoverSentence(ids, length, decoder_dict, tokenization):
     ids = ids[0].tolist()
     length = length[0].item()
     sentence = ids2words(ids, decoder_dict, tokenization)
     sentence = ' '.join(sentence[:length])
     return sentence
+
+########################################################################################
 
 def main(args):
     device = torch.device('cuda' if args.cuda else 'cpu')
@@ -149,9 +143,9 @@ def main(args):
     for k, v in model_kwargs.items():
         setattr(args, k, v)
     task = model_kwargs['task']
-    data = TheData(args)   
-    Model = SingleModel
-    model = Model(**vars(args))
+    data = data_loaderX(args)   
+    modelX = ARTM_model
+    model = modelX(args)
     num_params = sum(np.prod(p.size()) for p in model.parameters())
     num_embedding_params = np.prod(model.word_embedding.weight.size())
     # print(f'\n    |    # of Word Embed Params  : {num_embedding_params}     |')
@@ -318,18 +312,28 @@ def main(args):
         print("\n    |  EMBEDDINGS HAVE BEEN CREATED!  |\n")
     #######################################################################################################################
     #######################################################################################################################      
-        
-if __name__ == '__main__':
+
+########################################################################################
+
+def load_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--df_loc', default="")
+    parser.add_argument('--data_name', default="")
     parser.add_argument('--ckpt', default="")
-    parser.add_argument('--cuda', default=True, action='store_true')
+    # parser.add_argument('--cuda', default=True, action='store_true')
     parser.add_argument('--tokenization', default='bpe', choices=['bpe', 'cha'], help='byte-pair encoding or character-based')
     parser.add_argument('--mode', default='val', choices=['vis', 'val', 'ins', 'emb'], help='visualization, validation, inspection or embedding')
     parser.add_argument('--batch-size', default=32, type=int)   
     parser.add_argument('--task', default='clf', choices=['clf', 'reg'], help='classification or regression')
     parser.add_argument('--file_name', default="")
     args = parser.parse_args() 
+    return args
+
+########################################################################################
+
+if __name__ == '__main__':
+    ########################################################################################
+    args = load_args()
+    ########################################################################################
     for file_orj in os.listdir("results"):   # THIS IS AN ALL_in_ONE PROCEDURE !
         if file_orj[-4:] != ".pkl":
             continue       
@@ -338,3 +342,6 @@ if __name__ == '__main__':
         args.df_loc = "data/" + args.file_name   # + "_test.csv"
         print("\n>>", args.file_name, "is started to embedding creating procedure.\n")
         main(args)
+    ########################################################################################
+        
+########################################################################################
