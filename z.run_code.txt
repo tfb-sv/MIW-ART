@@ -21,7 +21,7 @@ cd C:\Users\WS001\Desktop\ART-Mol
 
 python train_tree.py --data_name "bbbp2k"
 
-["bace", "bbbp2k", "bbbp8k", "clintox", "hiv", "tox21"]
+["bace", "bbbp2k", "clintox", "hiv", "tox21"]
 
 ##############################################
 ##############################################
