@@ -278,7 +278,7 @@ def load_args():
     parser.add_argument('--max_smi_len', default=100, type=int)
     parser.add_argument('--act_func', default="ReLU", type=str)
     parser.add_argument('--clf_num_layers', default=2, type=int)
-    parser.add_argument('--is_visdom', default=True)
+    parser.add_argument('--is_visdom', default=False)
     parser.add_argument('--is_scheduler', default=True)
     parser.add_argument('--is_clip', default=True)
     parser.add_argument('--data_name', required=True, type=str) 

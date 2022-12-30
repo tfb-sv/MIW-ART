@@ -3,7 +3,7 @@
 source ~/.bashrc
 
 ##############################################
-(wandb gerekli)
+(wandb install + wandb login + visdom install gerekli) !!!!!!
 
 conda activate torch-rdkit (bunu kullanamaz mıyız)?
 conda activate AR-TreeDTA
