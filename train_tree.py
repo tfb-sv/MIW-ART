@@ -228,7 +228,9 @@ def main(args):
         shutil.rmtree(temp_path)   # klasör siliyor
     ##########################
     if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir)   # klasör oluşturuyor
+        os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor
+    # else:
+    #     pass
     os.mkdir(temp_path)
     ##########################
     frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
