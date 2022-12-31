@@ -13,17 +13,14 @@ from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.nn.utils import clip_grad_norm_
 from torch.nn.functional import softmax
-from model.tree_model import ARTM_model
+from model.tree_model import ARTM_model, calc_metrics
 from tree_data import data_loaderX
 from eval_tree import eval_iter
 from tqdm import tqdm
 import sys
 import json
-from sklearn.metrics import roc_auc_score
 import numpy as np
 import copy
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import auc
 import wandb
 import itertools
 torch.manual_seed(0)
@@ -36,7 +33,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     #######################################################################################
     model.train(True)
     ##########################
-    model_arg, labels = batch
+    model_arg, labels, smis = batch
     ##########################
     logits, _ = model(**model_arg)
     ##########################
@@ -98,19 +95,19 @@ def train(args, cnt, cv_keyz, data):
     ######################################################################################## SETUP OPTIMIZER AND SCHEDULER
     params = [p for p in model.parameters() if p.requires_grad]  
     ##########################
-    # if args.optimizer == 'adam':
+    # if args.optimizer == "adam":
     optimizer_class = optim.Adam
-    # elif args.optimizer == 'adagrad':
+    # elif args.optimizer == "adagrad":
     #     optimizer_class = optim.Adagrad
-    # elif args.optimizer == 'adadelta':
+    # elif args.optimizer == "adadelta":
     #     optimizer_class = optim.Adadelta
     # else:
-    #     raise Exception('unknown optimizer')  
+    #     raise Exception("unknown optimizer")  
     ##########################
     optimizer = optimizer_class(params=params, lr=args.lr, weight_decay=args.l2reg)
     ##########################
     if args.is_scheduler:
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='max', factor=0.5, patience=args.patience, verbose=True) 
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode="max", factor=0.5, patience=args.patience, verbose=True) 
     ######################################################################################## SET LOSS FUNCTION
     if args.task == "clf":
         criterion = nn.CrossEntropyLoss()
@@ -128,23 +125,23 @@ def train(args, cnt, cv_keyz, data):
                     "accuracy": []}
     ##########################
     # wandb.watch(model, log_freq=5)
-    ######################################################################################## START EPOCH LOOPS
+    ######################################################################################## START TRAIN LOOPS
     ########################################################################################
     for epoch_num in range(args.max_epoch):
         train_loss_list, val_loss_list = [], []
         with tqdm(total=(data.num_train_batches), unit="batch") as pbar_train:                      
-            for batch_iter, (train_batch) in enumerate(data.generator("train")):
+            for batch_num, (train_batch) in enumerate(data.generator("train")):
                 if args.task == "clf":
                     train_loss, curr_correct, labels, preds = train_iter(args, train_batch, *trpack)
                 # elif args.task == "reg":
                 #     train_loss = train_iter(args, train_batch, *trpack) 
                 ##########################
                 train_loss_list.append(train_loss.item())   
-                pbar_train.set_description(f'>>  EPOCH {(epoch_num + 1)}T  |  CE Loss = {train_loss.item():.4f}  |')
+                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  CE Loss = {train_loss.item():.4f}  |")
                 pbar_train.update()
                 ######################################################################################## START VALID LOOP
                 ########################################################################################
-                if (batch_iter + 1) % data.num_train_batches == 0:                  
+                if (batch_num + 1) % data.num_train_batches == 0:                  
                     with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         total_correct = 0
                         predictions, ground_truth = [], []
@@ -164,22 +161,19 @@ def train(args, cnt, cv_keyz, data):
                         valid_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                         ######################################################################################## PROCESSES FOR CLF             
                         if args.task == "clf":
-                            roc_score = np.round(roc_auc_score(ground_truth, predictions), 4)
-                            precision, recall, _ = precision_recall_curve(ground_truth, predictions)
-                            prc_score = np.round(auc(recall, precision), 4)
-                            valid_accuracy = np.round((total_correct / data.valid_size), 4)
+                            roc_score, prc_score, valid_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
                             ##########################
                             main_metric = roc_score  
                             ##########################
                             if main_metric > best_metric:
                                 best_metric = main_metric
-                                model_filename = (f'm-{args.data_name}-{main_metric:.4f}-{cnt}.pkl')
+                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")
                                 model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
                                 torch.save(model.state_dict(), model_path)
-                                pbar_val.set_description(f'>>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |  MODEL SAVED.  |')
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |  MODEL SAVED.  |")
                                 pbar_val.update()
                             else:
-                                pbar_val.set_description(f'>>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |')
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |")
                                 pbar_val.update()
                         ######################################################################################## PROCESSES FOR REG  
                         # elif args.task == "reg": 
@@ -187,7 +181,7 @@ def train(args, cnt, cv_keyz, data):
                               ##########################
                         #     if main_metric < best_metric:
                         #         best_metric = main_metric
-                        #         model_filename = (f'm-{args.data_name}-{main_metric:.4f}-{cnt}.pkl')
+                        #         model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")
                         #         model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
                     ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
@@ -201,11 +195,11 @@ def train(args, cnt, cv_keyz, data):
                         graph_title = args.data_name.upper()
                         line_name_t = "train" + "_" + str(cnt)
                         line_name_v = "valid" + "_" + str(cnt)
-                        plotter.plot('CE Loss', line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
-                        plotter.plot('CE Loss', line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
-                        plotter.plot('ROC-AUC', line_name_v, graph_title, epoch_num, roc_score)
-                        plotter.plot('PRC-AUC', line_name_v, graph_title, epoch_num, prc_score)
-                        plotter.plot('Accuracy', line_name_v, graph_title, epoch_num, valid_accuracy)   
+                        plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
+                        plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
+                        plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
+                        plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
+                        plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
                     ##########################
                     wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
                 ########################################################################################
@@ -230,17 +224,17 @@ def train(args, cnt, cv_keyz, data):
 def main(args):
     ########################################################################################
     temp_path = args.save_dir + "/" + args.data_name
-    if os.path.exists(temp_path):   # klasör varsa
-        shutil.rmtree(temp_path)   # klasör siliyor
+    if os.path.exists(temp_path):   # klasör varsa, results/task
+        shutil.rmtree(temp_path)   # klasör siliyor, results/task
     ##########################
     if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor
-    os.mkdir(temp_path)
+        os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor, results
+    os.mkdir(temp_path)   # klasör oluşturuyor, results/task
     ##########################
-    frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
+    frmt = "%(asctime)-30s %(levelname)-5s |  %(message)s"
     logging.basicConfig(level=logging.INFO, 
                         format=frmt,
-                        datefmt='|  %Y-%m-%d  |  %H:%M:%S  |')
+                        datefmt="|  %Y-%m-%d  |  %H:%M:%S  |")
     logFormatter = logging.Formatter(frmt)
     ########################################################################################
     start = time.time()
@@ -253,12 +247,12 @@ def main(args):
     ##########################
     data = data_loaderX(args)
     ##########################
-    print(f"\n\n>>  Constant Hyperparameters:\n")
+    print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
         if k not in cv_keys:
             if k != "vocab":
                 if k != "data_name":
-                    logging.info(k + ' = ' + str(v))
+                    logging.info(k + " = " + str(v))
     ##########################
     if args.is_cv:
         ##########################
@@ -279,9 +273,9 @@ def main(args):
             ##########################
             for k, v in vars(args).items():
                 if k == "data_name":
-                    logging.info(k + ' = ' + str(v))
+                    logging.info(k + " = " + str(v))
                 if k in cv_keys:
-                    logging.info(k + ' = ' + str(v))
+                    logging.info(k + " = " + str(v))
             print("\n")
             ##########################
             train(args, cv_no, cv_keys, data)
@@ -299,12 +293,13 @@ def main(args):
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
         ##########################
+        print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization} STARTED.  <<\n\n")
+        ##########################
         for k, v in vars(args).items():
             if k == "data_name":
-                logging.info(k + ' = ' + str(v))
+                logging.info(k + " = " + str(v))
             if k in cv_keys:
-                logging.info(k + ' = ' + str(v))
-        print("\n")
+                logging.info(k + " = " + str(v))
         ##########################
         train(args, cv_no, cv_keys, data)
         ##########################
@@ -320,40 +315,40 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument('--tokenization', default='cha', choices=['bpe', 'cha'])
-    parser.add_argument('--max_smi_len', default=100, type=int)
-    parser.add_argument('--act_func', default="ReLU", type=str)
-    parser.add_argument('--clf_num_layers', default=2, type=int)
-    parser.add_argument('--wandb_mode', default="disabled", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument('--is_cv', default=False)   # True
-    parser.add_argument('--is_visdom', default=False)
-    parser.add_argument('--is_scheduler', default=True)
-    parser.add_argument('--is_clip', default=True)
-    parser.add_argument('--data_name', required=True, type=str) 
-    parser.add_argument('--save_dir', default='../results')
-    parser.add_argument('--leaf_rnn_type', default='bilstm', choices=['bilstm', 'lstm'])
-    parser.add_argument('--rank_input', default='w', choices=['w', 'h'], 
-                        help='needed for STG, whether feed word embedding or hidden state of bilstm into score function')
-    parser.add_argument('--word_dim', default=300, type=int)
-    parser.add_argument('--tree_hidden_dim', default=300, type=int, 
-                        help='dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm')
-    parser.add_argument('--DTA_hidden_dim', default=1024, type=int)
-    parser.add_argument('--dropout', default=0.3, type=float)
-    parser.add_argument('--use_batchnorm', default=True, action='store_true')
-    parser.add_argument('--task', default='clf', choices=['clf'])   # , 'reg'
-    # parser.add_argument('--mode', default='', help='for evaluation mode!')
+    parser.add_argument("--tokenization", default="bpe", choices=["bpe", "cha"])
+    parser.add_argument("--max_smi_len", default=100, type=int)
+    parser.add_argument("--act_func", default="ReLU", type=str)
+    parser.add_argument("--clf_num_layers", default=2, type=int)
+    parser.add_argument("--wandb_mode", default="disabled", choices=["online", "offline", "disabled"], type=str)
+    parser.add_argument("--is_cv", default=True)   # True
+    parser.add_argument("--is_visdom", default=False)
+    parser.add_argument("--is_scheduler", default=True)
+    parser.add_argument("--is_clip", default=True)
+    parser.add_argument("--data_name", required=True, type=str) 
+    parser.add_argument("--save_dir", default="../results")
+    parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
+    parser.add_argument("--rank_input", default="w", choices=["w", "h"], 
+                        help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")
+    parser.add_argument("--word_dim", default=300, type=int)
+    parser.add_argument("--tree_hidden_dim", default=300, type=int, 
+                        help="dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm")
+    parser.add_argument("--DTA_hidden_dim", default=1024, type=int)
+    parser.add_argument("--dropout", default=0.3, type=float)
+    parser.add_argument("--use_batchnorm", default=True, action="store_true")
+    parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
+    # parser.add_argument("--mode", default="", help="for evaluation mode!")
     ##########################
-    parser.add_argument('--device', default="cuda", choices=['cuda', 'cpu'], type=str)
-    parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--max_epoch', default=1, type=int)   # 50
-    parser.add_argument('--lr', default=1e-3, type=float)
-    parser.add_argument('--l2reg', default=1e-5, type=float)
-    parser.add_argument('--clip', default=5.0, type=float)
-    parser.add_argument('--optimizer', default='adam', choices=['adam', 'adagrad', 'adadelta'])
-    parser.add_argument('--patience', default=10, type=int)
-    parser.add_argument('--fix_word_embedding', default=False, action='store_true')
-    parser.add_argument('--is_pretrain', default="", type=str)
-    # parser.add_argument('--pretrain_file', default="", type=str)
+    parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], type=str)
+    parser.add_argument("--batch_size", default=32, type=int)
+    parser.add_argument("--max_epoch", default=1, type=int)   # 50
+    parser.add_argument("--lr", default=1e-3, type=float)
+    parser.add_argument("--l2reg", default=1e-5, type=float)
+    parser.add_argument("--clip", default=5.0, type=float)
+    parser.add_argument("--optimizer", default="adam", choices=["adam", "adagrad", "adadelta"])
+    parser.add_argument("--patience", default=10, type=int)
+    parser.add_argument("--fix_word_embedding", default=False, action="store_true")
+    parser.add_argument("--is_pretrain", default="", type=str)
+    # parser.add_argument("--pretrain_file", default="", type=str)
     ##########################
     args = parser.parse_args()
     ##########################    
@@ -362,7 +357,7 @@ def load_args():
 ########################################################################################
 ########################################################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = load_args()
     if args.is_visdom:
         from utils.plot_live_losses import TorchLossPlotter

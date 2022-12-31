@@ -49,18 +49,18 @@ class data_loaderX(object):
             with open("data/INV_CHARSET.json", "r") as f:
                 self.inv_charsmiset = json.load(f)
             ##########################
-            self.train_label = self.train_dataset['affinity_score'].tolist()
-            self.valid_label = self.valid_dataset['affinity_score'].tolist()  
-            self.test_label = self.test_dataset['affinity_score'].tolist()
+            self.train_label = self.train_dataset["affinity_score"].tolist()
+            self.valid_label = self.valid_dataset["affinity_score"].tolist()  
+            self.test_label = self.test_dataset["affinity_score"].tolist()
             ##########################
-            self.train_chem = self.encode_cha_dataset(self.train_dataset['smiles'].tolist())
-            self.train_dataset = [(self.train_chem[i], self.train_label[i]) for i in range(len(self.train_dataset))]                 
+            self.train_chem = self.encode_cha_dataset(self.train_dataset["smiles"].tolist())
+            self.train_dataset = [(self.train_chem[i], self.train_label[i], self.train_dataset["smiles"][i]) for i in range(len(self.train_dataset))]                 
             ##########################
-            self.valid_chem = self.encode_cha_dataset(self.valid_dataset['smiles'].tolist())    
-            self.valid_dataset = [(self.valid_chem[i], self.valid_label[i]) for i in range(len(self.valid_dataset))]
+            self.valid_chem = self.encode_cha_dataset(self.valid_dataset["smiles"].tolist())    
+            self.valid_dataset = [(self.valid_chem[i], self.valid_label[i], self.valid_dataset["smiles"][i]) for i in range(len(self.valid_dataset))]
             ##########################
-            self.test_chem = self.encode_cha_dataset(self.test_dataset['smiles'].tolist())    
-            self.test_dataset = [(self.test_chem[i], self.test_label[i]) for i in range(len(self.test_dataset))]
+            self.test_chem = self.encode_cha_dataset(self.test_dataset["smiles"].tolist())    
+            self.test_dataset = [(self.test_chem[i], self.test_label[i], self.test_dataset["smiles"][i]) for i in range(len(self.test_dataset))]
             ##########################
             self.word_to_id_l = self.CHARSMISET
             self.id_to_word_l = self.inv_charsmiset
@@ -80,11 +80,14 @@ class data_loaderX(object):
         self.vocab_l = self.word_to_id_l.keys()                
         self.weight = None   # ???           
         self.num_train_batches = math.ceil(len(self.train_dataset) / args.batch_size)
-        self.num_valid_batches = math.ceil(len(self.valid_dataset) / args.batch_size)        
+        self.num_valid_batches = math.ceil(len(self.valid_dataset) / args.batch_size) 
+        self.num_test_batches = math.ceil(len(self.test_dataset) / args.batch_size)
         self.train_size = len(self.train_dataset)
-        self.valid_size = len(self.valid_dataset)        
+        self.valid_size = len(self.valid_dataset)   
+        self.test_size = len(self.test_dataset)
         print(f"\n\n    |  TRAIN SET SIZE: {self.train_size} data  |")
-        print(f"    |  VALID SET SIZE: {self.valid_size} data  |")        
+        print(f"    |  VALID SET SIZE: {self.valid_size} data  |")      
+        print(f"    |  TEST SET SIZE: {self.test_size} data  |\n\n")
         args.num_words = len(self.vocab_l)
         args.vocab = self   # ???
         ######################################################################################## ???
@@ -94,23 +97,30 @@ class data_loaderX(object):
     ########################################################################################
     
     def wrap_to_model_arg(self, chemicals, l_chems):   # for both cha and bpe
-        return {'encoded_ligand': torch.LongTensor(chemicals).to(self.args.device),
-                'ligand_length': torch.LongTensor(l_chems).to(self.args.device)}
+        return {"encoded_ligand": torch.LongTensor(chemicals).to(self.args.device),
+                "ligand_length": torch.LongTensor(l_chems).to(self.args.device)}
     
     ########################################################################################
     
     def smiles_segmenter(self, smi):   # for both cha and bpe
-        pattern = '(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])'
+        pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
         regex = re.compile(pattern)
         tokens = [token for token in regex.findall(smi)]
-        if smi != ''.join(tokens):
+        if smi != "".join(tokens):
             print(smi)
-        assert smi == ''.join(tokens)
+        assert smi == "".join(tokens)
+        if self.args.tokenization == "cha":
+            tokens2 = []
+            for token in tokens:
+                token2 = token.replace("(", "{")
+                token2 = token2.replace(")", "}")
+                tokens2.append(token2)
+            tokens = tokens2
         return tokens
     
     ########################################################################################
 
-    def encode_cha_smiles(self, seq):   # for only cha (kırpmak için, bpe'de ihtiyaç yok...)
+    def encode_cha_smiles(self, seq):   # for only cha (kırpmak için, bpe"de ihtiyaç yok...)
         seq = self.smiles_segmenter(seq)
         DATA_LEN = len(seq)
         if DATA_LEN > self.args.max_smi_len:
@@ -126,7 +136,7 @@ class data_loaderX(object):
         segments = self.smiles_segmenter(smiles)
         with open(encoding_vocab_path) as f:
             encoding_vocab = json.load(f)
-        output = ''.join([encoding_vocab.get(segment, encoding_vocab['[OOV]']) for segment in segments])
+        output = "".join([encoding_vocab.get(segment, encoding_vocab["[OOV]"]) for segment in segments])
         return output
     
     ########################################################################################
@@ -141,10 +151,11 @@ class data_loaderX(object):
     
     def get_bpe_data(self, data):   # for only bpe
         data = data.copy()        
-        data_smiles = data['smiles'].apply(self.encode_bpe_smiles, encoding_vocab_path=self.encoding_vocab_path)
-        chemicals, l_chems = self.chem_tokenizer.identify_words(data_smiles, padding_len=self.args.max_smi_len, out_type='int', seq_type="smi")       
+        data_smiles = data["smiles"].apply(self.encode_bpe_smiles, encoding_vocab_path=self.encoding_vocab_path)
+        chemicals, l_chems = self.chem_tokenizer.identify_words(data_smiles, padding_len=self.args.max_smi_len, out_type="int", seq_type="smi")       
         labels = data["affinity_score"]
-        return np.array(chemicals), np.array(labels), np.array(l_chems)
+        smis = data["smiles"]
+        return np.array(chemicals), np.array(labels), np.array(l_chems), smis
     
     ########################################################################################
     
@@ -152,14 +163,17 @@ class data_loaderX(object):
         data = data.copy()
         data = pd.DataFrame(data)
         batch_size = data.shape[0]
-        chemicals = np.zeros((batch_size, self.args.max_smi_len), dtype='int32')  
-        l_chems = np.zeros((batch_size,), dtype='int32')
-        labels = np.zeros((batch_size,), 'float32')          
+        print("\n\n", data, "\n\n")
+        dflksdf
+        chemicals = np.zeros((batch_size, self.args.max_smi_len), dtype="int32")  
+        l_chems = np.zeros((batch_size,), dtype="int32")
+        labels = np.zeros((batch_size,), "float32")          
         for i in range(batch_size):
             chemicals[i, :len(data[0][i])] = data[0][i]          
             l_chems[i] = len(data[0][i])
-            labels[i] = data[1][i]               
-        return np.array(chemicals), np.array(labels), np.array(l_chems)       
+            labels[i] = data[1][i]
+        smis = data[2]
+        return np.array(chemicals), np.array(labels), np.array(l_chems), smis      
     
     ########################################################################################
     ########################################################################################
@@ -185,15 +199,15 @@ class data_loaderX(object):
             minibatch = data[(ptr - self.args.batch_size) : ptr]
             ##########################
             if self.args.tokenization == "bpe":
-                chemicals, labels, l_chems = self.get_bpe_data(minibatch)
+                chemicals, labels, l_chems, smis = self.get_bpe_data(minibatch)
             elif self.args.tokenization == "cha":
                 minibatch.reset_index(inplace=True, drop=True) 
-                chemicals, labels, l_chems = self.get_cha_data(minibatch)
+                chemicals, labels, l_chems, smis = self.get_cha_data(minibatch)
             ##########################
             labels = torch.LongTensor(labels).to(self.args.device)
             model_arg = self.wrap_to_model_arg(chemicals, l_chems)
             ##########################
-            yield model_arg, labels
+            yield model_arg, labels, smis
         ########################################################################################
     
     ########################################################################################

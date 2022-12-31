@@ -12,15 +12,15 @@ class STG_AR_Tree(nn.Module):
         self.args = args
         # self.temperature = 1
         # assert args.vocab.id_to_word_l ???
-        if args.leaf_rnn_type == 'bilstm':
+        if args.leaf_rnn_type == "bilstm":
             self.leaf_rnn_cell = nn.LSTMCell(input_size=args.word_dim, hidden_size=(args.tree_hidden_dim//2)) # dim//2 per direction
             self.leaf_rnn_cell_bw = nn.LSTMCell(input_size=args.word_dim, hidden_size=(args.tree_hidden_dim//2))
-        elif args.leaf_rnn_type == 'lstm':
+        elif args.leaf_rnn_type == "lstm":
             self.leaf_rnn_cell = nn.LSTMCell(input_size=args.word_dim, hidden_size=args.tree_hidden_dim)
         self.treelstm_layer = TriPadLSTMLayer(args.tree_hidden_dim)       
-        if args.rank_input == 'w':
+        if args.rank_input == "w":
             rank_dim = args.word_dim
-        elif args.rank_input == 'h':
+        elif args.rank_input == "h":
             rank_dim = args.tree_hidden_dim
         self.tree_rank = nn.Sequential(nn.Linear(in_features=rank_dim, out_features=128, bias=False),
                                      nn.ReLU(),
@@ -28,14 +28,14 @@ class STG_AR_Tree(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.args.leaf_rnn_type in {'bilstm', 'lstm'}:
+        if self.args.leaf_rnn_type in {"bilstm", "lstm"}:
             init.kaiming_normal_(self.leaf_rnn_cell.weight_ih.data)
             init.orthogonal_(self.leaf_rnn_cell.weight_hh.data)
             init.constant_(self.leaf_rnn_cell.bias_ih.data, val=0)
             init.constant_(self.leaf_rnn_cell.bias_hh.data, val=0)
             # Set forget bias to 1
             self.leaf_rnn_cell.bias_ih.data.chunk(4)[1].fill_(1)
-            if self.args.leaf_rnn_type == 'bilstm':
+            if self.args.leaf_rnn_type == "bilstm":
                 init.kaiming_normal_(self.leaf_rnn_cell_bw.weight_ih.data)
                 init.orthogonal_(self.leaf_rnn_cell_bw.weight_hh.data)
                 init.constant_(self.leaf_rnn_cell_bw.bias_ih.data, val=0)
@@ -97,11 +97,11 @@ class STG_AR_Tree(nn.Module):
             length: (batch_size, ). sentence length
         """
         batch_size = length.size(0)
-        if self.args.leaf_rnn_type in {'bilstm', 'lstm'}:
+        if self.args.leaf_rnn_type in {"bilstm", "lstm"}:
             max_length = sentence_embedding.size(1)
             hs = []
             cs = []
-            zero_dim = self.args.tree_hidden_dim if self.args.leaf_rnn_type == 'lstm' else self.args.tree_hidden_dim//2
+            zero_dim = self.args.tree_hidden_dim if self.args.leaf_rnn_type == "lstm" else self.args.tree_hidden_dim//2
             zero_state = torch.zeros(batch_size, zero_dim).to(sentence_embedding.device)
             h_prev = c_prev = zero_state
             for i in range(max_length):
@@ -114,7 +114,7 @@ class STG_AR_Tree(nn.Module):
             hs = torch.stack(hs, dim=1)
             cs = torch.stack(cs, dim=1)
             
-            if self.args.leaf_rnn_type == 'bilstm':
+            if self.args.leaf_rnn_type == "bilstm":
                 hs_bw = []
                 cs_bw = []
                 h_bw_prev = c_bw_prev = zero_state
@@ -147,9 +147,9 @@ class STG_AR_Tree(nn.Module):
             elif self.args.tokenization == "cha":
                 sentence = list(map(lambda j: self.args.vocab.id_to_word_l[str(j)], sentence_word[i].tolist()))
 
-            if self.args.rank_input == 'w':
+            if self.args.rank_input == "w":
                 embedding = sentence_embedding[i]
-            elif self.args.rank_input == 'h':
+            elif self.args.rank_input == "h":
                 embedding = hs[i]
 
             # calculate scores for each word

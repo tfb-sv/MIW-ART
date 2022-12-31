@@ -6,6 +6,17 @@ from torch import nn
 from torch.nn import init
 import torch.nn.functional as F
 from model.STGumbel_AR_Tree import STG_AR_Tree
+from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
+
+########################################################################################
+########################################################################################
+
+def calc_metrics(ground_truth, predictions, total_correct, data):
+    roc_score = np.round(roc_auc_score(ground_truth, predictions), 4)
+    precision, recall, _ = precision_recall_curve(ground_truth, predictions)
+    prc_score = np.round(auc(recall, precision), 4)
+    accuracy = np.round((total_correct / data.valid_size), 4)
+    return roc_score, prc_score, accuracy
 
 ########################################################################################
 ########################################################################################
@@ -125,7 +136,7 @@ class ARTM_model(nn.Module):
         # if self.args.mode == "emb":
         #     return h 
         x = self.classifier(h)
-        supplements = {'tree': tree}        
+        supplements = {"tree": tree}        
         return x, supplements
         
     ########################################################################################

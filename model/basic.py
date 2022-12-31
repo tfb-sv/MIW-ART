@@ -279,7 +279,7 @@ def st_gumbel_softmax(logits, temperature=1.0, mask=None):
         temperature (float): A temperature parameter. The higher
             the value is, the smoother the distribution is.
         mask (Tensor, optional): If given, it masks the softmax
-            so that indices of '0' mask values are not selected.
+            so that indices of "0" mask values are not selected.
             The size is (batch_size, num_classes).
         weights (Tensor, optional) : Must have the same size with mask
     Returns:
@@ -328,7 +328,7 @@ def reverse_padded_sequence(inputs, lengths, batch_first=False):
     if not batch_first:
         inputs = inputs.transpose(0, 1)
     if inputs.size(0) != len(lengths):
-        raise ValueError('inputs incompatible with lengths.')
+        raise ValueError("inputs incompatible with lengths.")
     reversed_indices = [list(range(inputs.size(1)))
                         for _ in range(inputs.size(0))]
     for i, length in enumerate(lengths):
