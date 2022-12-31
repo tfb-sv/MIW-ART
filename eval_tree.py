@@ -81,19 +81,20 @@ def main(args):
     tokenization = args.tokenization
     data = data_loaderX(args)   
     modelX = ARTM_model
-    model = modelX(args)   
-    model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))
+    model = modelX(args)
+    loaded = torch.load(args.ckpt, map_location=torch.device(args.device))
+    model.load_state_dict(loaded)
     model.eval()   # .train(True) ???
     model = model.to(args.device)
     #######################################################################################################################
     #######################################################################################################################   
     if args.mode == "test":   
         ##########################
-        with tqdm(total=(data.num_test_batches), unit="batch") as pbar_test:
+        with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
             total_correct = 0
             test_loss_list, predictions, ground_truth = [], [], []
             ##########################
-            for batch_num, (test_batch) in enumerate(data.generator("test")):
+            for test_batch_num, (test_batch) in enumerate(data.generator("test")):
                 ##########################
                 if args.task == "clf":
                     _, test_loss, curr_correct, labels, preds = eval_iter(args, test_batch, model)
@@ -104,16 +105,16 @@ def main(args):
                 # elif args.task == "reg":
                 #     _, test_loss = eval_iter(args, test_batch, *trpack)
                 ##########################
-                pbar_val.set_description(f">>  MOLECULE {(batch_num + 1)}  |  CE Loss = {test_loss.item():.4f}  |")
+                pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  CE Loss = {test_loss.item():.4f}  |")
                 pbar_test.update()
                 test_loss_list.append(test_loss.item())
         ##########################
-        test_loss_mean = torch.mean(torch.Tensor(test_loss_list)).item()
+        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
         ##########################
         if args.task == "clf":
             roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
             ##########################
-            print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization} is COMPLETED.  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {test_loss_mean:.4f}  |\n")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training is COMPLETED.  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {test_loss_mean:.4f}  |\n")
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
@@ -129,10 +130,10 @@ def main(args):
         ##########################
         cnt = 0
         ##########################
-        with tqdm(total=(data.num_test_batches), unit="batch") as pbar_test:
+        with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
             all_newicks = {}
             ##########################
-            for test_batch in data.generator("test"):
+            for test_batch_num, (test_batch) in enumerate(data.generator("test")):
                 model_arg = test_batch[0]
                 # labels = test_batch[1]
                 smi = test_batch[2]
@@ -148,7 +149,7 @@ def main(args):
         with open(newicks_save_path, "w") as f:
             json.dump(all_newicks, f)
         ##########################
-        print(f"\n\n>>  {args.data_name.upper()} Newicking {args.tokenization} is COMPLETED.  <<\n")
+        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Newicking is COMPLETED.  <<\n")
     #######################################################################################################################
     #######################################################################################################################      
 

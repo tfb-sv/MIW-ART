@@ -89,7 +89,6 @@ def train(args, cnt, cv_keyz, data):
     ##########################
     model = model.to(args.device)
     ##########################
-    print("\n")
     logging.info(model)
     print("\n")
     ######################################################################################## SETUP OPTIMIZER AND SCHEDULER
@@ -130,7 +129,7 @@ def train(args, cnt, cv_keyz, data):
     for epoch_num in range(args.max_epoch):
         train_loss_list, val_loss_list = [], []
         with tqdm(total=(data.num_train_batches), unit="batch") as pbar_train:                      
-            for batch_num, (train_batch) in enumerate(data.generator("train")):
+            for train_batch_num, (train_batch) in enumerate(data.generator("train")):
                 if args.task == "clf":
                     train_loss, curr_correct, labels, preds = train_iter(args, train_batch, *trpack)
                 # elif args.task == "reg":
@@ -141,12 +140,15 @@ def train(args, cnt, cv_keyz, data):
                 pbar_train.update()
                 ######################################################################################## START VALID LOOP
                 ########################################################################################
-                if (batch_num + 1) % data.num_train_batches == 0:                  
+                if (train_batch_num + 1) % data.num_train_batches == 0:  
+                    train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
+                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  CE Loss = {train_loss_mean:.4f}  |")
+                    pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         total_correct = 0
                         predictions, ground_truth = [], []
                         ##########################
-                        for valid_batch in data.generator("valid"):                           
+                        for valid_batch_num, (valid_batch) in enumerate(data.generator("valid")):                           
                             if args.task == "clf":
                                 _, val_loss, curr_correct, labels, preds = eval_iter(args, valid_batch, model)
                                 total_correct += curr_correct
@@ -156,8 +158,8 @@ def train(args, cnt, cv_keyz, data):
                             # elif args.task == "reg": 
                             #     _, val_loss = eval_iter(args, valid_batch, model)
                             val_loss_list.append(val_loss.item())
+                            pbar_val.update()
                         ######################################################################################## CALCULATE COMMON METRICS
-                        train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
                         valid_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                         ######################################################################################## PROCESSES FOR CLF             
                         if args.task == "clf":
@@ -212,9 +214,9 @@ def train(args, cnt, cv_keyz, data):
         json.dump(loss_outputs, f)
     ##########################
     if args.is_cv:
-        print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization}_{cnt} is COMPLETED.  <<\n")
+        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cnt} Training is COMPLETED.  <<\n")
     else:
-        print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization} is COMPLETED.  <<\n")
+        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training is COMPLETED.  <<\n")
     ########################################################################################
     ######################################################################################## END OF THE STORY, THANK YOU
 
@@ -245,8 +247,6 @@ def main(args):
     cv_vals = list(cv_all.values())
     all_cv = list(itertools.product(*cv_vals))
     ##########################
-    data = data_loaderX(args)
-    ##########################
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
         if k not in cv_keys:
@@ -265,18 +265,19 @@ def main(args):
             rootLogger.addHandler(fileHandler)
             ##########################
             cv = all_cv[cv_no] 
-            print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization}_{cv_no} STARTED.  <<")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
             print(f"\n>>  Cross-validation Hyperparameters:\n")
             ##########################
             for param_no in range(len(cv_keys)):
                 setattr(args, cv_keys[param_no], cv[param_no])
+            ##########################
+            data = data_loaderX(args)
             ##########################
             for k, v in vars(args).items():
                 if k == "data_name":
                     logging.info(k + " = " + str(v))
                 if k in cv_keys:
                     logging.info(k + " = " + str(v))
-            print("\n")
             ##########################
             train(args, cv_no, cv_keys, data)
         ##########################
@@ -293,7 +294,7 @@ def main(args):
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
         ##########################
-        print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization} STARTED.  <<\n\n")
+        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training STARTED.  <<\n\n")
         ##########################
         for k, v in vars(args).items():
             if k == "data_name":
@@ -315,12 +316,13 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tokenization", default="bpe", choices=["bpe", "cha"])
+    parser.add_argument("--wandb_mode", default="disabled", choices=["online", "offline", "disabled"], type=str)
+    parser.add_argument("--is_cv", default=True)
+    parser.add_argument("--max_epoch", default=2, type=int)   # 50
+    parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)
-    parser.add_argument("--wandb_mode", default="disabled", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default=True)   # True
     parser.add_argument("--is_visdom", default=False)
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
@@ -340,7 +342,6 @@ def load_args():
     ##########################
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], type=str)
     parser.add_argument("--batch_size", default=32, type=int)
-    parser.add_argument("--max_epoch", default=1, type=int)   # 50
     parser.add_argument("--lr", default=1e-3, type=float)
     parser.add_argument("--l2reg", default=1e-5, type=float)
     parser.add_argument("--clip", default=5.0, type=float)

@@ -163,8 +163,6 @@ class data_loaderX(object):
         data = data.copy()
         data = pd.DataFrame(data)
         batch_size = data.shape[0]
-        print("\n\n", data, "\n\n")
-        dflksdf
         chemicals = np.zeros((batch_size, self.args.max_smi_len), dtype="int32")  
         l_chems = np.zeros((batch_size,), dtype="int32")
         labels = np.zeros((batch_size,), "float32")          
