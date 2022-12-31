@@ -67,13 +67,13 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = "ART-Mol" + "_" + args.data_name.upper()
+    project_name = (f"ART-Mol_{args.data_name.upper()}")
     if args.tokenization == "cha":
-        run_name = "cha_" + str(cnt)
+        run_name = (f"cha_{str_cnt}")
     elif args.tokenization == "bpe":
-        run_name = "bpe_" + str(cnt)
+        run_name = (f"bpe_{str_cnt}")
     token_note = args.tokenization
-    wandb.init(mode=args.wandb_mode, project=project_name, config=prmz, name=run_name, notes=token_note)
+    run = wandb.init(mode=args.wandb_mode, project=project_name, config=prmz, name=run_name, notes=token_note, reinit=True, force=True)
     ######################################################################################## BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
@@ -169,8 +169,8 @@ def train(args, cnt, cv_keyz, data):
                             ##########################
                             if main_metric > best_metric:
                                 best_metric = main_metric
-                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")
-                                model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
+                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{args.tokenization}-{cnt}.pkl")
+                                model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
                                 torch.save(model.state_dict(), model_path)
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |  MODEL SAVED.  |")
                                 pbar_val.update()
@@ -195,8 +195,8 @@ def train(args, cnt, cv_keyz, data):
                     ##########################
                     if args.is_visdom:
                         graph_title = args.data_name.upper()
-                        line_name_t = "train" + "_" + str(cnt)
-                        line_name_v = "valid" + "_" + str(cnt)
+                        line_name_t = (f"train_{str(cnt)}")
+                        line_name_v = (f"valid_{str(cnt)}")
                         plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
                         plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
                         plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
@@ -207,9 +207,9 @@ def train(args, cnt, cv_keyz, data):
                 ########################################################################################
                 ######################################################################################## FINISH EVERYTHING
     ##########################
-    wandb.finish()
+    run.finish()
     ##########################
-    loss_file_path = "../results/" + args.data_name + "/" + args.data_name + "_losses.json"
+    loss_file_path = (f"../results/{args.data_name}/{args.data_name}_metrics_{args.tokenization}_{cnt}.json")
     with open(loss_file_path, "w") as f:
         json.dump(loss_outputs, f)
     ##########################
@@ -258,7 +258,7 @@ def main(args):
         ##########################
         for cv_no in range(len(all_cv)):
             ##########################
-            log_file_name = args.data_name + "/stdout" + "_" + args.data_name + ".log"
+            log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
             rootLogger = logging.getLogger()
             fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
             fileHandler.setFormatter(logFormatter)
@@ -288,7 +288,7 @@ def main(args):
     else:
         ##########################
         cv_no = 0
-        log_file_name = args.data_name + "/stdout" + "_" + args.data_name + ".log"
+        log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
         rootLogger = logging.getLogger()
         fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
         fileHandler.setFormatter(logFormatter)
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     if args.is_visdom:
         from utils.plot_live_losses import TorchLossPlotter
         global plotter
-        env_namex= "ART-Mol" + "_" + args.data_name.upper()
+        env_namex= (f"ART-Mol_{args.data_name.upper()}")
         plotter = TorchLossPlotter(env_name = env_namex)
     main(args)
 

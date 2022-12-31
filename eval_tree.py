@@ -52,7 +52,10 @@ def eval_iter(args, batch, model):
 ########################################################################################
 
 def legal(s):
-    return s.replace(",", "<comma>")
+    s2 = s.replace(",", "<comma>")
+    # s2 = s2.replace("(", "{")   # ???
+    # s2 = s2.replace(")", "}")   # ???
+    return s2
 
 ########################################################################################
 
@@ -62,10 +65,11 @@ def postOrder(root):
             return "-"
         left = recursion(node.left)
         right = recursion(node.right)
+        new_token = legal(node.word)
         if node.left is None and node.right is None:
-            return legal(node.word) # leaf node
+            return new_token   # leaf node
         else:
-            return "(%s,%s)%s" % (left, right, legal(node.word))
+            return "(%s,%s)%s" % (left, right, new_token)
     return recursion(root)+";"
 
 ########################################################################################
@@ -82,8 +86,7 @@ def main(args):
     data = data_loaderX(args)   
     modelX = ARTM_model
     model = modelX(args)
-    loaded = torch.load(args.ckpt, map_location=torch.device(args.device))
-    model.load_state_dict(loaded)
+    model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
     model.eval()   # .train(True) ???
     model = model.to(args.device)
     #######################################################################################################################
@@ -114,7 +117,7 @@ def main(args):
         if args.task == "clf":
             roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
             ##########################
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training is COMPLETED.  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {test_loss_mean:.4f}  |\n")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {test_loss_mean:.4f}  |\n")
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
@@ -128,8 +131,6 @@ def main(args):
             with open("data/INV_CHARSET.json", "r") as f:
                 vis_decoder_chem_dict = json.load(f) 
         ##########################
-        cnt = 0
-        ##########################
         with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
             all_newicks = {}
             ##########################
@@ -142,10 +143,8 @@ def main(args):
                 all_newicks[list(smi)[0]] = newick
                 ##########################
                 pbar_test.update()
-                cnt += 1
-            ##########################  
         ##########################
-        newicks_save_path = args.save_dir + "/all_newicks_" + args.data_name + ".json"
+        newicks_save_path = (f"{args.save_dir}/all_newicks_{args.data_name}.json")
         with open(newicks_save_path, "w") as f:
             json.dump(all_newicks, f)
         ##########################
@@ -196,18 +195,18 @@ if __name__ == "__main__":
         if task_name == "saveds":
             continue
         args.data_name = task_name
-        subfile_path = args.save_dir + "/" + task_name
+        subfile_path = (f"{args.save_dir}/{task_name}")
         for subfile in os.listdir(subfile_path):
             if subfile.endswith(".pkl"):
-                ckpt_path = subfile_path + "/" + subfile
+                ckpt_path = (f"{subfile_path}/{subfile}")
                 args.ckpt = ckpt_path
         if args.mode == "newick":
-            print(f"\n\n>>  {args.data_name.upper()} Newicking {args.tokenization} STARTED.  <<")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Newicking STARTED.  <<")
         elif args.mode == "test":
             if args.ckpt == "":
                 print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
                 break
-            print(f"\n\n>>  {args.data_name.upper()} Testing {args.tokenization} STARTED.  <<")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing STARTED.  <<")
         main(args)
     ########################################################################################
         
