@@ -223,15 +223,13 @@ def train(args, cnt, cv_keyz, data):
 
 def main(args):
     ########################################################################################
-    ### a simple log file, the same content as stdout
-    if os.path.exists(args.save_dir):   # klasör varsa
-        shutil.rmtree(args.save_dir)   # klasör siliyor
+    temp_path = args.save_dir + "/" + args.data_name
+    if os.path.exists(temp_path):   # klasör varsa
+        shutil.rmtree(temp_path)   # klasör siliyor
     ##########################
-    all_dataset_names = ["bace", "bbbp2k", "clintox", "hiv", "tox21"]
-    os.mkdir(args.save_dir)   # klasör oluşturuyor
-    for dataset_name in all_dataset_names:
-        temp_path = args.save_dir + "/" + dataset_name
-        os.mkdir(temp_path)
+    if not os.path.exists(args.save_dir):
+        os.mkdir(args.save_dir)   # klasör oluşturuyor
+    os.mkdir(temp_path)
     ##########################
     frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
     logging.basicConfig(level=logging.INFO, 
