@@ -294,7 +294,9 @@ def main(args):
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
         ##########################
-        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training STARTED.  <<\n\n")
+        print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training STARTED.  <<")
+        ##########################
+        data = data_loaderX(args)
         ##########################
         for k, v in vars(args).items():
             if k == "data_name":
@@ -317,9 +319,9 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     parser.add_argument("--wandb_mode", default="disabled", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default=True)
+    parser.add_argument("--is_cv", default=False)
     parser.add_argument("--max_epoch", default=2, type=int)   # 50
-    parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
+    parser.add_argument("--tokenization", default="bpe", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)

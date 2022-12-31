@@ -109,13 +109,13 @@ class data_loaderX(object):
         if smi != "".join(tokens):
             print(smi)
         assert smi == "".join(tokens)
-        if self.args.tokenization == "cha":
-            tokens2 = []
-            for token in tokens:
-                token2 = token.replace("(", "{")
-                token2 = token2.replace(")", "}")
-                tokens2.append(token2)
-            tokens = tokens2
+        # if self.args.tokenization == "cha":
+        tokens2 = []
+        for token in tokens:
+            token2 = token.replace("(", "{")
+            token2 = token2.replace(")", "}")
+            tokens2.append(token2)
+        tokens = tokens2
         return tokens
     
     ########################################################################################
