@@ -69,9 +69,9 @@ def train(args, cnt, cv_keyz, data):
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     project_name = (f"ART-Mol_{args.data_name.upper()}")
     if args.tokenization == "cha":
-        run_name = (f"cha_{str_cnt}")
+        run_name = (f"cha_{cnt}")
     elif args.tokenization == "bpe":
-        run_name = (f"bpe_{str_cnt}")
+        run_name = (f"bpe_{cnt}")
     token_note = args.tokenization
     run = wandb.init(mode=args.wandb_mode, project=project_name, config=prmz, name=run_name, notes=token_note, reinit=True, force=True)
     ######################################################################################## BUILD MODEL
@@ -195,8 +195,8 @@ def train(args, cnt, cv_keyz, data):
                     ##########################
                     if args.is_visdom:
                         graph_title = args.data_name.upper()
-                        line_name_t = (f"train_{str(cnt)}")
-                        line_name_v = (f"valid_{str(cnt)}")
+                        line_name_t = (f"train_{cnt}")
+                        line_name_v = (f"valid_{cnt}")
                         plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
                         plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
                         plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)

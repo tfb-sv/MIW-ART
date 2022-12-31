@@ -29,9 +29,9 @@ class data_loaderX(object):
         ########################################################################################
         self.args = args
         ##########################
-        self.train_loc = "data/" + str(args.data_name) + "/" + str(args.data_name) + "_train.csv"
-        self.val_loc = "data/" + str(args.data_name) + "/" + str(args.data_name) + "_val.csv"
-        self.test_loc = "data/" + str(args.data_name) + "/" + str(args.data_name) + "_test.csv"
+        self.train_loc = (f"data/{args.data_name}/{args.data_name}_train.csv")
+        self.val_loc = (f"data/{args.data_name}/{args.data_name}_val.csv")
+        self.test_loc = (f"data/{args.data_name}/{args.data_name}_test.csv")
         ##########################
         self.train_dataset = pd.read_csv(self.train_loc)       
         self.train_dataset.reset_index(inplace=True, drop=True)  
