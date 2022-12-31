@@ -7,6 +7,7 @@ from torch.nn import init
 import torch.nn.functional as F
 from model.STGumbel_AR_Tree import STG_AR_Tree
 from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
+import numpy as np
 
 ########################################################################################
 ########################################################################################
