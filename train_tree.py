@@ -68,13 +68,8 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 ########################################################################################
 
 def train(args, cnt, cv_keyz, data):
-    ########################################################################################
-    # prmz = {"batch_size": args.batch_size,
-    #         "tree_hidden_dim": args.tree_hidden_dim,
-    #         "dropout": args.dropout,
-    #         "tokenization": args.tokenization}
+    ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    ##########################
     project_name = "ART-Mol" + "_" + args.data_name.upper()
     if args.tokenization == "cha":
         run_name = "cha_" + str(cnt)
@@ -82,18 +77,15 @@ def train(args, cnt, cv_keyz, data):
         run_name = "bpe_" + str(cnt)
     token_note = args.tokenization
     wandb.init(mode=args.wandb_mode, project=project_name, config=prmz, name=run_name, notes=token_note)
-    ##########################
-    num_train_batches = data.num_train_batches
-    num_valid_batches = data.num_valid_batches
-    ########################################################################################
+    ######################################################################################## BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
-    ########################################################################################
+    ######################################################################################## SETUP MODEL
     # if args.is_pretrain != "":
-        # model.load_state_dict(torch.load(args.pre_train), strict=False)   # strict, 1e1 eşleşmezse hata vermesini engelliyor, isim eşleşmesine bakıyor
+        # model.load_state_dict(torch.load(args.pretrain_file), strict=False)   # strict, 1e1 eşleşmezse hata vermesini engelliyor, isim eşleşmesine bakıyor !!!
         # for name, param in model.named_parameters():
             # if name.startswith("classifier."):
-                # param.requires_grad = False   # güncellememesi için bu layerları !!
+                # param.requires_grad = False
     ##########################
     if args.fix_word_embedding:   # NRL
         model.word_embedding.weight.requires_grad = False 
@@ -103,9 +95,9 @@ def train(args, cnt, cv_keyz, data):
     print("\n")
     logging.info(model)
     print("\n")
-    ##########################
+    ######################################################################################## SETUP OPTIMIZER AND SCHEDULER
     params = [p for p in model.parameters() if p.requires_grad]  
-    ########################################################################################
+    ##########################
     # if args.optimizer == 'adam':
     optimizer_class = optim.Adam
     # elif args.optimizer == 'adagrad':
@@ -116,18 +108,18 @@ def train(args, cnt, cv_keyz, data):
     #     raise Exception('unknown optimizer')  
     ##########################
     optimizer = optimizer_class(params=params, lr=args.lr, weight_decay=args.l2reg)
-    if args.is_scheduler:   # NRL
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='max', factor=0.5, patience=args.patience, verbose=True) 
     ##########################
+    if args.is_scheduler:
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='max', factor=0.5, patience=args.patience, verbose=True) 
+    ######################################################################################## SET LOSS FUNCTION
     if args.task == "clf":
         criterion = nn.CrossEntropyLoss()
         best_metric = 0
     elif args.task == "reg":
         criterion = nn.MSELoss()
         best_metric = 10
-    ##########################
+    ######################################################################################## SET DATA HOLDERS
     trpack = [model, params, criterion, optimizer]
-    evpack = []
     ##########################
     loss_outputs = {"ce loss train": [],
                     "ce loss valid": [],
@@ -136,11 +128,11 @@ def train(args, cnt, cv_keyz, data):
                     "accuracy": []}
     ##########################
     # wandb.watch(model, log_freq=5)
-    ########################################################################################
+    ######################################################################################## START EPOCH LOOPS
     ########################################################################################
     for epoch_num in range(args.max_epoch):
         train_loss_list, val_loss_list = [], []
-        with tqdm(total=(num_train_batches), unit="batch") as pbar_train:                      
+        with tqdm(total=(data.num_train_batches), unit="batch") as pbar_train:                      
             for batch_iter, (train_batch) in enumerate(data.generator("train")):
                 if args.task == "clf":
                     train_loss, curr_correct, labels, preds = train_iter(args, train_batch, *trpack)
@@ -150,22 +142,22 @@ def train(args, cnt, cv_keyz, data):
                 train_loss_list.append(train_loss.item())   
                 pbar_train.set_description(f'>>  EPOCH {(epoch_num + 1)}T  |  CE Loss = {train_loss.item():.4f}  |')
                 pbar_train.update()
+                ######################################################################################## START VALID LOOP
                 ########################################################################################
-                ########################################################################################
-                if (batch_iter + 1) % num_train_batches == 0:                  
-                    with tqdm(total=(num_valid_batches), unit="batch") as pbar_val:
+                if (batch_iter + 1) % data.num_train_batches == 0:                  
+                    with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         total_correct = 0
                         predictions, ground_truth = [], []
                         ##########################
                         for valid_batch in data.generator("valid"):                           
                             if args.task == "clf":
-                                _, val_loss, curr_correct, labels, preds = eval_iter(valid_batch, model, args.task, args.mode)   # *evpack)
+                                _, val_loss, curr_correct, labels, preds = eval_iter(args, valid_batch, model)
                                 total_correct += curr_correct
                                 predictions.extend(preds)
                                 ground_truth.extend(labels)
                             ##########################
                             # elif args.task == "reg": 
-                            #     _, val_loss = eval_iter(valid_batch, model, args.task)   # *evpack)
+                            #     _, val_loss = eval_iter(args, valid_batch, model)
                             val_loss_list.append(val_loss.item())
                         ######################################################################################## CALCULATE COMMON METRICS
                         train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
@@ -195,9 +187,9 @@ def train(args, cnt, cv_keyz, data):
                               ##########################
                         #     if main_metric < best_metric:
                         #         best_metric = main_metric
-                        #         model_filename = (f'm-{main_metric:.4f}.pkl')
-                        #         model_path = args.save_dir + "/" + args.data_name + "-" + model_filename
-                    ########################################################################################
+                        #         model_filename = (f'm-{args.data_name}-{main_metric:.4f}-{cnt}.pkl')
+                        #         model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
+                    ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
                     loss_outputs["ce loss train"].append(train_loss_mean)
                     loss_outputs["ce loss valid"].append(valid_loss_mean)
@@ -217,7 +209,7 @@ def train(args, cnt, cv_keyz, data):
                     ##########################
                     wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
                 ########################################################################################
-                ########################################################################################
+                ######################################################################################## FINISH EVERYTHING
     ##########################
     wandb.finish()
     ##########################
@@ -225,13 +217,12 @@ def train(args, cnt, cv_keyz, data):
     with open(loss_file_path, "w") as f:
         json.dump(loss_outputs, f)
     ##########################
-    # print(f"\n\n>>  Best ROC-AUC = % {max(rocs):.4f}")
     if args.is_cv:
         print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization}_{cnt} is COMPLETED.  <<\n")
     else:
         print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization} is COMPLETED.  <<\n")
     ########################################################################################
-    ########################################################################################
+    ######################################################################################## END OF THE STORY, THANK YOU
 
 ########################################################################################
 ########################################################################################
@@ -244,8 +235,6 @@ def main(args):
     ##########################
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor
-    # else:
-    #     pass
     os.mkdir(temp_path)
     ##########################
     frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
@@ -329,6 +318,7 @@ def main(args):
 #######################################################################################
 
 def load_args():
+    ##########################
     parser = argparse.ArgumentParser()
     parser.add_argument('--tokenization', default='cha', choices=['bpe', 'cha'])
     parser.add_argument('--max_smi_len', default=100, type=int)
@@ -351,6 +341,7 @@ def load_args():
     parser.add_argument('--dropout', default=0.3, type=float)
     parser.add_argument('--use_batchnorm', default=True, action='store_true')
     parser.add_argument('--task', default='clf', choices=['clf'])   # , 'reg'
+    # parser.add_argument('--mode', default='', help='for evaluation mode!')
     ##########################
     parser.add_argument('--device', default="cuda", choices=['cuda', 'cpu'], type=str)
     parser.add_argument('--batch_size', default=32, type=int)
@@ -360,10 +351,12 @@ def load_args():
     parser.add_argument('--clip', default=5.0, type=float)
     parser.add_argument('--optimizer', default='adam', choices=['adam', 'adagrad', 'adadelta'])
     parser.add_argument('--patience', default=10, type=int)
-    parser.add_argument('--mode', default='', help='for evaluation mode!')
     parser.add_argument('--fix_word_embedding', default=False, action='store_true')
     parser.add_argument('--is_pretrain', default="", type=str)
-    args = parser.parse_args() 
+    # parser.add_argument('--pretrain_file', default="", type=str)
+    ##########################
+    args = parser.parse_args()
+    ##########################    
     return args
 
 ########################################################################################

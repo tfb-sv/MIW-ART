@@ -23,18 +23,19 @@ def invert_dict(d):
 
 ########################################################################################
 
-def eval_iter(batch, model, task, mode):
-    model.eval()
-    if task == "clf":
+def eval_iter(args, batch, model):
+    # mode = args.mode
+    model.eval()   # .train(False) ???
+    if args.task == "clf":
         model_arg = batch[0]
         labels = batch[1]
         # if mode == "emb":
         #     logits = model(**model_arg)   # actually not logits, but hyp_h matrix
         #     return logits
-    # elif task == "reg":
+    # elif args.task == "reg":
     #     model_arg, labels = batch
     logits, _ = model(**model_arg)
-    if task == "clf":
+    if args.task == "clf":
         labels_pred = logits.max(1)[1]
         num_correct = torch.eq(labels, labels_pred).long().sum().item()  
         criterion = nn.CrossEntropyLoss()
@@ -42,7 +43,7 @@ def eval_iter(batch, model, task, mode):
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL
         labels_predx = labels_pred.cpu().detach().numpy().tolist()   # NRL
         return logits, loss, num_correct, labelsx, labels_predx
-    # elif task == "reg":
+    # elif args.task == "reg":
     #     logits = logits.view(-1)
     #     criterion = nn.MSELoss()
     #     loss = criterion(input=logits, target=labels)
@@ -320,10 +321,10 @@ def load_args():
     parser.add_argument('--data_name', default="")
     parser.add_argument('--ckpt', default="")
     # parser.add_argument('--cuda', default=True, action='store_true')
-    parser.add_argument('--tokenization', default='bpe', choices=['bpe', 'cha'], help='byte-pair encoding or character-based')
-    parser.add_argument('--mode', default='val', choices=['vis', 'val', 'ins', 'emb'], help='visualization, validation, inspection or embedding')
+    parser.add_argument('--tokenization', default='bpe', choices=['bpe', 'cha'])
+    parser.add_argument('--mode', default='val', choices=['vis', 'val', 'ins'])   # , 'emb'
     parser.add_argument('--batch-size', default=32, type=int)   
-    parser.add_argument('--task', default='clf', choices=['clf', 'reg'], help='classification or regression')
+    parser.add_argument('--task', default='clf', choices=['clf'])   # , 'reg'
     parser.add_argument('--file_name', default="")
     args = parser.parse_args() 
     return args
