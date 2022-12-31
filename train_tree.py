@@ -57,7 +57,9 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     optimizer.step()
     ##########################
     if args.task == "clf":
-        return loss, num_correct, labels.cpu().detach().numpy().tolist(), labels_pred.cpu().detach().numpy().tolist()
+        labelsx = labels.cpu().detach().numpy().tolist()
+        labels_predx = labels_pred.cpu().detach().numpy().tolist()
+        return loss, num_correct, labelsx, labels_predx
     # elif args.task == "reg":
     #     return loss
     #######################################################################################
@@ -74,7 +76,10 @@ def train(args, cnt, cv_keyz, data):
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
     project_name = "ART-Mol" + "_" + args.data_name.upper()
-    run_name = "hyp_" + str(cnt)
+    if args.tokenization == "cha":
+        run_name = "cha_" + str(cnt)
+    elif args.tokenization == "bpe":
+        run_name = "bpe_" + str(cnt)
     token_note = args.tokenization
     wandb.init(project=project_name, config=prmz, name=run_name, notes=token_note)
     ##########################
@@ -144,7 +149,7 @@ def train(args, cnt, cv_keyz, data):
                 #     train_loss = train_iter(args, train_batch, *trpack) 
                 ########################################################################################
                 train_loss_list.append(train_loss.item())   
-                pbar_train.set_description(f'>>  EPOCH {(epoch_num + 1)}  |  CE Loss: {train_loss.item():.4f}')
+                pbar_train.set_description(f'>>  EPOCH {(epoch_num + 1)}T  |  CE Loss = {train_loss.item():.4f}  |')
                 pbar_train.update()
                 ########################################################################################
                 if (batch_iter + 1) % num_train_batches == 0:                  
@@ -181,13 +186,13 @@ def train(args, cnt, cv_keyz, data):
                             val_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                             if main_metric > best_metric:
                                 best_metric = main_metric
-                                model_filename = (f'm-{main_metric:.4f}.pkl')
-                                model_path = args.save_dir + "/" + args.data_name + "-" + model_filename
+                                model_filename = (f'm-{args.data_name}-{main_metric:.4f}-{cnt}.pkl')
+                                model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
                                 torch.save(model.state_dict(), model_path)
-                                pbar_val.set_description(f'>>  Model saved.  |  EPOCH {(epoch_num + 1)}  |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}')
+                                pbar_val.set_description(f'>>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  PRC-AUC = {prc_score:.4f}  |  MODEL SAVED.  |')
                                 pbar_val.update()
                             else:
-                                pbar_val.set_description(f'>>  EPOCH {(epoch_num + 1)}  |  ROC-AUC: % {roc_score:.4f}  |  PRC-AUC: % {prc_score:.4f}')
+                                pbar_val.set_description(f'>>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  PRC-AUC = {prc_score:.4f}  |')
                                 pbar_val.update()
                         ##########################
                         # elif args.task == "reg":
@@ -210,7 +215,7 @@ def train(args, cnt, cv_keyz, data):
                         ########################################################################################
     wandb.finish()
     # print(f"\n\n>>  Best ROC-AUC = % {max(rocs):.4f}")
-    print(f"\n>>  {args.data_name.upper()} Training hyp_{cnt} is COMPLETED.  <<\n")
+    print(f"\n>>  {args.data_name.upper()} Training {args.tokenization}_{cnt} is COMPLETED.  <<\n")
     ########################################################################################
 
 ########################################################################################
@@ -219,20 +224,20 @@ def train(args, cnt, cv_keyz, data):
 def main(args):
     ########################################################################################
     ### a simple log file, the same content as stdout
-    if os.path.exists(args.save_dir):
-        shutil.rmtree(args.save_dir)
+    if os.path.exists(args.save_dir):   # klasör varsa
+        shutil.rmtree(args.save_dir)   # klasör siliyor
     ##########################
-    os.mkdir(args.save_dir)
+    all_dataset_names = ["bace", "bbbp2k", "clintox", "hiv", "tox21"]
+    os.mkdir(args.save_dir)   # klasör oluşturuyor
+    for dataset_name in all_dataset_names:
+        temp_path = args.save_dir + "/" + dataset_name
+        os.mkdir(temp_path)
     ##########################
     frmt = '%(asctime)-30s %(levelname)-5s |  %(message)s'
     logging.basicConfig(level=logging.INFO, 
                         format=frmt,
                         datefmt='|  %Y-%m-%d  |  %H:%M:%S  |')
     logFormatter = logging.Formatter(frmt)
-    rootLogger = logging.getLogger()
-    fileHandler = logging.FileHandler(os.path.join(args.save_dir, 'stdout.log'))
-    fileHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(fileHandler)
     ########################################################################################
     start = time.time()
     ##########################
@@ -248,26 +253,61 @@ def main(args):
     for k, v in vars(args).items():
         if k not in cv_keys:
             if k != "vocab":
-                logging.info(k + ' = ' + str(v))
+                if k != "data_name":
+                    logging.info(k + ' = ' + str(v))
     ##########################
-    for cv_no in range(len(all_cv)):
-        cv = all_cv[cv_no] 
-        print(f"\n\n>>  {args.data_name.upper()} Training hyp_{cv_no} STARTED.  <<")
-        print(f"\n>>  Cross-validation Hyperparameters:\n")
+    if args.is_cv:
         ##########################
-        for param_no in range(len(cv_keys)):
-            setattr(args, cv_keys[param_no], cv[param_no])
+        for cv_no in range(len(all_cv)):
+            ##########################
+            log_file_name = args.data_name + "/stdout" + "_" + args.data_name + ".log"
+            rootLogger = logging.getLogger()
+            fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+            fileHandler.setFormatter(logFormatter)
+            rootLogger.addHandler(fileHandler)
+            ##########################
+            cv = all_cv[cv_no] 
+            print(f"\n\n>>  {args.data_name.upper()} Training {args.tokenization}_{cv_no} STARTED.  <<")
+            print(f"\n>>  Cross-validation Hyperparameters:\n")
+            ##########################
+            for param_no in range(len(cv_keys)):
+                setattr(args, cv_keys[param_no], cv[param_no])
+            ##########################
+            for k, v in vars(args).items():
+                if k == "data_name":
+                    logging.info(k + ' = ' + str(v))
+                if k in cv_keys:
+                    logging.info(k + ' = ' + str(v))
+            print("\n")
+            ##########################
+            train(args, cv_no, cv_keys, data)
+        ##########################
+        end = time.time()
+        total = np.round(((end - start) / 60), 2)
+        print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
+        ##########################
+    else:
+        ##########################
+        cv_no = 0
+        log_file_name = 'stdout' + args.data_name + '.log'
+        rootLogger = logging.getLogger()
+        fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
         ##########################
         for k, v in vars(args).items():
+            if k == "data_name":
+                logging.info(k + ' = ' + str(v))
             if k in cv_keys:
                 logging.info(k + ' = ' + str(v))
         print("\n")
         ##########################
         train(args, cv_no, cv_keys, data)
-    ##########################
-    end = time.time()
-    total = np.round(((end - start) / 60), 2)
-    print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")   # tüm cv'ler için geçen süre !! cvler is_cv olsun ?
+        ##########################
+        end = time.time()
+        total = np.round(((end - start) / 60), 2)
+        print(f"\n>>  {total} minutes elapsed for the training.  <<\n")
+        ##########################
     ########################################################################################
 
 #######################################################################################
@@ -278,6 +318,7 @@ def load_args():
     parser.add_argument('--max_smi_len', default=100, type=int)
     parser.add_argument('--act_func', default="ReLU", type=str)
     parser.add_argument('--clf_num_layers', default=2, type=int)
+    parser.add_argument('--is_cv', default=True)
     parser.add_argument('--is_visdom', default=False)
     parser.add_argument('--is_scheduler', default=True)
     parser.add_argument('--is_clip', default=True)
@@ -297,7 +338,7 @@ def load_args():
     ##########################
     parser.add_argument('--device', default="cuda", choices=['cuda', 'cpu'], type=str)
     parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--max_epoch', default=25, type=int)
+    parser.add_argument('--max_epoch', default=50, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--l2reg', default=1e-5, type=float)
     parser.add_argument('--clip', default=5.0, type=float)

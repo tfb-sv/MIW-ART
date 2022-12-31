@@ -1,5 +1,5 @@
 {
     "batch_size": [64, 32], 
-    "tree_hidden_dim": [300, 500],
-    "dropout": [0.3, 0.5]
+    "dropout": [0.3, 0.5],
+    "tokenization": ["cha", "bpe"]
     }
