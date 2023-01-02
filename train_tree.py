@@ -67,7 +67,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = (f"ART-Mol_w/o_sche_grad_{args.data_name.upper()}")
+    project_name = (f"ART-Mol_wo_sche_grad_{args.data_name.upper()}")
     if args.tokenization == "cha":
         run_name = (f"cha_{cnt}")
     elif args.tokenization == "bpe":
