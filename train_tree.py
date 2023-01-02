@@ -67,13 +67,20 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = (f"ART-Mol_{args.data_name.upper()}")
+    project_name = (f"ART-Mol_w/o_sche_grad_{args.data_name.upper()}")
     if args.tokenization == "cha":
         run_name = (f"cha_{cnt}")
     elif args.tokenization == "bpe":
         run_name = (f"bpe_{cnt}")
     token_note = args.tokenization
-    run = wandb.init(mode=args.wandb_mode, project=project_name, config=prmz, name=run_name, notes=token_note, reinit=True, force=True)
+    run = wandb.init(mode=args.wandb_mode, 
+                     project=project_name, 
+                     config=prmz, 
+                     name=run_name, 
+                     notes=token_note, 
+                     reinit=True, 
+                     force=True, 
+                     settings=wandb.Settings(start_method='thread'))
     ######################################################################################## BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
@@ -94,14 +101,12 @@ def train(args, cnt, cv_keyz, data):
     ######################################################################################## SETUP OPTIMIZER AND SCHEDULER
     params = [p for p in model.parameters() if p.requires_grad]  
     ##########################
-    # if args.optimizer == "adam":
-    optimizer_class = optim.Adam
-    # elif args.optimizer == "adagrad":
-    #     optimizer_class = optim.Adagrad
-    # elif args.optimizer == "adadelta":
-    #     optimizer_class = optim.Adadelta
-    # else:
-    #     raise Exception("unknown optimizer")  
+    if args.optimizer == "adam":
+      optimizer_class = optim.Adam
+    elif args.optimizer == "adagrad":
+        optimizer_class = optim.Adagrad
+    elif args.optimizer == "adadelta":
+        optimizer_class = optim.Adadelta
     ##########################
     optimizer = optimizer_class(params=params, lr=args.lr, weight_decay=args.l2reg)
     ##########################
@@ -318,16 +323,16 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument("--wandb_mode", default="disabled", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default=False)
-    parser.add_argument("--max_epoch", default=2, type=int)   # 50
+    parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
+    parser.add_argument("--is_cv", default=True)
+    parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="bpe", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)
     parser.add_argument("--is_visdom", default=False)
-    parser.add_argument("--is_scheduler", default=True)
-    parser.add_argument("--is_clip", default=True)
+    parser.add_argument("--is_scheduler", default=False)
+    parser.add_argument("--is_clip", default=False)
     parser.add_argument("--data_name", required=True, type=str) 
     parser.add_argument("--save_dir", default="../results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
