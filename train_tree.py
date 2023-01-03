@@ -67,7 +67,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = (f"ART-Mol_wo_sche_grad_{args.data_name.upper()}")
+    project_name = (f"ART-Mol_{args.optimizer}_{args.data_name.upper()}")
     if args.tokenization == "cha":
         run_name = (f"cha_{cnt}")
     elif args.tokenization == "bpe":
@@ -102,7 +102,7 @@ def train(args, cnt, cv_keyz, data):
     params = [p for p in model.parameters() if p.requires_grad]  
     ##########################
     if args.optimizer == "adam":
-      optimizer_class = optim.Adam
+        optimizer_class = optim.Adam
     elif args.optimizer == "adagrad":
         optimizer_class = optim.Adagrad
     elif args.optimizer == "adadelta":
@@ -352,7 +352,7 @@ def load_args():
     parser.add_argument("--lr", default=1e-3, type=float)
     parser.add_argument("--l2reg", default=1e-5, type=float)
     parser.add_argument("--clip", default=5.0, type=float)
-    parser.add_argument("--optimizer", default="adam", choices=["adam", "adagrad", "adadelta"])
+    parser.add_argument("--optimizer", default="adagrad", choices=["adam", "adagrad", "adadelta"])
     parser.add_argument("--patience", default=10, type=int)
     parser.add_argument("--fix_word_embedding", default=False, action="store_true")
     parser.add_argument("--is_pretrain", default="", type=str)
