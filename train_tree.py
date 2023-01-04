@@ -64,11 +64,11 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 ########################################################################################
 ########################################################################################
 
-def train(args, cnt, cv_keyz, data):
+def train(args, cnt, cv_keyz, data, key):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     project_name = (f"ART-Mol_Allin1_{args.data_name.upper()}")
-    run_name = (f"hyp_{cnt}")
+    run_name = (f"{key}_{cnt}")
     # if args.tokenization == "cha":
         # run_name = (f"cha_{cnt}")
     # elif args.tokenization == "bpe":
@@ -222,9 +222,11 @@ def train(args, cnt, cv_keyz, data):
     with open(loss_file_path, "w") as f:
         json.dump(loss_outputs, f)
     ##########################
-    if args.is_cv:
+    if args.is_cv == "ideal":
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cnt} Training is COMPLETED.  <<\n")
-    else:
+    elif args.is_cv == "feasible":
+        print(f"\n\n>>  {args.data_name.upper()} {key}_{cnt} Training is COMPLETED.  <<\n")
+    elif args.is_cv == "nope":
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training is COMPLETED.  <<\n")
     ########################################################################################
     ######################################################################################## END OF THE STORY, THANK YOU
@@ -263,9 +265,10 @@ def main(args):
                 if k != "data_name":
                     logging.info(k + " = " + str(v))
     ########################################################################################
-    cv_no = 0
-    if args.is_cv:
+    if args.is_cv == "feasible":
+        cv_no = 0
         for key in cv_keys:
+            orj_key_value = getattr(args, key)
             for hyp in cv_all[key]:
                 ##########################
                 log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
@@ -287,45 +290,48 @@ def main(args):
                     if k in cv_keys:
                         logging.info(k + " = " + str(v))
                 ##########################
-                train(args, cv_no, cv_keys, data)
+                train(args, cv_no, cv_keys, data, key)
                 cv_no += 1
-            ##########################
-            end = time.time()
-            total = np.round(((end - start) / 60), 2)
-            print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
-            ##########################
+            setattr(args, key, orj_key_value)
+        ##########################
+        end = time.time()
+        total = np.round(((end - start) / 60), 2)  
+        print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
+        ##########################
         # ########################################################################################
-        # for cv_no in range(len(all_cv)):
-            # ##########################
-            # log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
-            # rootLogger = logging.getLogger()
-            # fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
-            # fileHandler.setFormatter(logFormatter)
-            # rootLogger.addHandler(fileHandler)
-            # ##########################
-            # cv = all_cv[cv_no] 
-            # print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
-            # print(f"\n>>  Cross-validation Hyperparameters:\n")
-            # ##########################
-            # for param_no in range(len(cv_keys)):
-                # setattr(args, cv_keys[param_no], cv[param_no])
-            # ##########################
-            # data = data_loaderX(args)
-            # ##########################
-            # for k, v in vars(args).items():
-                # if k == "data_name":
-                    # logging.info(k + " = " + str(v))
-                # if k in cv_keys:
-                    # logging.info(k + " = " + str(v))
-            # ##########################
-            # train(args, cv_no, cv_keys, data)
-        # ##########################
-        # end = time.time()
-        # total = np.round(((end - start) / 60), 2)
-        # print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
-        # ##########################
+    elif args.is_cv == "ideal":
+        key = ""
+        for cv_no in range(len(all_cv)):
+            ##########################
+            log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
+            rootLogger = logging.getLogger()
+            fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+            fileHandler.setFormatter(logFormatter)
+            rootLogger.addHandler(fileHandler)
+            ##########################
+            cv = all_cv[cv_no] 
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
+            print(f"\n>>  Cross-validation Hyperparameters:\n")
+            ##########################
+            for param_no in range(len(cv_keys)):
+                setattr(args, cv_keys[param_no], cv[param_no])
+            ##########################
+            data = data_loaderX(args)
+            ##########################
+            for k, v in vars(args).items():
+                if k == "data_name":
+                    logging.info(k + " = " + str(v))
+                if k in cv_keys:
+                    logging.info(k + " = " + str(v))
+            ##########################
+            train(args, cv_no, cv_keys, data, key)
+        ##########################
+        end = time.time()
+        total = np.round(((end - start) / 60), 2)
+        print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
+        ##########################
     # ########################################################################################
-    else:
+    elif args.is_cv == "nope":
         ##########################
         cv_no = 0
         log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
@@ -337,6 +343,7 @@ def main(args):
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training STARTED.  <<")
         ##########################
         data = data_loaderX(args)
+        key = ""
         ##########################
         for k, v in vars(args).items():
             if k == "data_name":
@@ -344,7 +351,7 @@ def main(args):
             if k in cv_keys:
                 logging.info(k + " = " + str(v))
         ##########################
-        train(args, cv_no, cv_keys, data)
+        train(args, cv_no, cv_keys, data, key)
         ##########################
         end = time.time()
         total = np.round(((end - start) / 60), 2)
@@ -358,8 +365,9 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default=True)
+    parser.add_argument("--is_cv", default="feasible", choices=["ideal", "feasible", "nope"], type=str)
     parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
@@ -402,11 +410,14 @@ def load_args():
 
 if __name__ == "__main__":
     args = load_args()
-    if args.is_visdom:
-        from utils.plot_live_losses import TorchLossPlotter
-        global plotter
-        env_namex= (f"ART-Mol_{args.data_name.upper()}")
-        plotter = TorchLossPlotter(env_name = env_namex)
+    # if args.is_visdom:
+        # from utils.plot_live_losses import TorchLossPlotter
+        # global plotter
+        # env_namex= (f"ART-Mol_{args.data_name.upper()}")
+        # plotter = TorchLossPlotter(env_name = env_namex)
+    if args.is_debug:
+        args.wandb_mode = "disabled"
+        args.max_epoch = 2
     main(args)
 
 ########################################################################################

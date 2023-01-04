@@ -117,7 +117,8 @@ def main(args):
         if args.task == "clf":
             roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
             ##########################
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {test_loss_mean:.4f}  |\n")
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
+            print(f"|>>  CE Loss = {test_loss_mean:.4f}  \n|>>  ROC-AUC = {roc_score:.4f}  \n|>>  Accuracy = {test_accuracy:.4f}  \n|>>  PRC-AUC = {prc_score:.4f}\n\n")
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
