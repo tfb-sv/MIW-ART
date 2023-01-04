@@ -67,20 +67,25 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = (f"ART-Mol_{args.optimizer}_{args.data_name.upper()}")
+    project_name = (f"ART-Mol_Allin1_{args.data_name.upper()}")
     if args.tokenization == "cha":
         run_name = (f"cha_{cnt}")
     elif args.tokenization == "bpe":
         run_name = (f"bpe_{cnt}")
     token_note = args.tokenization
-    run = wandb.init(mode=args.wandb_mode, 
-                     project=project_name, 
-                     config=prmz, 
-                     name=run_name, 
-                     notes=token_note, 
-                     reinit=True, 
-                     force=True, 
-                     settings=wandb.Settings(start_method='thread'))
+    run = ""
+    while run == "":
+        try:
+            run = wandb.init(mode=args.wandb_mode, 
+                             project=project_name, 
+                             config=prmz, 
+                             name=run_name, 
+                             notes=token_note, 
+                             reinit=True, 
+                             force=True, 
+                             settings=wandb.Settings(start_method='thread'))
+        except:
+            pass
     ######################################################################################## BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
@@ -127,8 +132,6 @@ def train(args, cnt, cv_keyz, data):
                     "roc-auc": [],
                     "prc-auc": [],
                     "accuracy": []}
-    ##########################
-    # wandb.watch(model, log_freq=5)
     ######################################################################################## START TRAIN LOOPS
     ########################################################################################
     for epoch_num in range(args.max_epoch):
@@ -249,8 +252,8 @@ def main(args):
     with open("cv_config.json", "r") as f:
         cv_all = json.load(f)
     cv_keys = list(cv_all.keys())
-    cv_vals = list(cv_all.values())
-    all_cv = list(itertools.product(*cv_vals))
+    # cv_vals = list(cv_all.values())
+    # all_cv = list(itertools.product(*cv_vals))
     ##########################
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
@@ -258,38 +261,69 @@ def main(args):
             if k != "vocab":
                 if k != "data_name":
                     logging.info(k + " = " + str(v))
-    ##########################
+    ########################################################################################
+    cv_no = 0
     if args.is_cv:
-        ##########################
-        for cv_no in range(len(all_cv)):
+        for key in cv_keys:
+            for hyp in cv_all[key]:
+                ##########################
+                log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
+                rootLogger = logging.getLogger()
+                fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+                fileHandler.setFormatter(logFormatter)
+                rootLogger.addHandler(fileHandler)
+                ##########################
+                print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
+                print(f"\n>>  Cross-validation Hyperparameters:\n")
+                ##########################
+                setattr(args, key, hyp)
+                ##########################
+                data = data_loaderX(args)
+                ##########################
+                for k, v in vars(args).items():
+                    if k == "data_name":
+                        logging.info(k + " = " + str(v))
+                    if k in cv_keys:
+                        logging.info(k + " = " + str(v))
+                ##########################
+                train(args, cv_no, cv_keys, data)
+                cv_no += 1
             ##########################
-            log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
-            rootLogger = logging.getLogger()
-            fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
-            fileHandler.setFormatter(logFormatter)
-            rootLogger.addHandler(fileHandler)
+            end = time.time()
+            total = np.round(((end - start) / 60), 2)
+            print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
             ##########################
-            cv = all_cv[cv_no] 
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
-            print(f"\n>>  Cross-validation Hyperparameters:\n")
-            ##########################
-            for param_no in range(len(cv_keys)):
-                setattr(args, cv_keys[param_no], cv[param_no])
-            ##########################
-            data = data_loaderX(args)
-            ##########################
-            for k, v in vars(args).items():
-                if k == "data_name":
-                    logging.info(k + " = " + str(v))
-                if k in cv_keys:
-                    logging.info(k + " = " + str(v))
-            ##########################
-            train(args, cv_no, cv_keys, data)
-        ##########################
-        end = time.time()
-        total = np.round(((end - start) / 60), 2)
-        print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
-        ##########################
+        # ########################################################################################
+        # for cv_no in range(len(all_cv)):
+            # ##########################
+            # log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
+            # rootLogger = logging.getLogger()
+            # fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+            # fileHandler.setFormatter(logFormatter)
+            # rootLogger.addHandler(fileHandler)
+            # ##########################
+            # cv = all_cv[cv_no] 
+            # print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
+            # print(f"\n>>  Cross-validation Hyperparameters:\n")
+            # ##########################
+            # for param_no in range(len(cv_keys)):
+                # setattr(args, cv_keys[param_no], cv[param_no])
+            # ##########################
+            # data = data_loaderX(args)
+            # ##########################
+            # for k, v in vars(args).items():
+                # if k == "data_name":
+                    # logging.info(k + " = " + str(v))
+                # if k in cv_keys:
+                    # logging.info(k + " = " + str(v))
+            # ##########################
+            # train(args, cv_no, cv_keys, data)
+        # ##########################
+        # end = time.time()
+        # total = np.round(((end - start) / 60), 2)
+        # print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
+        # ##########################
+    # ########################################################################################
     else:
         ##########################
         cv_no = 0
@@ -326,13 +360,13 @@ def load_args():
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
     parser.add_argument("--is_cv", default=True)
     parser.add_argument("--max_epoch", default=50, type=int)
-    parser.add_argument("--tokenization", default="bpe", choices=["bpe", "cha"])
+    parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)
     parser.add_argument("--is_visdom", default=False)
-    parser.add_argument("--is_scheduler", default=False)
-    parser.add_argument("--is_clip", default=False)
+    parser.add_argument("--is_scheduler", default=True)
+    parser.add_argument("--is_clip", default=True)
     parser.add_argument("--data_name", required=True, type=str) 
     parser.add_argument("--save_dir", default="../results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
@@ -352,7 +386,7 @@ def load_args():
     parser.add_argument("--lr", default=1e-3, type=float)
     parser.add_argument("--l2reg", default=1e-5, type=float)
     parser.add_argument("--clip", default=5.0, type=float)
-    parser.add_argument("--optimizer", default="adagrad", choices=["adam", "adagrad", "adadelta"])
+    parser.add_argument("--optimizer", default="adam", choices=["adam", "adagrad", "adadelta"])
     parser.add_argument("--patience", default=10, type=int)
     parser.add_argument("--fix_word_embedding", default=False, action="store_true")
     parser.add_argument("--is_pretrain", default="", type=str)
