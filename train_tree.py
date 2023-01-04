@@ -68,10 +68,11 @@ def train(args, cnt, cv_keyz, data):
     ######################################################################################## INITIALIZE WANDB
     prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     project_name = (f"ART-Mol_Allin1_{args.data_name.upper()}")
-    if args.tokenization == "cha":
-        run_name = (f"cha_{cnt}")
-    elif args.tokenization == "bpe":
-        run_name = (f"bpe_{cnt}")
+    run_name = (f"hyp_{cnt}")
+    # if args.tokenization == "cha":
+        # run_name = (f"cha_{cnt}")
+    # elif args.tokenization == "bpe":
+        # run_name = (f"bpe_{cnt}")
     token_note = args.tokenization
     run = ""
     while run == "":
@@ -173,11 +174,11 @@ def train(args, cnt, cv_keyz, data):
                         if args.task == "clf":
                             roc_score, prc_score, valid_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
                             ##########################
-                            main_metric = roc_score  
+                            main_metric = valid_loss_mean   # roc_score  
                             ##########################
                             if main_metric > best_metric:
                                 best_metric = main_metric
-                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{args.tokenization}-{cnt}.pkl")
+                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")   # -{args.tokenization}-{cnt}
                                 model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
                                 torch.save(model.state_dict(), model_path)
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  ROC-AUC = {roc_score:.4f}  |  CE Loss = {valid_loss_mean:.4f}  |  MODEL SAVED.  |")
@@ -201,15 +202,15 @@ def train(args, cnt, cv_keyz, data):
                     loss_outputs["prc-auc"].append(prc_score)
                     loss_outputs["accuracy"].append(valid_accuracy)
                     ##########################
-                    if args.is_visdom:
-                        graph_title = args.data_name.upper()
-                        line_name_t = (f"train_{cnt}")
-                        line_name_v = (f"valid_{cnt}")
-                        plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
-                        plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
-                        plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
-                        plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
-                        plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
+                    # if args.is_visdom:
+                        # graph_title = args.data_name.upper()
+                        # line_name_t = (f"train_{cnt}")
+                        # line_name_v = (f"valid_{cnt}")
+                        # plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
+                        # plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
+                        # plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
+                        # plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
+                        # plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
                     ##########################
                     wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
                 ########################################################################################
