@@ -273,7 +273,7 @@ def main(args):
                 fileHandler.setFormatter(logFormatter)
                 rootLogger.addHandler(fileHandler)
                 ##########################
-                print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
+                print(f"\n\n>>  {args.data_name.upper()} {key} = {hyp} (hyp_{cv_no}) Training STARTED.  <<")
                 print(f"\n>>  Cross-validation Hyperparameters:\n")
                 ##########################
                 setattr(args, key, hyp)
