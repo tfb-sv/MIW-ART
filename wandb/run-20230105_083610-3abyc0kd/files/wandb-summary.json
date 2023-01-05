@@ -1,0 +1,1 @@
+{"CE Loss T": 0.456, "CE Loss V": 1.0585, "ROC-AUC": 0.5, "PRC-AUC": 0.7745, "Accuracy": 0.549, "_timestamp": 1672896986.0166223, "_runtime": 15.514008283615112, "_step": 1, "_wandb": {"runtime": 12}}

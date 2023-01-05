@@ -1,11 +1,49 @@
-{
-    "clf_num_layers": [2, 3, 5, 10],
+{"bbbp2k":
+    {
+    "tokenization": ["bpe", "cha"],
+    "clf_num_layers": [5],
     "tree_hidden_dim": [300, 500, 1000],
-    "DTA_hidden_dim": [512, 1024, 2048],
-    "word_dim": [300, 500, 1000],
+    "DTA_hidden_dim": [256, 512],
+    "optimizer": ["adagrad"],
+    "lr": [1e-3, 1e-4],
+    "dropout": [0.1, 0.3, 0.5, 0.7],
     "use_batchnorm": [1, 0],
-    "rank_input": ["w", "h"],
+    "rank_input": ["w", "h"]
+    },
+ "bace":
+    {
+    "tokenization": ["bpe", "cha"],
+    "clf_num_layers": [10],
+    "tree_hidden_dim": [300],
+    "DTA_hidden_dim": [256, 512, 1024, 2048],
+    "optimizer": ["adagrad"],
+    "lr": [1e-3, 1e-4],
+    "dropout": [0.1, 0.3, 0.5, 0.7],
+    "use_batchnorm": [1, 0],
+    "rank_input": ["w", "h"]
+    },
+"clintox":
+    {
+    "tokenization": ["bpe", "cha"],
+    "clf_num_layers": [2],
+    "tree_hidden_dim": [300, 500, 1000],
+    "DTA_hidden_dim": [256, 512],
+    "optimizer": ["adadelta"],
+    "lr": [1e-3],
+    "dropout": [0.7],
+    "use_batchnorm": [1, 0],
+    "rank_input": ["w", "h"]
+    },
+"tox21":
+    {
+    "tokenization": ["bpe", "cha"],
+    "clf_num_layers": [5],
+    "tree_hidden_dim": [300],
+    "DTA_hidden_dim": [256, 512],
     "optimizer": ["adam", "adagrad", "adadelta"],
     "lr": [1e-3, 1e-4],
-    "dropout": [0.1, 0.3, 0.5, 0.7]
+    "dropout": [0.1, 0.3, 0.5, 0.7],
+    "use_batchnorm": [1, 0],
+    "rank_input": ["w", "h"]
     }
+}

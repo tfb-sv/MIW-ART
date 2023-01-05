@@ -135,14 +135,22 @@ def main(args):
         with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
             all_newicks = {}
             ##########################
-            for test_batch_num, (test_batch) in enumerate(data.generator("test")):
+            for test_batch_num, (test_batch) in enumerate(data.generator("all")):
+                ##########################
+                if args.task == "clf":
+                    _, test_loss, curr_correct, labels, preds = eval_iter(args, test_batch, model)
+                    total_correct += curr_correct
+                    predictions.extend(preds)
+                    ground_truth.extend(labels)
+                ##########################
                 model_arg = test_batch[0]
                 # labels = test_batch[1]
                 smi = test_batch[2]
                 logits, supplements = model(**model_arg)   # logits gereksiz
                 newick = getNewick(postOrder(supplements["tree"][0]))
-                all_newicks[list(smi)[0]] = newick
+                all_newicks[list(smi)[0]] = [newick, test_loss.item()]
                 ##########################
+                pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |")
                 pbar_test.update()
         ##########################
         newicks_save_path = (f"{args.save_dir}/all_newicks_{args.data_name}.json")

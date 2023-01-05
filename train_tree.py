@@ -66,27 +66,36 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 
 def train(args, cnt, cv_keyz, data, key):
     ######################################################################################## INITIALIZE WANDB
-    prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
-    project_name = (f"ART-Mol_Allin1_{args.data_name.upper()}")
-    run_name = (f"{key}_{cnt}")
-    # if args.tokenization == "cha":
-        # run_name = (f"cha_{cnt}")
-    # elif args.tokenization == "bpe":
-        # run_name = (f"bpe_{cnt}")
-    token_note = args.tokenization
-    run = ""
-    while run == "":
-        try:
-            run = wandb.init(mode=args.wandb_mode, 
-                             project=project_name, 
-                             config=prmz, 
-                             name=run_name, 
-                             notes=token_note, 
-                             reinit=True, 
-                             force=True, 
-                             settings=wandb.Settings(start_method='thread'))
-        except:
-            pass
+    if args.is_debug:
+        project_name = (f"try_project")
+    else:
+        project_name = (f"ART-Molin1_2_{args.data_name.upper()}")
+    ##########################
+    if args.is_cv == "ideal":
+        run_name = (f"{args.tokenization}_{cnt}")
+        prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
+    elif args.is_cv == "feasible":
+        run_name = (f"{key}_{cnt}")
+        prmz = {key: getattr(args, key)}
+    elif args.is_cv == "nope":
+        run_name = (f"try_{cnt}")
+        prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
+    ##########################
+    if args.wandb_mode == "online":
+        token_note = args.tokenization
+        run = ""
+        while run == "":
+            try:
+                run = wandb.init(mode=args.wandb_mode, 
+                                 project=project_name, 
+                                 config=prmz, 
+                                 name=run_name, 
+                                 notes=token_note, 
+                                 reinit=True, 
+                                 force=True, 
+                                 settings=wandb.Settings(start_method='thread'))
+            except:
+                pass
     ######################################################################################## BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
@@ -120,11 +129,10 @@ def train(args, cnt, cv_keyz, data, key):
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode="max", factor=0.5, patience=args.patience, verbose=True) 
     ######################################################################################## SET LOSS FUNCTION
     if args.task == "clf":
-        criterion = nn.CrossEntropyLoss()
-        best_metric = 0
+        criterion = nn.CrossEntropyLoss()   # later make nn.BCELoss() after softmax(probabilities)!!
     elif args.task == "reg":
         criterion = nn.MSELoss()
-        best_metric = 10
+    best_metric = 10
     ######################################################################################## SET DATA HOLDERS
     trpack = [model, params, criterion, optimizer]
     ##########################
@@ -176,7 +184,7 @@ def train(args, cnt, cv_keyz, data, key):
                             ##########################
                             main_metric = valid_loss_mean   # roc_score  
                             ##########################
-                            if main_metric > best_metric:
+                            if main_metric < best_metric:
                                 best_metric = main_metric
                                 model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")   # -{args.tokenization}-{cnt}
                                 model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
@@ -212,11 +220,13 @@ def train(args, cnt, cv_keyz, data, key):
                         # plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
                         # plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
                     ##########################
-                    wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
+                    if args.wandb_mode == "online":
+                        wandb.log({"CE Loss T": train_loss_mean, "CE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
                 ########################################################################################
                 ######################################################################################## FINISH EVERYTHING
     ##########################
-    run.finish()
+    if args.wandb_mode == "online":
+        run.finish()
     ##########################
     loss_file_path = (f"../results/{args.data_name}/{args.data_name}_metrics_{args.tokenization}_{cnt}.json")
     with open(loss_file_path, "w") as f:
@@ -254,22 +264,28 @@ def main(args):
     ##########################
     with open("cv_config.json", "r") as f:
         cv_all = json.load(f)
-    cv_keys = list(cv_all.keys())
+    cv_keys = list(cv_all[args.data_name].keys())
     # cv_vals = list(cv_all.values())
     # all_cv = list(itertools.product(*cv_vals))
     ##########################
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
         if k not in cv_keys:
-            if k != "vocab":
-                if k != "data_name":
-                    logging.info(k + " = " + str(v))
+            if k not in ["vocab", "data_name"]:
+                logging.info(k + " = " + str(v))
     ########################################################################################
     if args.is_cv == "feasible":
+        for key in cv_keys:
+            if len(cv_all[args.data_name][key]) == 1:
+                setattr(args, key, cv_all[args.data_name][key][0])
+                logging.info(key + " = " + str(cv_all[args.data_name][key][0]))
+        ##########################
         cv_no = 0
         for key in cv_keys:
             orj_key_value = getattr(args, key)
-            for hyp in cv_all[key]:
+            if len(cv_all[args.data_name][key]) == 1:
+                continue
+            for hyp in cv_all[args.data_name][key]:
                 ##########################
                 log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
                 rootLogger = logging.getLogger()
@@ -288,7 +304,8 @@ def main(args):
                     if k == "data_name":
                         logging.info(k + " = " + str(v))
                     if k in cv_keys:
-                        logging.info(k + " = " + str(v))
+                        if len(cv_all[args.data_name][k]) != 1:
+                            logging.info(k + " = " + str(v))
                 ##########################
                 train(args, cv_no, cv_keys, data, key)
                 cv_no += 1
@@ -367,7 +384,7 @@ def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="feasible", choices=["ideal", "feasible", "nope"], type=str)
+    parser.add_argument("--is_cv", default="feasible", choices=["feasible", "nope"], type=str)   # "ideal", 
     parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
@@ -384,7 +401,7 @@ def load_args():
     parser.add_argument("--word_dim", default=300, type=int)
     parser.add_argument("--tree_hidden_dim", default=300, type=int, 
                         help="dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm")
-    parser.add_argument("--DTA_hidden_dim", default=1024, type=int)
+    parser.add_argument("--DTA_hidden_dim", default=512, type=int)
     parser.add_argument("--dropout", default=0.3, type=float)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
     parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
@@ -415,8 +432,12 @@ if __name__ == "__main__":
         # global plotter
         # env_namex= (f"ART-Mol_{args.data_name.upper()}")
         # plotter = TorchLossPlotter(env_name = env_namex)
+    if "truba" in os.getcwd():
+        args.is_debug = False
+    else:
+        args.is_debug = True
     if args.is_debug:
-        args.wandb_mode = "disabled"
+        args.wandb_mode = "online"   # "disabled"    
         args.max_epoch = 2
     main(args)
 

@@ -32,6 +32,7 @@ class data_loaderX(object):
         self.train_loc = (f"data/{args.data_name}/{args.data_name}_train.csv")
         self.val_loc = (f"data/{args.data_name}/{args.data_name}_val.csv")
         self.test_loc = (f"data/{args.data_name}/{args.data_name}_test.csv")
+        self.all_loc = (f"data/{args.data_name}/{args.data_name}_all.csv")
         ##########################
         self.train_dataset = pd.read_csv(self.train_loc)       
         self.train_dataset.reset_index(inplace=True, drop=True)  
@@ -41,6 +42,14 @@ class data_loaderX(object):
         ##########################
         self.test_dataset = pd.read_csv(self.test_loc)       
         self.test_dataset.reset_index(inplace=True, drop=True)  
+        ##########################
+        try:
+            self.all_dataset = pd.read_csv(self.all_loc)       
+            self.all_dataset.reset_index(inplace=True, drop=True)
+        except:
+            self.all_dataset = pd.concat([self.train_dataset, self.valid_dataset, self.test_dataset], ignore_index=True, axis=0)
+            self.all_dataset.reset_index(inplace=True, drop=True)
+            self.all_dataset.to_csv(self.all_loc)
         ########################################################################################
         if args.tokenization == "cha":
             ##########################
@@ -179,7 +188,7 @@ class data_loaderX(object):
     
     def generator(self, process):
         ########################################################################################
-        process_conv = {"train": self.train_dataset, "valid": self.valid_dataset, "test": self.test_dataset}
+        process_conv = {"train": self.train_dataset, "valid": self.valid_dataset, "test": self.test_dataset, "all": self.all_dataset}
         ##########################
         data = process_conv[process]
         ##########################
