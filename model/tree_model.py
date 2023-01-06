@@ -65,10 +65,12 @@ class Classifier(nn.Module):
             self.fcs.append(nn.Dropout(args.dropout))
         ##########################
         self.fcs = nn.Sequential(*self.fcs)
-        ##########################      
-        self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
+        ##########################  
+        if args.task == "clf":
+            self.out = nn.Sigmoid(nn.Linear((args.DTA_hidden_dim // 2), 1))
+        # elif args.task == "reg":
+        #     self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
         ##########################
-        self.sigmoid = nn.Sigmoid()
         ##########################
         self.reset_parameters()
         ##########################
@@ -105,8 +107,7 @@ class Classifier(nn.Module):
     def forward(self, sentence):
         x = self.dense1(sentence)
         x = self.fcs(x)
-        x = self.out(x)   # logits
-        x = self.sigmoid(x)   # probabilities
+        x = self.out(x)   # probabilities, not logits. because there is sigmoid func after the final layer
         return x
         
     ########################################################################################
