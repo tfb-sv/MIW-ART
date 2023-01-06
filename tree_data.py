@@ -91,6 +91,7 @@ class data_loaderX(object):
         self.num_train_batches = math.ceil(len(self.train_dataset) / args.batch_size)
         self.num_valid_batches = math.ceil(len(self.valid_dataset) / args.batch_size) 
         self.num_test_batches = math.ceil(len(self.test_dataset) / args.batch_size)
+        self.num_all_batches = math.ceil(len(self.all_dataset) / args.batch_size)
         self.train_size = len(self.train_dataset)
         self.valid_size = len(self.valid_dataset)   
         self.test_size = len(self.test_dataset)

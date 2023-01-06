@@ -6,17 +6,27 @@ from torch import nn
 from torch.nn import init
 import torch.nn.functional as F
 from model.STGumbel_AR_Tree import STG_AR_Tree
-from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
+from sklearn.metrics import roc_curve, precision_recall_curve, auc, accuracy_score, roc_auc_score   # , confusion_matrix,
 import numpy as np
 
 ########################################################################################
 ########################################################################################
 
-def calc_metrics(ground_truth, predictions, total_correct, data):
-    roc_score = np.round(roc_auc_score(ground_truth, predictions), 4)
-    precision, recall, _ = precision_recall_curve(ground_truth, predictions)
+def calc_metrics(y_true, y_pred, y_prob, data):
+    ##########################
+    # tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0,1]).ravel()
+    ##########################
+    # tpr = tp / (tp + fn)   # = sensitivity = recall
+    # fpr = fp / (tn + fp)   # 1-specifity
+    # precision = tp / (tp + fp)
+    ##########################
+    fpr, tpr, _ = roc_curve(y_true, y_prob)
+    precision, recall, _ = precision_recall_curve(y_true, y_prob)
+    ##########################
+    roc_score = np.round(auc(fpr, tpr), 4)
     prc_score = np.round(auc(recall, precision), 4)
-    accuracy = np.round((total_correct / data.valid_size), 4)
+    accuracy = np.round(accuracy_score(y_true, y_pred), 4)
+    ##########################
     return roc_score, prc_score, accuracy
 
 ########################################################################################
@@ -55,11 +65,10 @@ class Classifier(nn.Module):
             self.fcs.append(nn.Dropout(args.dropout))
         ##########################
         self.fcs = nn.Sequential(*self.fcs)
+        ##########################      
+        self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
         ##########################
-        if args.task == "clf":
-            self.out = nn.Linear((args.DTA_hidden_dim // 2), 2)
-        elif args.task == "reg":        
-            self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
+        self.sigmoid = nn.Sigmoid()
         ##########################
         self.reset_parameters()
         ##########################
@@ -96,7 +105,8 @@ class Classifier(nn.Module):
     def forward(self, sentence):
         x = self.dense1(sentence)
         x = self.fcs(x)
-        x = self.out(x) 
+        x = self.out(x)   # logits
+        x = self.sigmoid(x)   # probabilities
         return x
         
     ########################################################################################
@@ -136,8 +146,8 @@ class ARTM_model(nn.Module):
         h, _, tree = self.encoder(words_embed, encoded_ligand, ligand_length)
         # if self.args.mode == "emb":
         #     return h 
+        supplements = {"tree": tree}
         x = self.classifier(h)
-        supplements = {"tree": tree}        
         return x, supplements
         
     ########################################################################################

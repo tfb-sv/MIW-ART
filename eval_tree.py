@@ -22,7 +22,7 @@ def invert_dict(d):
 
 ########################################################################################
 
-def eval_iter(args, batch, model):
+def eval_iter(args, batch, model, criterion):
     # mode = args.mode
     model.eval()   # .train(False) ???
     if args.task == "clf":
@@ -34,15 +34,15 @@ def eval_iter(args, batch, model):
         #     return logits
     # elif args.task == "reg":
     #     model_arg, labels = batch
-    logits, _ = model(**model_arg)
+    probs, _ = model(**model_arg)   # probs = logits
+    # threshold = 0.5
     if args.task == "clf":
-        labels_pred = logits.max(1)[1]
-        num_correct = torch.eq(labels, labels_pred).long().sum().item()  
-        criterion = nn.CrossEntropyLoss()
-        loss = criterion(input=logits, target=labels)
+        labels_pred = probs > 0.5
+        loss = criterion(input=probs, target=torch.unsqueeze(labels.float(), dim=-1))   # probs = logits
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL
         labels_predx = labels_pred.cpu().detach().numpy().tolist()   # NRL
-        return logits, loss, num_correct, labelsx, labels_predx
+        probsx = probs.cpu().detach().numpy().tolist()
+        return loss, labelsx, labels_predx, probsx
     # elif args.task == "reg":
     #     logits = logits.view(-1)
     #     criterion = nn.MSELoss()
@@ -81,67 +81,88 @@ def getNewick(postOrderStr):
 
 ########################################################################################
 
-def main(args):
-    tokenization = args.tokenization
-    data = data_loaderX(args)   
-    modelX = ARTM_model
-    model = modelX(args)
-    model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
-    model.eval()   # .train(True) ???
-    model = model.to(args.device)
+def main(args, hyp_no, data):
+    ########################################################################################
+    if args.task == "clf":
+        criterion = nn.BCELoss()   # nn.CrossEntropyLoss()
+    elif args.task == "reg":
+        criterion = nn.MSELoss()
+    best_metric = 10
     #######################################################################################################################
     #######################################################################################################################   
     if args.mode == "test":   
         ##########################
-        with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
-            total_correct = 0
-            test_loss_list, predictions, ground_truth = [], [], []
+        rocs, prcs, accs, ces = [], [], [], []
+        for i in range(3):
             ##########################
-            for test_batch_num, (test_batch) in enumerate(data.generator("test")):
+            modelX = ARTM_model
+            model = modelX(args)
+            model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
+            model.eval()   # .train(True) ???
+            model = model.to(args.device)
+            ##########################
+            with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
+                test_loss_list, ground_truth, predictions, probabilities = [], [], [], []
                 ##########################
-                if args.task == "clf":
-                    _, test_loss, curr_correct, labels, preds = eval_iter(args, test_batch, model)
-                    total_correct += curr_correct
-                    predictions.extend(preds)
-                    ground_truth.extend(labels)
+                for test_batch_num, (test_batch) in enumerate(data.generator("test")):
+                    ##########################
+                    if args.task == "clf":
+                        test_loss, labels, preds, probz = eval_iter(args, test_batch, model, criterion)
+                        ground_truth.extend(labels)
+                        predictions.extend(preds)
+                        probabilities.extend(probz)
+                    ##########################
+                    # elif args.task == "reg":
+                    #     _, test_loss = eval_iter(args, test_batch, *trpack)
+                    ##########################
+                    pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  CE Loss = {test_loss.item():.4f}  |")
+                    pbar_test.update()
+                    test_loss_list.append(test_loss.item())
                 ##########################
-                # elif args.task == "reg":
-                #     _, test_loss = eval_iter(args, test_batch, *trpack)
+                test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
                 ##########################
-                pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  CE Loss = {test_loss.item():.4f}  |")
-                pbar_test.update()
-                test_loss_list.append(test_loss.item())
-        ##########################
-        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
+                pbar_test.set_description(f">>  HYP NO {hyp_no}  |  CE Loss = {test_loss_mean}  |")
+            ##########################
+            if args.task == "clf":
+                roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
+                rocs.append(roc_score)
+                prcs.append(prc_score)
+                accs.append(test_accuracy)
+                ces.append(test_loss_mean)
         ##########################
         if args.task == "clf":
-            roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, total_correct, data)
+            roc_score = np.round((np.mean(rocs) * 100), 1)
+            prc_score = np.round((np.mean(prcs) * 100), 1)
+            test_accuracy = np.round((np.mean(accs) * 100), 1)
+            test_loss_mean = np.round((np.mean(ces) * 100), 1)
+            ##########################
+            roc_std = np.round((np.std(rocs) * 100), 1)
+            prc_std = np.round((np.std(prcs) * 100), 1)
+            acc_std = np.round((np.std(accs) * 100), 1)
+            ce_std = np.round((np.std(ces) * 100), 1)
             ##########################
             print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
-            print(f"|>>  CE Loss = {test_loss_mean:.4f}  \n|>>  ROC-AUC = {roc_score:.4f}  \n|>>  Accuracy = {test_accuracy:.4f}  \n|>>  PRC-AUC = {prc_score:.4f}\n\n")
+            print(f"|>>  BCE Loss % = {test_loss_mean} ({ce_std})  \n|>>  ROC-AUC % = {roc_score} ({roc_std})  \n|>>  PRC-AUC % = {prc_score} ({prc_std})  \n|>>  Accuracy % = {test_accuracy} ({acc_std})\n\n")
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
         ##########################
-        if tokenization == "bpe":
+        if args.tokenization == "bpe":
             with open("utils/vocabs/chemical/chembl27_bpe_32000.json", "r") as f1:
                 vis_decoder_chem_dict = json.load(f1)
             vis_decoder_chem_dict = invert_dict(vis_decoder_chem_dict["model"]["vocab"])
         ##########################
-        elif tokenization == "cha":
+        elif args.tokenization == "cha":
             with open("data/INV_CHARSET.json", "r") as f:
                 vis_decoder_chem_dict = json.load(f) 
         ##########################
-        with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
+        with tqdm(total=(data.num_all_batches), unit=" molecule") as pbar_test:
             all_newicks = {}
             ##########################
             for test_batch_num, (test_batch) in enumerate(data.generator("all")):
                 ##########################
                 if args.task == "clf":
-                    _, test_loss, curr_correct, labels, preds = eval_iter(args, test_batch, model)
-                    total_correct += curr_correct
-                    predictions.extend(preds)
-                    ground_truth.extend(labels)
+                    test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
                 ##########################
                 model_arg = test_batch[0]
                 # labels = test_batch[1]
@@ -158,15 +179,14 @@ def main(args):
             json.dump(all_newicks, f)
         ##########################
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Newicking is COMPLETED.  <<\n")
-    #######################################################################################################################
-    #######################################################################################################################      
+    #######################################################################################################################    
 
 ########################################################################################
 
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="newick", choices=["test", "newick"])
+    parser.add_argument("--mode", default="test", choices=["test", "newick"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
     parser.add_argument("--save_dir", default="../results")
@@ -185,7 +205,7 @@ def load_args():
                         help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
-    parser.add_argument("--DTA_hidden_dim", default=1024, type=int)
+    parser.add_argument("--DTA_hidden_dim", default=512, type=int)
     parser.add_argument("--clf_num_layers", default=2, type=int)
     ##########################
     args = parser.parse_args() 
@@ -198,25 +218,52 @@ if __name__ == "__main__":
     ########################################################################################
     args = load_args()
     ########################################################################################
+    with open("cv_config.json", "r") as f:
+        cv_all = json.load(f)
+    print(f"\n")
+    ########################################################################################
     for task_name in os.listdir(args.save_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
         if "." in task_name:
             continue
-        if task_name == "saveds":
+        if "saveds" in task_name:
             continue
         args.data_name = task_name
+        ##########################
+        cv_keys = list(cv_all[args.data_name].keys())
+        cnt = 0
+        print(f"\n>>  {task_name.upper()}  |\n")
+        args_encoder = {}
+        for key in cv_keys:
+            for hyp in cv_all[args.data_name][key]:
+                if len(cv_all[args.data_name][key]) != 1:
+                    args_encoder[str(cnt)] = [key, hyp]
+                    cnt += 1
+            if len(cv_all[args.data_name][key]) == 1:
+                setattr(args, key, hyp)
+                print(f"{key} = {hyp}")
+        ##########################
         subfile_path = (f"{args.save_dir}/{task_name}")
         for subfile in os.listdir(subfile_path):
             if subfile.endswith(".pkl"):
+                hyp_no = subfile[:-4].split("-")[3]
+                arg_info = args_encoder[hyp_no]
+                key = arg_info[0]
+                hyp = arg_info[1]
+                orj_key_value = getattr(args, key)
+                setattr(args, key, hyp)
+                print(f"{key} = {hyp}\n")
                 ckpt_path = (f"{subfile_path}/{subfile}")
                 args.ckpt = ckpt_path
-        if args.mode == "newick":
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Newicking STARTED.  <<")
-        elif args.mode == "test":
-            if args.ckpt == "":
-                print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
-                break
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing STARTED.  <<")
-        main(args)
+                if args.mode == "newick":   # düzeltilmesi gerekiyor kaydedilen dosya için ya da hiç for döngüsünde olmayacak ???????????
+                    print(f"\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Newicking STARTED.  <<")
+                elif args.mode == "test":
+                    if args.ckpt == "":
+                        print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
+                        break
+                    print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Testing STARTED.  <<")
+                data = data_loaderX(args)
+                main(args, hyp_no, data)
+                setattr(args, key, orj_key_value)
     ########################################################################################
         
         

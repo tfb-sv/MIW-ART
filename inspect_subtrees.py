@@ -128,15 +128,17 @@ def recoverFragment(sub_newick):
             if not node.is_leaf():   # if node is not leaf
                 continue
             parent = node.up
+            child_right = parent.children[0]
+            child_left = parent.children[1]
             if node.name != "-": 
-                if node.name == parent.children[0].name:   # means that this node is RIGHT CHILD ! 
-                    parent.name = parent.name + parent.children[0].name
+                if node.name == child_right.name:   # means that this node is RIGHT CHILD ! 
+                    parent.name = parent.name + child_right.name
                 else:   # means that this node is LEFT CHILD !
-                    parent.name = parent.children[1].name + parent.name
+                    parent.name = child_left.name + parent.name
                 node.name = "-"
-            if (parent.children[0].name and parent.children[1].name) == "-":
-                parent.remove_child(parent.children[1])
-                parent.remove_child(parent.children[0])
+            if (child_right.name and child_left.name) == "-":
+                parent.remove_child(child_left)
+                parent.remove_child(child_right)
         t_ascii = t.get_ascii(show_internal=True)
         print(t_ascii)
         _, max_len = root.get_farthest_leaf()
