@@ -17,11 +17,6 @@ torch.manual_seed(0)
 
 ########################################################################################
 
-def invert_dict(d):
-    return { v:k for k,v in d.items() }
-
-########################################################################################
-
 def eval_iter(args, batch, model, criterion):
     # mode = args.mode
     model.eval()   # .train(False) ???
@@ -52,9 +47,10 @@ def eval_iter(args, batch, model, criterion):
 ########################################################################################
 
 def legal(s):
-    s2 = s.replace(",", "<comma>")
-    # s2 = s2.replace("(", "{")   # ???
-    # s2 = s2.replace(")", "}")   # ???
+    s2 = s
+    # s2 = s.replace("[", "!")
+    # s2 = s2.replace("]", "?")
+    # s2 = s2.replace("=", "*")
     return s2
 
 ########################################################################################
@@ -77,6 +73,10 @@ def postOrder(root):
 def getNewick(postOrderStr):
     t = Tree(postOrderStr, format=8)
     newick = t.write(format=8)
+    if "_" in newick:
+        print(newick)
+    # elif "?" in newick:
+    #     print(newick)
     return newick
 
 ########################################################################################
@@ -147,10 +147,16 @@ def main(args, hyp_no, data):
     #######################################################################################################################
     elif args.mode == "newick":
         ##########################
+        modelX = ARTM_model
+        model = modelX(args)
+        model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
+        model.eval()   # .train(True) ???
+        model = model.to(args.device)
+        ##########################
         if args.tokenization == "bpe":
-            with open("utils/vocabs/chemical/chembl27_bpe_32000.json", "r") as f1:
-                vis_decoder_chem_dict = json.load(f1)
-            vis_decoder_chem_dict = invert_dict(vis_decoder_chem_dict["model"]["vocab"])
+            with open("utils/vocabs/chemical/chembl27_bpe_32000.json", "r") as f1:   # bunlar sadeleştirilebilir !
+                vis_decoder_chem_dict = json.load(f1)   # actually this is encoder_dict
+            vis_decoder_chem_dict = { v:k for k,v in vis_decoder_chem_dict["model"]["vocab"].items() }
         ##########################
         elif args.tokenization == "cha":
             with open("data/INV_CHARSET.json", "r") as f:
@@ -167,6 +173,7 @@ def main(args, hyp_no, data):
                 model_arg = test_batch[0]
                 # labels = test_batch[1]
                 smi = test_batch[2]
+                # print("\n", smi, "\n")
                 logits, supplements = model(**model_arg)   # logits gereksiz
                 newick = getNewick(postOrder(supplements["tree"][0]))
                 all_newicks[list(smi)[0]] = [newick, test_loss.item()]
@@ -189,7 +196,8 @@ def load_args():
     parser.add_argument("--mode", default="test", choices=["test", "newick"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
-    parser.add_argument("--save_dir", default="../results")
+    parser.add_argument("--load_dir", default="../results/training_results")
+    parser.add_argument("--save_dir", default="../results/evaluation_results")
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--batch_size", default=1, type=int)   
@@ -218,40 +226,31 @@ if __name__ == "__main__":
     ########################################################################################
     args = load_args()
     ########################################################################################
-    with open("cv_config.json", "r") as f:
-        cv_all = json.load(f)
     print(f"\n")
     ########################################################################################
-    for task_name in os.listdir(args.save_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
+    for task_name in os.listdir(args.load_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
         if "." in task_name:
             continue
         if "saveds" in task_name:
             continue
         args.data_name = task_name
         ##########################
-        cv_keys = list(cv_all[args.data_name].keys())
-        cnt = 0
         print(f"\n>>  {task_name.upper()}  |\n")
-        args_encoder = {}
-        for key in cv_keys:
-            for hyp in cv_all[args.data_name][key]:
-                if len(cv_all[args.data_name][key]) != 1:
-                    args_encoder[str(cnt)] = [key, hyp]
-                    cnt += 1
-            if len(cv_all[args.data_name][key]) == 1:
-                setattr(args, key, hyp)
-                print(f"{key} = {hyp}")
         ##########################
-        subfile_path = (f"{args.save_dir}/{task_name}")
+        subfile_path = (f"{args.load_dir}/{task_name}")
         for subfile in os.listdir(subfile_path):
             if subfile.endswith(".pkl"):
-                hyp_no = subfile[:-4].split("-")[3]
-                arg_info = args_encoder[hyp_no]
-                key = arg_info[0]
-                hyp = arg_info[1]
-                orj_key_value = getattr(args, key)
-                setattr(args, key, hyp)
-                print(f"{key} = {hyp}\n")
+                hyp_no = subfile[:-4].split("-")[4]
+                args_file_path = (f"{subfile_path}/m-args-{args.data_name}-{hyp_no}.json")
+                ##########################
+                with open(args_file_path, "r") as f:
+                    model_args = json.load(f)
+                for key in model_args:
+                    if key == "batch_size":
+                        continue
+                    if key in list(vars(args).keys()):
+                        setattr(args, key, model_args[key])
+                ##########################
                 ckpt_path = (f"{subfile_path}/{subfile}")
                 args.ckpt = ckpt_path
                 if args.mode == "newick":   # düzeltilmesi gerekiyor kaydedilen dosya için ya da hiç for döngüsünde olmayacak ???????????
@@ -263,7 +262,6 @@ if __name__ == "__main__":
                     print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Testing STARTED.  <<")
                 data = data_loaderX(args)
                 main(args, hyp_no, data)
-                setattr(args, key, orj_key_value)
     ########################################################################################
         
         

@@ -134,6 +134,7 @@ def train(args, cnt, cv_keyz, data, key):
     elif args.task == "reg":
         criterion = nn.MSELoss()
     best_metric = 10
+    second_best_metric = 0
     ######################################################################################## SET DATA HOLDERS
     trpack = [model, params, criterion, optimizer]
     ##########################
@@ -182,15 +183,22 @@ def train(args, cnt, cv_keyz, data, key):
                         if args.task == "clf":
                             roc_score, prc_score, valid_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
                             ##########################
-                            main_metric = valid_loss_mean   # roc_score  
-                            ##########################
-                            if main_metric < best_metric:
+                            main_metric = valid_loss_mean 
+                            second_metric = roc_score
+                            ####################################################
+                            if second_metric > second_best_metric:   # roc_score
+                                second_best_metric = second_metric
+                                ##########################
+                                save_model(args, model, "roc", second_best_metric, cnt)
+                            ####################################################
+                            if main_metric < best_metric:   # bce_loss
                                 best_metric = main_metric
-                                model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")   # -{args.tokenization}-{cnt}
-                                model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
-                                torch.save(model.state_dict(), model_path)
+                                ##########################
+                                save_model(args, model, "bce", best_metric, cnt)
+                                ##########################
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  BCE Loss = {valid_loss_mean}  |  ROC-AUC = {roc_score}  |  PRC-AUC = {prc_score}  |  Accuracy = {valid_accuracy}  |")
                                 pbar_val.update()
+                            ####################################################
                             else:
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  BCE Loss = {valid_loss_mean}  |  ROC-AUC = {roc_score}  |  PRC-AUC = {prc_score}  |  Accuracy = {valid_accuracy}  |")
                                 pbar_val.update()
@@ -244,9 +252,33 @@ def train(args, cnt, cv_keyz, data, key):
 ########################################################################################
 ########################################################################################
 
+def save_model(args, model, metric, best_metric, cnt):
+    ####################################################
+    model_filename = (f"{metric.upper()}-m-{args.data_name}-{best_metric:.4f}-{cnt}.pkl")
+    model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
+    ##########################
+    torch.save(model.state_dict(), model_path)
+    ####################################################
+    model_args_filename = (f"m-args-{args.data_name}-{cnt}.json")
+    model_args_path = (f"{args.save_dir}/{args.data_name}/{model_args_filename}")
+    ##########################
+    model_args = {}
+    for k, v in vars(args).items():
+        if k in ["vocab"]:
+            continue
+        model_args[k] = v
+    ##########################
+    with open(model_args_path, "w") as f:
+        json.dump(model_args, f)
+    ####################################################
+    return
+    
+########################################################################################
+########################################################################################
+
 def main(args):
     ########################################################################################
-    temp_path = args.save_dir + "/" + args.data_name
+    temp_path = (f"{args.save_dir}/{args.data_name}")
     if os.path.exists(temp_path):   # klasör varsa, results/task
         shutil.rmtree(temp_path)   # klasör siliyor, results/task
     ##########################
@@ -265,8 +297,6 @@ def main(args):
     with open("cv_config.json", "r") as f:
         cv_all = json.load(f)
     cv_keys = list(cv_all[args.data_name].keys())
-    # cv_vals = list(cv_all.values())
-    # all_cv = list(itertools.product(*cv_vals))
     ##########################
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
@@ -275,6 +305,7 @@ def main(args):
                 logging.info(k + " = " + str(v))
     ########################################################################################
     if args.is_cv == "feasible":
+        ##########################
         for key in cv_keys:
             if len(cv_all[args.data_name][key]) == 1:
                 setattr(args, key, cv_all[args.data_name][key][0])
@@ -282,11 +313,12 @@ def main(args):
         ##########################
         cv_no = 0
         for key in cv_keys:
+            ##########################
             orj_key_value = getattr(args, key)
             if len(cv_all[args.data_name][key]) == 1:
                 continue
+            ##########################
             for hyp in cv_all[args.data_name][key]:
-                ##########################
                 log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
                 rootLogger = logging.getLogger()
                 fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
@@ -309,6 +341,7 @@ def main(args):
                 ##########################
                 train(args, cv_no, cv_keys, data, key)
                 cv_no += 1
+            ##########################
             setattr(args, key, orj_key_value)
         ##########################
         end = time.time()
@@ -317,9 +350,12 @@ def main(args):
         ##########################
         # ########################################################################################
     elif args.is_cv == "ideal":
+        ##########################
+        cv_vals = list(cv_all.values())
+        all_cv = list(itertools.product(*cv_vals))
         key = ""
+        ##########################
         for cv_no in range(len(all_cv)):
-            ##########################
             log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
             rootLogger = logging.getLogger()
             fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
@@ -327,7 +363,7 @@ def main(args):
             rootLogger.addHandler(fileHandler)
             ##########################
             cv = all_cv[cv_no] 
-            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cv_no} Training STARTED.  <<")
+            print(f"\n\n>>  {args.data_name.upper()} hyp_{cv_no} Training STARTED.  <<")
             print(f"\n>>  Cross-validation Hyperparameters:\n")
             ##########################
             for param_no in range(len(cv_keys)):
@@ -349,6 +385,9 @@ def main(args):
         ##########################
     # ########################################################################################
     elif args.is_cv == "nope":
+        ##########################
+        for key in cv_keys:
+            setattr(args, key, cv_all[args.data_name][key][0])
         ##########################
         cv_no = 0
         log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
@@ -384,7 +423,7 @@ def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="feasible", choices=["feasible", "nope"], type=str)   # "ideal", 
+    parser.add_argument("--is_cv", default="nope", choices=["feasible", "nope"], type=str)   # "ideal", 
     parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
@@ -394,7 +433,7 @@ def load_args():
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
     parser.add_argument("--data_name", required=True, type=str) 
-    parser.add_argument("--save_dir", default="../results")
+    parser.add_argument("--save_dir", default="../results/training_results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
     parser.add_argument("--rank_input", default="w", choices=["w", "h"], 
                         help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")

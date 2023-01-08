@@ -85,6 +85,7 @@ class STG_AR_Tree(nn.Module):
         right_state, right_tree = self.build(sentence, embedding, hs, cs, pos+1, end)
         output_state = self.treelstm_layer(left_state, right_state, (h, c))
         root = Node(sentence[pos], left_tree, right_tree)
+
         return output_state, root 
 
     def forward(self, sentence_embedding, sentence_word, length):
@@ -141,12 +142,14 @@ class STG_AR_Tree(nn.Module):
         h_res, c_res, structure = [], [], []
         # iterate each sentence
         for i in range(batch_size):
-            #print("i", i)
+        
             if self.args.tokenization == "bpe":
                 sentence = list(map(lambda j: self.args.vocab.id_to_word_l[j], sentence_word[i].tolist()))
-            elif self.args.tokenization == "cha":
-                sentence = list(map(lambda j: self.args.vocab.id_to_word_l[str(j)], sentence_word[i].tolist()))
-
+            # elif self.args.tokenization == "cha":
+            #     sentence = list(map(lambda j: self.args.vocab.id_to_word_l[str(j)], sentence_word[i].tolist()))
+            
+            sentence = [str(e) for e in sentence_word[i].tolist()]
+            
             if self.args.rank_input == "w":
                 embedding = sentence_embedding[i]
             elif self.args.rank_input == "h":

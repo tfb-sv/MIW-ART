@@ -52,16 +52,17 @@ class data_loaderX(object):
             self.all_dataset.to_csv(self.all_loc)
         ########################################################################################
         if args.tokenization == "cha":
-            ##########################
+            ####################################################
             with open("data/CHARSET.json", "r") as f:
                 self.CHARSMISET = json.load(f)
             with open("data/INV_CHARSET.json", "r") as f:
                 self.inv_charsmiset = json.load(f)
-            ##########################
+            ####################################################
             self.train_label = self.train_dataset["affinity_score"].tolist()
             self.valid_label = self.valid_dataset["affinity_score"].tolist()  
             self.test_label = self.test_dataset["affinity_score"].tolist()
-            ##########################
+            self.all_label = self.all_dataset["affinity_score"].tolist()
+            ####################################################
             self.train_chem = self.encode_cha_dataset(self.train_dataset["smiles"].tolist())
             self.train_dataset = [(self.train_chem[i], self.train_label[i], self.train_dataset["smiles"][i]) for i in range(len(self.train_dataset))]                 
             ##########################
@@ -71,6 +72,9 @@ class data_loaderX(object):
             self.test_chem = self.encode_cha_dataset(self.test_dataset["smiles"].tolist())    
             self.test_dataset = [(self.test_chem[i], self.test_label[i], self.test_dataset["smiles"][i]) for i in range(len(self.test_dataset))]
             ##########################
+            self.all_chem = self.encode_cha_dataset(self.all_dataset["smiles"].tolist())    
+            self.all_dataset = [(self.all_chem[i], self.all_label[i], self.all_dataset["smiles"][i]) for i in range(len(self.all_dataset))]
+            ####################################################
             self.word_to_id_l = self.CHARSMISET
             self.id_to_word_l = self.inv_charsmiset
         ########################################################################################
@@ -95,6 +99,7 @@ class data_loaderX(object):
         self.train_size = len(self.train_dataset)
         self.valid_size = len(self.valid_dataset)   
         self.test_size = len(self.test_dataset)
+        self.all_size = len(self.all_dataset)
         print(f"\n\n    |  TRAIN SET SIZE: {self.train_size} data  |")
         print(f"    |  VALID SET SIZE: {self.valid_size} data  |")      
         print(f"    |  TEST SET SIZE: {self.test_size} data  |\n\n")

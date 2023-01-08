@@ -1,50 +1,51 @@
 {"bbbp2k":
     {
-    "tokenization": ["bpe", "cha"],
+    "tokenization": ["cha"],
     "optimizer": ["adagrad"],
-    "dropout": [0.1, 0.3, 0.5, 0.7],
+    "dropout": [0.7],
     "clf_num_layers": [5],
-    "DTA_hidden_dim": [256, 512], 
-    "lr": [1e-3, 1e-4],
-    "tree_hidden_dim": [300, 500, 1000],
-    "use_batchnorm": [1, 0],
-    "rank_input": ["w", "h"],
+    "DTA_hidden_dim": [512], 
+    "lr": [1e-4],
+    "tree_hidden_dim": [300],
+    "use_batchnorm": [1],
+    "rank_input": ["w"],
     "max_epoch": [100]
     },
  "bace":
     {
-    "tokenization": ["bpe", "cha"],
+    "tokenization": ["cha"],
     "optimizer": ["adagrad"],
-    "dropout": [0.1, 0.3, 0.5, 0.7],
+    "dropout": [0.1],
     "clf_num_layers": [10],
-    "DTA_hidden_dim": [256, 512, 1024, 2048],
-    "lr": [1e-3, 1e-4],
+    "DTA_hidden_dim": [2048],
+    "lr": [1e-3],
     "tree_hidden_dim": [300],
-    "use_batchnorm": [1, 0],
-    "rank_input": ["w", "h"]
+    "use_batchnorm": [0],
+    "rank_input": ["h"]
     },
 "clintox":
     {
-    "tokenization": ["bpe", "cha"],
+    "tokenization": ["cha"],
     "optimizer": ["adadelta"],
     "dropout": [0.7],
     "clf_num_layers": [2],
-    "DTA_hidden_dim": [256, 512],
+    "DTA_hidden_dim": [512],
     "lr": [1e-3],
-    "tree_hidden_dim": [300, 500, 1000],
-    "use_batchnorm": [1, 0],
-    "rank_input": ["w", "h"]
+    "tree_hidden_dim": [1000],
+    "use_batchnorm": [0],
+    "rank_input": ["w"]
     },
 "tox21":
     {
-    "tokenization": ["bpe", "cha"],
+    "tokenization": ["cha"],
     "optimizer": ["adam", "adagrad", "adadelta"],
-    "dropout": [0.1, 0.3, 0.5, 0.7],
-    "clf_num_layers": [5],
-    "DTA_hidden_dim": [256, 512],
-    "lr": [1e-3, 1e-4],
-    "tree_hidden_dim": [300],
+    "dropout": [0.1, 0.3, 0.5, 0.7, 0.9],
+    "clf_num_layers": [1, 2, 5, 10, 20],
+    "DTA_hidden_dim": [128, 256, 512, 1024, 2048],
+    "lr": [1e-3, 1e-4, 1e-5],
+    "tree_hidden_dim": [200, 300, 500, 1000, 1500],
     "use_batchnorm": [1, 0],
-    "rank_input": ["w", "h"]
+    "rank_input": ["w", "h"],
+    "max_epoch": [100]
     }
 }

@@ -66,10 +66,7 @@ class Classifier(nn.Module):
         ##########################
         self.fcs = nn.Sequential(*self.fcs)
         ##########################  
-        if args.task == "clf":
-            self.out = nn.Sigmoid(nn.Linear((args.DTA_hidden_dim // 2), 1))
-        # elif args.task == "reg":
-        #     self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
+        self.out = nn.Linear((args.DTA_hidden_dim // 2), 1)
         ##########################
         ##########################
         self.reset_parameters()
@@ -128,6 +125,7 @@ class ARTM_model(nn.Module):
         self.word_embedding = nn.Embedding(num_embeddings=args.num_words, embedding_dim=args.word_dim)                                 
         self.encoder = Encoder(args)
         self.classifier = Classifier(args)
+        self.sigmoid = nn.Sigmoid()
         ##########################
         self.reset_parameters()
         ##########################
@@ -149,6 +147,8 @@ class ARTM_model(nn.Module):
         #     return h 
         supplements = {"tree": tree}
         x = self.classifier(h)
+        if self.args.task == "clf":
+            x = self.sigmoid(x)
         return x, supplements
         
     ########################################################################################
