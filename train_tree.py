@@ -70,7 +70,7 @@ def train(args, cnt, cv_keyz, data, key):
     if args.is_debug:
         project_name = (f"try_project")
     else:
-        project_name = (f"ART_Molin2_{args.data_name.upper()}")
+        project_name = (f"ART_Molin3_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
         run_name = (f"{args.tokenization}_{cnt}")

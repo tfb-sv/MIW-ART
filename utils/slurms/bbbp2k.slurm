@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH -c 10
 #SBATCH -p akya-cuda
-#SBATCH --time=60:00:00
+#SBATCH --time=5:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/bbbp2k.log
 

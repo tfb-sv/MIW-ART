@@ -21,7 +21,8 @@
     "lr": [1e-3],
     "tree_hidden_dim": [300],
     "use_batchnorm": [0],
-    "rank_input": ["h"]
+    "rank_input": ["h"],
+    "max_epoch": [100]
     },
 "clintox":
     {
@@ -33,7 +34,8 @@
     "lr": [1e-3],
     "tree_hidden_dim": [1000],
     "use_batchnorm": [0],
-    "rank_input": ["w"]
+    "rank_input": ["w"],
+    "max_epoch": [100]
     },
 "tox21":
     {
