@@ -19,9 +19,10 @@ cd C:\Users\WS001\Desktop\ART-Mol
 ##############################################
 ##############################################
 
+python train_tree.py --data_name "hiv"
 python train_tree.py --data_name "bbbp2k"
 
-["bace", "bbbp2k", "clintox", "tox21"]   # "hiv", 
+["bace", "bbbp2k", "clintox", "tox21", "hiv"]
 
 ##############################################
 ##############################################

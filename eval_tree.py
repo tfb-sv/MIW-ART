@@ -153,14 +153,7 @@ def main(args, hyp_no, data):
         model.eval()   # .train(True) ???
         model = model.to(args.device)
         ##########################
-        if args.tokenization == "bpe":
-            with open("utils/vocabs/chemical/chembl27_bpe_32000.json", "r") as f1:   # bunlar sadeleştirilebilir !
-                vis_decoder_chem_dict = json.load(f1)   # actually this is encoder_dict
-            vis_decoder_chem_dict = { v:k for k,v in vis_decoder_chem_dict["model"]["vocab"].items() }
-        ##########################
-        elif args.tokenization == "cha":
-            with open("data/INV_CHARSET.json", "r") as f:
-                vis_decoder_chem_dict = json.load(f) 
+        vis_decoder_chem_dict = data.word_to_id_l
         ##########################
         with tqdm(total=(data.num_all_batches), unit=" molecule") as pbar_test:
             all_newicks = {}

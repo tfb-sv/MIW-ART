@@ -68,6 +68,8 @@ def train_iter(args, batch, model, params, criterion, optimizer):
 def train(args, cnt, cv_keyz, data, key):
     ######################################################################################## INITIALIZE WANDB
     if args.is_debug:
+        args.wandb_mode = "disabled"   # "online"   #
+        args.max_epoch = 2
         project_name = (f"try_project")
     else:
         project_name = (f"ART_Molin3_{args.data_name.upper()}")
@@ -79,7 +81,7 @@ def train(args, cnt, cv_keyz, data, key):
         run_name = (f"{key}_{getattr(args, key)}_{cnt}")
         prmz = {key: getattr(args, key)}
     elif args.is_cv == "nope":
-        run_name = (f"try_{cnt}")
+        run_name = (f"best_hyps")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
     if args.wandb_mode == "online":
@@ -236,7 +238,7 @@ def train(args, cnt, cv_keyz, data, key):
     if args.wandb_mode == "online":
         run.finish()
     ##########################
-    loss_file_path = (f"../results/{args.data_name}/{args.data_name}_metrics_{args.tokenization}_{cnt}.json")
+    loss_file_path = (f"{args.save_dir}/{args.data_name}/{args.data_name}_metrics_{cnt}.json")
     with open(loss_file_path, "w") as f:
         json.dump(loss_outputs, f)
     ##########################
@@ -423,9 +425,9 @@ def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="nope", choices=["feasible", "nope"], type=str)   # "ideal", 
+    parser.add_argument("--is_cv", default="nope", choices=["ideal", "feasible", "nope"], type=str)
     parser.add_argument("--max_epoch", default=50, type=int)
-    parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
+    parser.add_argument("--tokenization", default="cha", choices=["cha"])   # "bpe", 
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)
@@ -475,9 +477,6 @@ if __name__ == "__main__":
         args.is_debug = False
     else:
         args.is_debug = True
-    if args.is_debug:
-        args.wandb_mode = "disabled"   # "online"   #    
-        args.max_epoch = 2
     main(args)
 
 ########################################################################################

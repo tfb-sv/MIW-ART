@@ -51,32 +51,29 @@ class data_loaderX(object):
             self.all_dataset.reset_index(inplace=True, drop=True)
             self.all_dataset.to_csv(self.all_loc)
         ########################################################################################
+        self.label_name = "affinity_score"
+        self.input_name = "smiles"
         if args.tokenization == "cha":
             ####################################################
             with open("data/CHARSET.json", "r") as f:
-                self.CHARSMISET = json.load(f)
-            with open("data/INV_CHARSET.json", "r") as f:
-                self.inv_charsmiset = json.load(f)
+                self.word_to_id_l = json.load(f)
             ####################################################
-            self.train_label = self.train_dataset["affinity_score"].tolist()
-            self.valid_label = self.valid_dataset["affinity_score"].tolist()  
-            self.test_label = self.test_dataset["affinity_score"].tolist()
-            self.all_label = self.all_dataset["affinity_score"].tolist()
+            self.train_label = self.train_dataset[self.label_name].tolist()
+            self.valid_label = self.valid_dataset[self.label_name].tolist()  
+            self.test_label = self.test_dataset[self.label_name].tolist()
+            self.all_label = self.all_dataset[self.label_name].tolist()
             ####################################################
-            self.train_chem = self.encode_cha_dataset(self.train_dataset["smiles"].tolist())
-            self.train_dataset = [(self.train_chem[i], self.train_label[i], self.train_dataset["smiles"][i]) for i in range(len(self.train_dataset))]                 
+            self.train_chem = self.encode_cha_dataset(self.train_dataset[self.input_name].tolist())
+            self.train_dataset = [(self.train_chem[i], self.train_label[i], self.train_dataset[self.input_name][i]) for i in range(len(self.train_dataset))]                 
             ##########################
-            self.valid_chem = self.encode_cha_dataset(self.valid_dataset["smiles"].tolist())    
-            self.valid_dataset = [(self.valid_chem[i], self.valid_label[i], self.valid_dataset["smiles"][i]) for i in range(len(self.valid_dataset))]
+            self.valid_chem = self.encode_cha_dataset(self.valid_dataset[self.input_name].tolist())    
+            self.valid_dataset = [(self.valid_chem[i], self.valid_label[i], self.valid_dataset[self.input_name][i]) for i in range(len(self.valid_dataset))]
             ##########################
-            self.test_chem = self.encode_cha_dataset(self.test_dataset["smiles"].tolist())    
-            self.test_dataset = [(self.test_chem[i], self.test_label[i], self.test_dataset["smiles"][i]) for i in range(len(self.test_dataset))]
+            self.test_chem = self.encode_cha_dataset(self.test_dataset[self.input_name].tolist())    
+            self.test_dataset = [(self.test_chem[i], self.test_label[i], self.test_dataset[self.input_name][i]) for i in range(len(self.test_dataset))]
             ##########################
-            self.all_chem = self.encode_cha_dataset(self.all_dataset["smiles"].tolist())    
-            self.all_dataset = [(self.all_chem[i], self.all_label[i], self.all_dataset["smiles"][i]) for i in range(len(self.all_dataset))]
-            ####################################################
-            self.word_to_id_l = self.CHARSMISET
-            self.id_to_word_l = self.inv_charsmiset
+            self.all_chem = self.encode_cha_dataset(self.all_dataset[self.input_name].tolist())    
+            self.all_dataset = [(self.all_chem[i], self.all_label[i], self.all_dataset[self.input_name][i]) for i in range(len(self.all_dataset))]
         ########################################################################################
         elif args.tokenization == "bpe":
             from utils.word_identifier import WordIdentifier  
@@ -88,10 +85,8 @@ class data_loaderX(object):
                 l_data = json.load(f) 
             ##########################
             self.word_to_id_l = l_data["model"]["vocab"]
-            self.id_to_word_l = {v: k for k, v in self.word_to_id_l.items()}
-        ######################################################################################## ???
-        self.vocab_l = self.word_to_id_l.keys()                
-        self.weight = None   # ???           
+        ########################################################################################
+        self.id_to_word_l = {v: k for k, v in self.word_to_id_l.items()}       
         self.num_train_batches = math.ceil(len(self.train_dataset) / args.batch_size)
         self.num_valid_batches = math.ceil(len(self.valid_dataset) / args.batch_size) 
         self.num_test_batches = math.ceil(len(self.test_dataset) / args.batch_size)
@@ -103,6 +98,9 @@ class data_loaderX(object):
         print(f"\n\n    |  TRAIN SET SIZE: {self.train_size} data  |")
         print(f"    |  VALID SET SIZE: {self.valid_size} data  |")      
         print(f"    |  TEST SET SIZE: {self.test_size} data  |\n\n")
+        ######################################################################################## ???
+        self.vocab_l = self.word_to_id_l.keys()                
+        self.weight = None   # ???    
         args.num_words = len(self.vocab_l)
         args.vocab = self   # ???
         ######################################################################################## ???
@@ -124,13 +122,6 @@ class data_loaderX(object):
         if smi != "".join(tokens):
             print(smi)
         assert smi == "".join(tokens)
-        # if self.args.tokenization == "cha":
-        tokens2 = []
-        for token in tokens:
-            token2 = token.replace("(", "{")
-            token2 = token2.replace(")", "}")
-            tokens2.append(token2)
-        tokens = tokens2
         return tokens
     
     ########################################################################################
@@ -142,7 +133,7 @@ class data_loaderX(object):
             DATA_LEN = self.args.max_smi_len
         labeled_data = np.zeros(DATA_LEN, dtype=int)
         for i, cha in enumerate(seq[:DATA_LEN]):
-            labeled_data[i] = self.CHARSMISET[cha]
+            labeled_data[i] = self.word_to_id_l[cha]
         return labeled_data
     
     ########################################################################################
@@ -166,10 +157,10 @@ class data_loaderX(object):
     
     def get_bpe_data(self, data):   # for only bpe
         data = data.copy()        
-        data_smiles = data["smiles"].apply(self.encode_bpe_smiles, encoding_vocab_path=self.encoding_vocab_path)
+        data_smiles = data[self.input_name].apply(self.encode_bpe_smiles, encoding_vocab_path=self.encoding_vocab_path)
         chemicals, l_chems = self.chem_tokenizer.identify_words(data_smiles, padding_len=self.args.max_smi_len, out_type="int", seq_type="smi")       
-        labels = data["affinity_score"]
-        smis = data["smiles"]
+        labels = data[self.label_name]
+        smis = data[self.input_name]
         return np.array(chemicals), np.array(labels), np.array(l_chems), smis
     
     ########################################################################################

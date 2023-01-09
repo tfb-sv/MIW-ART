@@ -25,9 +25,9 @@ def decode_newick(enc_smis, decoder, smi, node_cnt):
         print("\n", decoded_lst, "\n", len(decoded_lst), node_cnt)
         dslşkfsdf
     decoded_lst.reverse()
-    decoded = "".join(decoded_lst)
-    decoded = decoded.replace("{", "(")
-    sub_smi = decoded.replace("}", ")")
+    sub_smi = "".join(decoded_lst)   # decoded = ...
+    # decoded = decoded.replace("{", "(")
+    # sub_smi = decoded.replace("}", ")")
     is_ok = sanity_check(smi, sub_smi)
     if not is_ok:
         inv_sub_smi = sub_smi[::-1]
