@@ -2,9 +2,9 @@
 #SBATCH -A tbag80
 #SBATCH -J hiv
 #SBATCH -n 1
-#SBATCH -c 10
+#SBATCH -c 20
 #SBATCH -p akya-cuda
-#SBATCH --time=200:00:00
+#SBATCH --time=300:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/hiv.log
 

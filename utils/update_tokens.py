@@ -20,7 +20,7 @@ def smiles_segmenter(smi):
 ########################################################################################
 
 def update_token_dict(dataset_loc, main_token_dict_path):
-    # dataset_loc = "data/hiv/hiv_train.csv"
+    # dataset_loc = "data/hiv/hiv_all.csv"
     # main_token_dict_path = "data/CHARSET.json"
     df = pd.read_csv(dataset_loc)
     with open(main_token_dict_path, "r") as f:    
@@ -35,10 +35,12 @@ def update_token_dict(dataset_loc, main_token_dict_path):
                 hiv_token_dict[token] = 0
     ####################################################
     cnt = 0
+    print("\n")
     for token in hiv_token_dict:
         if token not in main_token_dict:
             cnt += 1
             main_token_dict[token] = len(main_token_dict)
+            print(f'>> Token "{token}" is added to main dict!  <<')
     print(f"\n>> {cnt} tokens are added to main dict!  <<\n")
     ####################################################
     with open(main_token_dict_path, "w") as f:
@@ -48,7 +50,12 @@ def update_token_dict(dataset_loc, main_token_dict_path):
 
 ########################################################################################
 
+hiv_dataset_all_loc = "data/hiv/hiv_all.csv"
+main_token_dict_path = "data/CHARSET.json"
 
+update_token_dict(hiv_dataset_all_loc, main_token_dict_path)
+
+########################################################################################
 
 
 

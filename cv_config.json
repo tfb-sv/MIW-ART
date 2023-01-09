@@ -42,24 +42,24 @@
     {
     "tokenization": ["cha"],
     "optimizer": ["adam", "adagrad", "adadelta"],
-    "dropout": [0.1, 0.3, 0.5, 0.7, 0.9],
+    "dropout": [0.1, 0.3, 0.5, 0.7, 0.8, 0.9],
     "clf_num_layers": [1, 2, 5, 10, 20],
-    "DTA_hidden_dim": [128, 256, 512, 1024, 2048],
+    "DTA_hidden_dim": [64, 128, 256, 512, 1024, 2048],
     "lr": [1e-3, 1e-4, 1e-5],
-    "tree_hidden_dim": [200, 300, 500, 1000, 1500],
+    "tree_hidden_dim": [100, 200, 300, 500, 1000, 1500],
     "use_batchnorm": [1, 0],
     "rank_input": ["w", "h"],
-    "max_epoch": [100]
+    "max_epoch": [150]
     },
 "hiv":
     {
-    "tokenization": ["bpe", "cha"],
+    "tokenization": ["cha", "bpe"],
     "optimizer": ["adam", "adagrad", "adadelta"],
-    "dropout": [0.1, 0.3, 0.5, 0.7, 0.9],
+    "dropout": [0.1, 0.3, 0.5, 0.7, 0.8, 0.9],
     "clf_num_layers": [1, 2, 5, 10, 20],
-    "DTA_hidden_dim": [128, 256, 512, 1024, 2048],
+    "DTA_hidden_dim": [64, 128, 256, 512, 1024, 2048],
     "lr": [1e-3, 1e-4, 1e-5],
-    "tree_hidden_dim": [200, 300, 500, 1000, 1500],
+    "tree_hidden_dim": [100, 200, 300, 500, 1000, 1500],
     "use_batchnorm": [1, 0],
     "rank_input": ["w", "h"],
     "max_epoch": [50]
