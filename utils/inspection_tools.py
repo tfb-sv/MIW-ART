@@ -86,7 +86,7 @@ def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):   # NRLL 
         while sub_smi in smi:
             point = frag_size * fixed_loss
             if sub_csmi not in repeat_dict:
-                repeat_dict[sub_csmi] = [1, 1, point]
+                repeat_dict[sub_csmi] = [1, 1, point, frag_size]
             else:
                 temp1 = repeat_dict[sub_csmi][0]
                 if is_unique:
@@ -95,7 +95,9 @@ def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):   # NRLL 
                 temp2 += 1   
                 temp3 = repeat_dict[sub_csmi][2]
                 temp3 += point
-                repeat_dict[sub_csmi] = [temp1, temp2, temp3]
+                temp4 = repeat_dict[sub_csmi][3]
+                temp4 += frag_size
+                repeat_dict[sub_csmi] = [temp1, temp2, temp3, temp4]   # [unique repeat, total repeat, total point, total fragment size]
             smi = smi.replace(sub_smi, "", 1)
             is_unique = False
         return repeat_dict
@@ -242,9 +244,11 @@ def set_xyz(all_subtrees, repeat_dict):
         total_repeat = repeat_dict[smi][1]
         total_point = repeat_dict[smi][2]
         total_point = int(np.round(total_point, 0))
+        total_frag_size = repeat_dict[smi][3]
+        frag_size = np.round((total_frag_size / total_repeat), 2)
         ##########################
-        frag_size = frag_size_dict[smi]
-        frag_size = int(frag_size)
+        # frag_size = frag_size_dict[smi]
+        # frag_size = int(frag_size)
         ##########################
         if unique_repeat < 2:
             continue
@@ -290,6 +294,8 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
     # cids = xyz["cid"]
     # names = xyz["name"]
     ####################################################
+    z, x, y = zip(*reversed(sorted(zip(z, x, y))))
+    ####################################################
     contour_level_fill = 250
     # contour_level_line = 5
     ##########################
@@ -306,6 +312,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
     ####################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="white")
     x_good, x_bad, y_good, y_bad = [], [], [], []
+    z_good = {}
     cids = []
     save_loc = (f"../results/inspection_results/{data_name}")
     print("\n")
@@ -316,18 +323,20 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
             cnt += 1
             x_good.append(x[i])
             y_good.append(y[i])
+            z_good[smis[i]] = i
+            rank = z[i]
             c = pcp.get_compounds(smis[i], "smiles")[0]
             cid_str = (f"CID {c.cid}")
             cid_str_annot = (f"CID {c.cid} ({zi:.2f})")
             cids.append([cid_str_annot, x[i], y[i]])
             m = Chem.MolFromSmiles(smis[i])
-            fig = Draw.MolToMPL(m, size=(200, 200))
-            title = (f"{c.iupac_name}\n{cid_str}\n{smis[i]}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]}     TP = {zi:.2f}")
-            fig.suptitle(title, fontsize=35, x=1.25, y=0.7)
-            fig.set_size_inches(5, 5)
+            fig = Draw.MolToMPL(m, size=(180, 180))
+            title = (f"{c.iupac_name}\n{cid_str}\n{smis[i]}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]:.2f}     TP = {zi:.2f}\nTask = {data_name.upper()}     Rank = {(i + 1)}")
+            fig.suptitle(title, fontsize=35, x=1.25, y=0.8)
+            fig.set_size_inches(5.5, 5.5)
             if not os.path.exists(save_loc):
                 os.mkdir(save_loc)
-            save_name = (f"{save_loc}/images/{repeat_type.upper()} {cid_str}.png")
+            save_name = (f"{save_loc}/images/{repeat_type.upper()} {(i + 1)} - {cid_str}.png")
             plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
             plt.close(fig)
             print(f"{cnt} -> {cid_str_annot}")
@@ -347,7 +356,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
     ax.scatter(x_good, y_good, marker="X", s=300, c="white", edgecolors="black", zorder=6)
     # ax.scatter(x_good, y_good, marker="o", s=1500, linewidth=5, facecolors="none", edgecolors="black", zorder=7)
     for i in range(len(cids)):
-        ax.annotate(cids[i][0], (cids[i][1], cids[i][2]), zorder=7)
+        ax.annotate(cids[i][0], ((cids[i][1] + 0.15), (cids[i][2] + 4)), fontsize=35, zorder=7)
     ax.legend(
               # *scatter_good.legend_elements(),
               ("X", "o"),
@@ -357,7 +366,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
               )
     # ax.add_artist(legend)
     ####################################################
-    plt.title(f"\nFragment Importance Contour Plot\n({data_name.upper()} Task)\n")   # , fontsize = ?
+    plt.title(f"\nFragment Importance Contour Plot\n({data_name.upper()} Task)\n\n", fontsize=70)
     plt.ylabel(y_label)   # , fontsize = ?
     plt.xlabel("\nFragment Size\n")   # , fontsize = ?
     plt.yticks(y_ticks)
