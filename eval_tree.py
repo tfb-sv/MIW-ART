@@ -130,7 +130,7 @@ def main(args, hyp_no, data):
                 ##########################
                 test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
                 ##########################
-                pbar_test.set_description(f">>  HYP NO {hyp_no}  |  CE Loss = {test_loss_mean}  |")
+                pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  CE Loss = {test_loss_mean}  |")
             ##########################
             if args.task == "clf":
                 roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)

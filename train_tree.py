@@ -75,7 +75,7 @@ def train(args, cnt, cv_keyz, data, key):
         project_name = (f"ART_Molin4_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
-        run_name = (f"hyp_{cnt}")
+        run_name = (f"hypc_{cnt}")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     elif args.is_cv == "feasible":
         run_name = (f"{key}_{getattr(args, key)}_{cnt}")
@@ -327,7 +327,7 @@ def main(args):
                 fileHandler.setFormatter(logFormatter)
                 rootLogger.addHandler(fileHandler)
                 ##########################
-                print(f"\n\n>>  {args.data_name.upper()} {key} = {hyp} (hyp_{cv_no}) Training STARTED.  <<")
+                print(f"\n\n>>  {args.data_name.upper()} {key} = {hyp} (hypc_{cv_no}) Training STARTED.  <<")
                 print(f"\n>>  Cross-validation Hyperparameters:\n")
                 ##########################
                 setattr(args, key, hyp)
@@ -365,7 +365,7 @@ def main(args):
             rootLogger.addHandler(fileHandler)
             ##########################
             cv = all_cv[cv_no] 
-            print(f"\n\n>>  {args.data_name.upper()} hyp_{cv_no} Training STARTED.  <<")
+            print(f"\n\n>>  {args.data_name.upper()} hypc_{cv_no} Training STARTED.  <<")
             print(f"\n>>  Cross-validation Hyperparameters:\n")
             ##########################
             for param_no in range(len(cv_keys)):
