@@ -72,16 +72,16 @@ def train(args, cnt, cv_keyz, data, key):
         args.max_epoch = 2
         project_name = (f"try_project")
     else:
-        project_name = (f"ART_Molin3_{args.data_name.upper()}")
+        project_name = (f"ART_Molin4_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
-        run_name = (f"{args.tokenization}_{cnt}")
+        run_name = (f"hyp_{cnt}")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     elif args.is_cv == "feasible":
         run_name = (f"{key}_{getattr(args, key)}_{cnt}")
         prmz = {key: getattr(args, key)}
     elif args.is_cv == "nope":
-        run_name = (f"best_hyps")
+        run_name = (f"best_{cnt}")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
     if args.wandb_mode == "online":
@@ -211,7 +211,7 @@ def train(args, cnt, cv_keyz, data, key):
                         #     if main_metric < best_metric:
                         #         best_metric = main_metric
                         #         model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")
-                        #         model_path = args.save_dir + "/" + args.data_name + "/" + model_filename
+                        #         model_path = args.train_save_dir + "/" + args.data_name + "/" + model_filename
                     ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
                     loss_outputs["ce loss train"].append(train_loss_mean)
@@ -238,7 +238,7 @@ def train(args, cnt, cv_keyz, data, key):
     if args.wandb_mode == "online":
         run.finish()
     ##########################
-    loss_file_path = (f"{args.save_dir}/{args.data_name}/{args.data_name}_metrics_{cnt}.json")
+    loss_file_path = (f"{args.train_save_dir}/{args.data_name}/{args.data_name}_metrics_{cnt}.json")
     with open(loss_file_path, "w") as f:
         json.dump(loss_outputs, f)
     ##########################
@@ -257,12 +257,12 @@ def train(args, cnt, cv_keyz, data, key):
 def save_model(args, model, metric, best_metric, cnt):
     ####################################################
     model_filename = (f"{metric.upper()}-m-{args.data_name}-{best_metric:.4f}-{cnt}.pkl")
-    model_path = (f"{args.save_dir}/{args.data_name}/{model_filename}")
+    model_path = (f"{args.train_save_dir}/{args.data_name}/{model_filename}")
     ##########################
     torch.save(model.state_dict(), model_path)
     ####################################################
     model_args_filename = (f"m-args-{args.data_name}-{cnt}.json")
-    model_args_path = (f"{args.save_dir}/{args.data_name}/{model_args_filename}")
+    model_args_path = (f"{args.train_save_dir}/{args.data_name}/{model_args_filename}")
     ##########################
     model_args = {}
     for k, v in vars(args).items():
@@ -280,13 +280,13 @@ def save_model(args, model, metric, best_metric, cnt):
 
 def main(args):
     ########################################################################################
-    temp_path = (f"{args.save_dir}/{args.data_name}")
-    if os.path.exists(temp_path):   # klasör varsa, results/task
-        shutil.rmtree(temp_path)   # klasör siliyor, results/task
+    temp_path = (f"{args.train_save_dir}/{args.data_name}")
+    if os.path.exists(temp_path):   # klasör varsa, training_results/task
+        shutil.rmtree(temp_path)   # klasör siliyor, training_results/task
     ##########################
-    if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor, results
-    os.mkdir(temp_path)   # klasör oluşturuyor, results/task
+    if not os.path.exists(args.train_save_dir):
+        os.mkdir(args.train_save_dir, exist_ok=True)   # klasör oluşturuyor, training_results
+    os.mkdir(temp_path)   # klasör oluşturuyor, training_results/task
     ##########################
     frmt = "%(asctime)-30s %(levelname)-5s |  %(message)s"
     logging.basicConfig(level=logging.INFO, 
@@ -323,7 +323,7 @@ def main(args):
             for hyp in cv_all[args.data_name][key]:
                 log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
                 rootLogger = logging.getLogger()
-                fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+                fileHandler = logging.FileHandler(os.path.join(args.train_save_dir, log_file_name))
                 fileHandler.setFormatter(logFormatter)
                 rootLogger.addHandler(fileHandler)
                 ##########################
@@ -353,14 +353,14 @@ def main(args):
         # ########################################################################################
     elif args.is_cv == "ideal":
         ##########################
-        cv_vals = list(cv_all.values())
+        cv_vals = list(cv_all[args.data_name].values())
         all_cv = list(itertools.product(*cv_vals))
         key = ""
         ##########################
         for cv_no in range(len(all_cv)):
             log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
             rootLogger = logging.getLogger()
-            fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+            fileHandler = logging.FileHandler(os.path.join(args.train_save_dir, log_file_name))
             fileHandler.setFormatter(logFormatter)
             rootLogger.addHandler(fileHandler)
             ##########################
@@ -394,7 +394,7 @@ def main(args):
         cv_no = 0
         log_file_name = (f"{args.data_name}/stdout_{args.data_name}.log")
         rootLogger = logging.getLogger()
-        fileHandler = logging.FileHandler(os.path.join(args.save_dir, log_file_name))
+        fileHandler = logging.FileHandler(os.path.join(args.train_save_dir, log_file_name))
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
         ##########################
@@ -409,7 +409,9 @@ def main(args):
             if k in cv_keys:
                 logging.info(k + " = " + str(v))
         ##########################
-        train(args, cv_no, cv_keys, data, key)
+        for i in range(args.init_repeat):
+            train(args, cv_no, cv_keys, data, key)
+            cv_no += 1
         ##########################
         end = time.time()
         total = np.round(((end - start) / 60), 2)
@@ -423,9 +425,10 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    parser.add_argument("--init_repeat", default=10, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="nope", choices=["ideal", "feasible", "nope"], type=str)
+    parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "nope"], type=str)
     parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["cha"])   # "bpe", 
     parser.add_argument("--max_smi_len", default=100, type=int)
@@ -435,7 +438,7 @@ def load_args():
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
     parser.add_argument("--data_name", required=True, type=str) 
-    parser.add_argument("--save_dir", default="../results/training_results")
+    parser.add_argument("--train_save_dir", default="../results/training_results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
     parser.add_argument("--rank_input", default="w", choices=["w", "h"], 
                         help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")

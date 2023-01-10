@@ -13,6 +13,7 @@ import math
 import json
 import pickle
 import os
+import shutil
 torch.manual_seed(0)
 
 ########################################################################################
@@ -82,6 +83,14 @@ def getNewick(postOrderStr):
 ########################################################################################
 
 def main(args, hyp_no, data):
+    ######################################################################################## training_results'daki klasör de siliniyor nedense......
+    # temp_path = (f"{args.eval_save_dir}/{args.data_name}")
+    # if os.path.exists(temp_path):   # klasör varsa, evaluation_results/task
+        # shutil.rmtree(temp_path)   # klasör siliyor, evaluation_results/task
+    #########################
+    # if not os.path.exists(args.eval_save_dir):
+        # os.mkdir(args.eval_save_dir, exist_ok=True)   # klasör oluşturuyor, evaluation_results
+    # os.mkdir(temp_path)   # klasör oluşturuyor, evaluation_results/task
     ########################################################################################
     if args.task == "clf":
         criterion = nn.BCELoss()   # nn.CrossEntropyLoss()
@@ -164,17 +173,16 @@ def main(args, hyp_no, data):
                     test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
                 ##########################
                 model_arg = test_batch[0]
-                # labels = test_batch[1]
-                smi = test_batch[2]
-                # print("\n", smi, "\n")
+                label = test_batch[1].item()
+                smi = test_batch[2][0]
                 logits, supplements = model(**model_arg)   # logits gereksiz
                 newick = getNewick(postOrder(supplements["tree"][0]))
-                all_newicks[list(smi)[0]] = [newick, test_loss.item()]
+                all_newicks[list(smi)[0]] = [newick, test_loss.item(), label]
                 ##########################
                 pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |")
                 pbar_test.update()
         ##########################
-        newicks_save_path = (f"{args.save_dir}/all_newicks_{args.data_name}.json")
+        newicks_save_path = (f"{args.eval_save_dir}/{args.data_name}/all_newicks_{args.data_name}.json")
         with open(newicks_save_path, "w") as f:
             json.dump(all_newicks, f)
         ##########################
@@ -189,8 +197,8 @@ def load_args():
     parser.add_argument("--mode", default="test", choices=["test", "newick"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
-    parser.add_argument("--load_dir", default="../results/training_results")
-    parser.add_argument("--save_dir", default="../results/evaluation_results")
+    parser.add_argument("--eval_load_dir", default="../results/training_results")
+    parser.add_argument("--eval_save_dir", default="../results/evaluation_results")
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--batch_size", default=1, type=int)   
@@ -221,7 +229,7 @@ if __name__ == "__main__":
     ########################################################################################
     print(f"\n")
     ########################################################################################
-    for task_name in os.listdir(args.load_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
+    for task_name in os.listdir(args.eval_load_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
         if "." in task_name:
             continue
         if "saveds" in task_name:
@@ -230,7 +238,7 @@ if __name__ == "__main__":
         ##########################
         print(f"\n>>  {task_name.upper()}  |\n")
         ##########################
-        subfile_path = (f"{args.load_dir}/{task_name}")
+        subfile_path = (f"{args.eval_load_dir}/{task_name}")
         for subfile in os.listdir(subfile_path):
             if subfile.endswith(".pkl"):
                 hyp_no = subfile[:-4].split("-")[4]

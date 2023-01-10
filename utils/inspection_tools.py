@@ -11,16 +11,28 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pubchempy as pcp
 import os
+import re
 # from scipy.interpolate import griddata
 RDLogger.DisableLog('rdApp.*')
-# sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="whitegrid")
 
 ########################################################################################
 ########################################################################################
+
+def check_smiles_length(smi):
+    pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
+    regex = re.compile(pattern)
+    tokens = [token for token in regex.findall(smi)]
+    if smi != "".join(tokens):
+        print(smi)
+    assert smi == "".join(tokens)
+    if len(tokens) < 3:
+        return False
+    else:
+        return True
 
 def decode_newick(enc_smis, decoder, smi, node_cnt):
     enc_smis = enc_smis.split("a")
-    decoded_lst = [decoder[e] for e in enc_smis]
+    decoded_lst = [decoder[int(e)] for e in enc_smis]
     if len(decoded_lst) != node_cnt:
         print("\n", decoded_lst, "\n", len(decoded_lst), node_cnt)
         dslşkfsdf
@@ -67,22 +79,26 @@ def validity_check(smi):
 def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):
     is_unique = True
     sub_csmi = Chem.CanonSmiles(sub_smi)
-    while sub_smi in smi:
-        point = frag_size * fixed_loss
-        if sub_csmi not in repeat_dict:
-            repeat_dict[sub_csmi] = [1, 1, point]
-        else:
-            temp1 = repeat_dict[sub_csmi][0]
-            if is_unique:
-                temp1 += 1
-            temp2 = repeat_dict[sub_csmi][1]
-            temp2 += 1   
-            temp3 = repeat_dict[sub_csmi][2]
-            temp3 += point
-            repeat_dict[sub_csmi] = [temp1, temp2, temp3]
-        smi = smi.replace(sub_smi, "", 1)
-        is_unique = False
-    return repeat_dict
+    is_smi_len_ok = check_smiles_length(sub_csmi)
+    if not is_smi_len_ok:
+        return repeat_dict
+    else:
+        while sub_smi in smi:
+            point = frag_size * fixed_loss
+            if sub_csmi not in repeat_dict:
+                repeat_dict[sub_csmi] = [1, 1, point]
+            else:
+                temp1 = repeat_dict[sub_csmi][0]
+                if is_unique:
+                    temp1 += 1
+                temp2 = repeat_dict[sub_csmi][1]
+                temp2 += 1   
+                temp3 = repeat_dict[sub_csmi][2]
+                temp3 += point
+                repeat_dict[sub_csmi] = [temp1, temp2, temp3]
+            smi = smi.replace(sub_smi, "", 1)
+            is_unique = False
+        return repeat_dict
 
 ########################################################################################
 
@@ -138,11 +154,17 @@ def sanity_check(smi, sub_smi):
 
 def find_fragments(task_newicks, decoder):
     all_subtrees, not_valid_dict, not_ok_dict = {}, {}, {}
-    with tqdm(task_newicks.items(), unit="molecule") as tqdm_bar:
+    print(f"\nFinding fragments...\n")
+    with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
             main_newick = lst[1][0]   # "(((3,-)4,(1,-)11)11,-)8;"   #    # "(B,(D,(-,F)E)C)A;"   # 
             test_loss = lst[1][1]
+            y_label = lst[1][2]
+            if y_label == 0:
+                print("\ny_label is 0\n")
+                dsşlfksdf
+                continue
             t = Tree(main_newick, format=8)
             nodes = [node for node in t.traverse()]
             temp_subtrees = []
@@ -183,7 +205,8 @@ def passFilter(x, sign, thr):
 def inspect_fragments(all_subtrees, task_newicks):
     ##########################
     repeat_dict = {}
-    with tqdm(task_newicks.items(), unit="molecule") as tqdm_bar:
+    print(f"\nInspecting fragments...\n")
+    with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
             main_newick = lst[1][0]
@@ -262,7 +285,9 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     elif repeat_type == "tr":
         y = tr
         y_label = "\nTotal Repeat Count\n"
-    z = xyz["z"]
+    z = np.asarray(xyz["z"])
+    z = z / max(z)
+    z = z.tolist()
     smis = xyz["smi"]
     # cids = xyz["cid"]
     # names = xyz["name"]
@@ -284,28 +309,34 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="white")
     x_good, x_bad, y_good, y_bad = [], [], [], []
     cids = []
+    save_loc = (f"../results/inspection_results/{data_name}")
+    print("\n")
+    cnt = 0
     for i in range(len(z)):
-        if z[i] >= thr:
+        zi = np.round(z[i], 2)
+        if zi >= thr:
+            cnt += 1
             x_good.append(x[i])
             y_good.append(y[i])
             c = pcp.get_compounds(smis[i], "smiles")[0]
             cid_str = (f"CID {c.cid}")
-            cids.append([cid_str, x[i], y[i]])
+            cid_str_annot = (f"CID {c.cid} ({zi:.2f})")
+            cids.append([cid_str_annot, x[i], y[i]])
             m = Chem.MolFromSmiles(smis[i])
             fig = Draw.MolToMPL(m, size=(200, 200))
-            title = (f"{c.iupac_name}\n{cid_str}\n{smis[i]}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]}     TP = {z[i]}")
+            title = (f"{c.iupac_name}\n{cid_str}\n{smis[i]}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]}     TP = {zi:.2f}")
             fig.suptitle(title, fontsize=35, x=1.25, y=0.7)
             fig.set_size_inches(5, 5)
-            save_loc = (f"../results/z.ex/rez/{data_name}")
             if not os.path.exists(save_loc):
                 os.mkdir(save_loc)
-            save_name = (f"{save_loc}/{repeat_type.upper()} {cid_str}.png")
+            save_name = (f"{save_loc}/images/{repeat_type.upper()} {cid_str}.png")
             plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
             plt.close(fig)
-            print(cid_str)
+            print(f"{cnt} -> {cid_str_annot}")
         else:
             x_bad.append(x[i])
             y_bad.append(y[i])
+    print("\n")
     ####################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="whitegrid")
     fig, ax = plt.subplots()
@@ -336,7 +367,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     plt.ylim(0, max(y))
     plt.xlim(0, max(x))
     ####################################################
-    save_name = (f"{save_loc}/{repeat_type} importance map.png")
+    save_name = (f"{save_loc}/images/{repeat_type} importance map.png")
     plt.savefig(fname=save_name, bbox_inches='tight')
     plt.close(fig)
     ####################################################
