@@ -80,8 +80,8 @@ def train(args, cnt, cv_keyz, data, key):
     elif args.is_cv == "feasible":
         run_name = (f"{key}_{getattr(args, key)}_{cnt}")
         prmz = {key: getattr(args, key)}
-    elif args.is_cv == "nope":
-        run_name = (f"best_{cnt}")
+    elif args.is_cv == "besty":
+        run_name = (f"besty_{cnt}")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
     if args.wandb_mode == "online":
@@ -246,7 +246,7 @@ def train(args, cnt, cv_keyz, data, key):
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization}_{cnt} Training is COMPLETED.  <<\n")
     elif args.is_cv == "feasible":
         print(f"\n\n>>  {args.data_name.upper()} {key}_{cnt} Training is COMPLETED.  <<\n")
-    elif args.is_cv == "nope":
+    elif args.is_cv == "besty":
         print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Training is COMPLETED.  <<\n")
     ########################################################################################
     ######################################################################################## END OF THE STORY, THANK YOU
@@ -386,7 +386,7 @@ def main(args):
         print(f"\n>>  {total} minutes elapsed for cross-validation.  <<\n")
         ##########################
     # ########################################################################################
-    elif args.is_cv == "nope":
+    elif args.is_cv == "besty":
         ##########################
         for key in cv_keys:
             setattr(args, key, cv_all[args.data_name][key][0])
@@ -428,7 +428,7 @@ def load_args():
     parser.add_argument("--init_repeat", default=10, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "nope"], type=str)
+    parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "besty"], type=str)
     parser.add_argument("--max_epoch", default=50, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["cha"])   # "bpe", 
     parser.add_argument("--max_smi_len", default=100, type=int)
