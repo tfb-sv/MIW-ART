@@ -154,7 +154,7 @@ def sanity_check(smi, sub_smi):
 
 def find_fragments(task_newicks, decoder):
     all_subtrees, not_valid_dict, not_ok_dict = {}, {}, {}
-    print(f"\nFinding fragments...\n")
+    print(f"\n>>  Finding fragments...  <<\n")
     with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
@@ -203,7 +203,7 @@ def passFilter(x, sign, thr):
 def inspect_fragments(all_subtrees, task_newicks):
     ##########################
     repeat_dict = {}
-    print(f"\nInspecting fragments...\n")
+    print(f"\n>>  Inspecting fragments...  <<\n")
     with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
@@ -269,7 +269,7 @@ def set_xyz(all_subtrees, repeat_dict):
 
 ######################################################################################## 
 
-def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_type):
+def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_line, atrx, atry, repeat_type):
     ####################################################
     xyz, _ = set_xyz(all_subtrees, repeat_dict)
     ##########################
@@ -291,9 +291,9 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     # names = xyz["name"]
     ####################################################
     contour_level_fill = 250
-    contour_level_line = 5
+    # contour_level_line = 5
     ##########################
-    x_ticks = np.arange(0, max(x), atr).tolist()
+    x_ticks = np.arange(0, max(x), atrx).tolist()
     x_ticks.append(max(x))
     # x_ticks.append(50)
     # x_ticks = sorted(x_ticks)
@@ -301,7 +301,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     cb_tick_lst = np.arange(0, max(z), cbr).tolist()
     cb_tick_lst.append(max(z))
     ##########################
-    y_ticks = np.arange(0, max(y), atr).tolist()
+    y_ticks = np.arange(0, max(y), atry).tolist()
     y_ticks.append(max(y))
     ####################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="white")

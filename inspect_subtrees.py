@@ -9,7 +9,7 @@ from utils.inspection_tools import *
 ########################################################################################
 ########################################################################################
 
-def main(data_name, thr):
+def main(data_name, thr1, thr2, contour_num, xt, yt):
     ########################################################################################
     load_dir = "../results/evaluation_results"
     save_dir = "../results/inspection_results"
@@ -58,17 +58,26 @@ def main(data_name, thr):
             json.dump(repeat_dict, f)
     ########################################################################################
     ########################################################################################
-    _ = plot_contour(all_subtrees, repeat_dict, data_name, thr, thr, 100, "ur")
-    _ = plot_contour(all_subtrees, repeat_dict, data_name, thr, thr, 100, "tr")
+    _ = plot_contour(all_subtrees, repeat_dict, data_name, thr1, thr2, contour_num, xt, yt, "ur")
+    _ = plot_contour(all_subtrees, repeat_dict, data_name, thr1, thr2, contour_num, xt, yt, "tr")
     ########################################################################################    
     
 ########################################################################################    
 ########################################################################################
 
 if __name__ == "__main__":
-    data_name = "clintox"
     thr = 0.15
-    main(data_name, thr)
+    cn = int(1 / thr)
+    graph_props = {
+                   "bace": [thr, thr, cn, 10, 100],
+                   "bbbp2k": [thr, thr, cn, 10, 100],
+                   "clintox": [thr, thr, cn, 10, 200],
+                   "hiv": [thr, thr, cn, 10, 100],
+                   "tox21": [thr, thr, cn, 10, 100]
+                   }
+    data_name = "clintox"
+    lst = graph_props[data_name]
+    main(data_name, lst[0], lst[1], lst[2], lst[3], lst[4])
 
 ########################################################################################    
 ########################################################################################
