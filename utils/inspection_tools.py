@@ -162,8 +162,6 @@ def find_fragments(task_newicks, decoder):
             test_loss = lst[1][1]
             y_label = lst[1][2]
             if y_label == 0:
-                print("\ny_label is 0\n")
-                dsşlfksdf
                 continue
             t = Tree(main_newick, format=8)
             nodes = [node for node in t.traverse()]
@@ -286,7 +284,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
         y = tr
         y_label = "\nTotal Repeat Count\n"
     z = np.asarray(xyz["z"])
-    z = z / max(z)
+    z = z / np.max(z)
     z = z.tolist()
     smis = xyz["smi"]
     # cids = xyz["cid"]
@@ -343,7 +341,7 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, atr, repeat_typ
     plt.tricontourf(x, y, z, contour_level_fill, cmap="CMRmap_r", zorder=1)   # "RdBu_r", "Spectral_r"
     plt.colorbar(ticks=cb_tick_lst, label="\nImportance Metric\n")
     scatter_good = ax.scatter(x_bad, y_bad, marker="o", c="white", zorder=2)
-    contours = plt.tricontour(x, y, z, contour_level_line, linewidths=2, colors="white", zorder=3)
+    contours = plt.tricontour(x, y, z, contour_level_line, linewidths=3, colors="white", zorder=3)
     # ax.axvline(50, ymax=max(y), linewidth=3.5, c="black", zorder=4)
     ax.clabel(contours, inline=True, fontsize=20, zorder=5)
     ax.scatter(x_good, y_good, marker="X", s=300, c="white", edgecolors="black", zorder=6)

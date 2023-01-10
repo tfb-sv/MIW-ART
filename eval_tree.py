@@ -177,7 +177,7 @@ def main(args, hyp_no, data):
                 smi = test_batch[2][0]
                 logits, supplements = model(**model_arg)   # logits gereksiz
                 newick = getNewick(postOrder(supplements["tree"][0]))
-                all_newicks[list(smi)[0]] = [newick, test_loss.item(), label]
+                all_newicks[smi] = [newick, test_loss.item(), label]
                 ##########################
                 pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |")
                 pbar_test.update()
