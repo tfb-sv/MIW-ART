@@ -76,7 +76,7 @@ def validity_check(smi):
 
 ########################################################################################
 
-def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):
+def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):   # NRLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! frag_size yeni canon eklenince toplanıp bölünse mi ?? (frag_size_total; cnt) sonra bölersin gerekince
     is_unique = True
     sub_csmi = Chem.CanonSmiles(sub_smi)
     is_smi_len_ok = check_smiles_length(sub_csmi)

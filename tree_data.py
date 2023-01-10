@@ -29,7 +29,10 @@ class data_loaderX(object):
         ########################################################################################
         self.args = args
         ##########################
-        self.train_loc = (f"data/{args.data_name}/{args.data_name}_train.csv")
+        if args.is_debug:
+            self.train_loc = (f"data/{args.data_name}/{args.data_name}_train_fake.csv")
+        else:
+            self.train_loc = (f"data/{args.data_name}/{args.data_name}_train.csv")
         self.val_loc = (f"data/{args.data_name}/{args.data_name}_val.csv")
         self.test_loc = (f"data/{args.data_name}/{args.data_name}_test.csv")
         self.all_loc = (f"data/{args.data_name}/{args.data_name}_all.csv")
