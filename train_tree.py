@@ -425,7 +425,7 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument("--init_repeat", default=10, type=int)
+    parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
     parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "besty"], type=str)
