@@ -83,14 +83,6 @@ def getNewick(postOrderStr):
 ########################################################################################
 
 def main(args, hyp_no, data):
-    ######################################################################################## training_results'daki klasör de siliniyor nedense......
-    temp_path = (f"{args.eval_save_dir}/{args.data_name}")
-    if os.path.exists(temp_path):   # klasör varsa, evaluation_results/task
-        shutil.rmtree(temp_path)   # klasör siliyor, evaluation_results/task
-    #########################
-    if not os.path.exists(args.eval_save_dir):
-        os.mkdir(args.eval_save_dir, exist_ok=True)   # klasör oluşturuyor, evaluation_results
-    os.mkdir(temp_path)   # klasör oluşturuyor, evaluation_results/task
     ########################################################################################
     if args.task == "clf":
         criterion = nn.BCELoss()   # nn.CrossEntropyLoss()
@@ -155,6 +147,14 @@ def main(args, hyp_no, data):
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
+        ##########################
+        temp_path = (f"{args.eval_save_dir}/{args.data_name}")
+        if os.path.exists(temp_path):   # klasör varsa, evaluation_results/task
+            shutil.rmtree(temp_path)   # klasör siliyor, evaluation_results/task
+        #########################
+        if not os.path.exists(args.eval_save_dir):
+            os.mkdir(args.eval_save_dir, exist_ok=True)   # klasör oluşturuyor, evaluation_results
+        os.mkdir(temp_path)   # klasör oluşturuyor, evaluation_results/task
         ##########################
         modelX = ARTM_model
         model = modelX(args)

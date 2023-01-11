@@ -69,13 +69,13 @@ if __name__ == "__main__":
     thr = 0.15
     cn = int(1 / thr)
     graph_props = {
-                   "bace": [thr, thr, cn, 10, 100],
-                   "bbbp2k": [thr, thr, cn, 10, 100],
+                   "bace": [thr, thr, cn, 100, 100],
+                   "bbbp2k": [thr, thr, cn, 100, 400],
                    "clintox": [thr, thr, cn, 10, 200],
-                   "hiv": [thr, thr, cn, 10, 100],
-                   "tox21": [thr, thr, cn, 10, 100]
+                   "hiv": [thr, thr, cn, 100, 100],
+                   "tox21": [thr, thr, cn, 100, 100]
                    }
-    data_name = "clintox"
+    data_name = "bbbp2k"
     lst = graph_props[data_name]
     main(data_name, lst[0], lst[1], lst[2], lst[3], lst[4])
 
