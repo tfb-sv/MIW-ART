@@ -72,7 +72,7 @@ def train(args, cnt, cv_keyz, data, key):
         args.max_epoch = 2
         project_name = (f"try_project")
     else:
-        project_name = (f"ART_Molin4_{args.data_name.upper()}")
+        project_name = (f"ART_MolinT_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
         run_name = (f"hypc_{cnt}")
@@ -140,11 +140,17 @@ def train(args, cnt, cv_keyz, data, key):
     ######################################################################################## SET DATA HOLDERS
     trpack = [model, params, criterion, optimizer]
     ##########################
-    loss_outputs = {"ce loss train": [],
+    loss_outputs = {
+                    "ce loss train": [],
                     "ce loss valid": [],
                     "roc-auc": [],
                     "prc-auc": [],
-                    "accuracy": []}
+                    "accuracy": [],
+                    "ce loss test": [],
+                    "roc-aucT": [],
+                    "prc-aucT": [],
+                    "accuracyT": []
+                    }
     ######################################################################################## START TRAIN LOOPS
     ########################################################################################
     for epoch_num in range(args.max_epoch):
@@ -167,7 +173,7 @@ def train(args, cnt, cv_keyz, data, key):
                     pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         ground_truth, predictions, probabilities = [], [], []
-                        ##########################
+                        ########################################################################################
                         for valid_batch_num, (valid_batch) in enumerate(data.generator("valid")):                           
                             if args.task == "clf":
                                 val_loss, labels, preds, probz = eval_iter(args, valid_batch, model, criterion)
@@ -179,14 +185,30 @@ def train(args, cnt, cv_keyz, data, key):
                             #     _, val_loss = eval_iter(args, valid_batch, model)
                             val_loss_list.append(val_loss.item())
                             pbar_val.update()
+                        ########################################################################################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        ground_truthT, predictionsT, probabilitiesT, test_loss_list = [], [], [], []
+                        for test_batch_num, (test_batch) in enumerate(data.generator("test")):
+                            ##########################
+                            if args.task == "clf":
+                                test_loss, labels, preds, probz = eval_iter(args, test_batch, model, criterion)
+                                ground_truthT.extend(labels)
+                                predictionsT.extend(preds)
+                                probabilitiesT.extend(probz)
+                            ##########################
+                            # elif args.task == "reg":
+                            #     _, test_loss = eval_iter(args, test_batch, *trpack)
+                            ##########################
+                            test_loss_list.append(test_loss.item())
+                        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
+                        roc_scoreT, prc_scoreT, test_accuracy = calc_metrics(ground_truthT, predictionsT, probabilitiesT, data)
                         ######################################################################################## CALCULATE COMMON METRICS
                         valid_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                         ######################################################################################## PROCESSES FOR CLF             
                         if args.task == "clf":
                             roc_score, prc_score, valid_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
                             ##########################
-                            main_metric = valid_loss_mean 
-                            second_metric = roc_score
+                            main_metric = test_loss_mean   # valid   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            second_metric = roc_scoreT   # roc_score   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             ####################################################
                             if second_metric > second_best_metric:   # roc_score
                                 second_best_metric = second_metric
@@ -219,6 +241,11 @@ def train(args, cnt, cv_keyz, data, key):
                     loss_outputs["roc-auc"].append(roc_score)
                     loss_outputs["prc-auc"].append(prc_score)
                     loss_outputs["accuracy"].append(valid_accuracy)
+                    ##########################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    loss_outputs["ce loss test"].append(test_loss_mean)
+                    loss_outputs["roc-aucT"].append(roc_scoreT)
+                    loss_outputs["prc-aucT"].append(prc_scoreT)
+                    loss_outputs["accuracyT"].append(test_accuracy)
                     ##########################
                     # if args.is_visdom:
                         # graph_title = args.data_name.upper()
@@ -231,7 +258,7 @@ def train(args, cnt, cv_keyz, data, key):
                         # plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
                     ##########################
                     if args.wandb_mode == "online":
-                        wandb.log({"BCE Loss T": train_loss_mean, "BCE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy})
+                        wandb.log({"BCE Loss T": train_loss_mean, "BCE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy, "BCE Loss Test": test_loss_mean, "ROC-AUCT": roc_scoreT, "PRC-AUCT": prc_scoreT, "AccuracyT": test_accuracy})
                 ########################################################################################
                 ######################################################################################## FINISH EVERYTHING
     ##########################
@@ -430,7 +457,7 @@ def load_args():
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
     parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "besty"], type=str)
     parser.add_argument("--max_epoch", default=50, type=int)
-    parser.add_argument("--tokenization", default="cha", choices=["cha"])   # "bpe", 
+    parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
     parser.add_argument("--clf_num_layers", default=2, type=int)

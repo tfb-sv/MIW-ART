@@ -75,7 +75,7 @@ if __name__ == "__main__":
                    "hiv": [thr, thr, cn, 100, 100],
                    "tox21": [thr, thr, cn, 100, 100]
                    }
-    data_name = "bbbp2k"
+    data_name = "tox21"
     lst = graph_props[data_name]
     main(data_name, lst[0], lst[1], lst[2], lst[3], lst[4])
 
