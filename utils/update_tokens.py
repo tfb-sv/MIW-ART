@@ -26,17 +26,17 @@ def update_token_dict(dataset_loc, main_token_dict_path):
     with open(main_token_dict_path, "r") as f:    
         main_token_dict = json.load(f)
     ####################################################
-    hiv_token_dict = {}
+    new_token_dict = {}
     for i in range(len(df)):
         smi = df["smiles"][i]
         tokens = smiles_segmenter(smi)
         for token in tokens:
-            if token not in hiv_token_dict:
-                hiv_token_dict[token] = 0
+            if token not in new_token_dict:
+                new_token_dict[token] = 0
     ####################################################
     cnt = 0
     print("\n")
-    for token in hiv_token_dict:
+    for token in new_token_dict:
         if token not in main_token_dict:
             cnt += 1
             main_token_dict[token] = len(main_token_dict)
@@ -50,10 +50,11 @@ def update_token_dict(dataset_loc, main_token_dict_path):
 
 ########################################################################################
 
-hiv_dataset_all_loc = "data/hiv/hiv_all.csv"
+task_name = "lipo"
+new_dataset_all_loc = f"data/{task_name}/{task_name}_all.csv"
 main_token_dict_path = "data/CHARSET.json"
 
-update_token_dict(hiv_dataset_all_loc, main_token_dict_path)
+update_token_dict(new_dataset_all_loc, main_token_dict_path)
 
 ########################################################################################
 

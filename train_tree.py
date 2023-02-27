@@ -72,7 +72,7 @@ def train(args, cnt, cv_keyz, data, key):
         args.max_epoch = 2
         project_name = (f"try_project")
     else:
-        project_name = (f"ART_MolinT_{args.data_name.upper()}")
+        project_name = (f"ART_MolinT7_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
         run_name = (f"hypc_{cnt}")
@@ -455,12 +455,12 @@ def load_args():
     parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="ideal", choices=["ideal", "feasible", "besty"], type=str)
-    parser.add_argument("--max_epoch", default=50, type=int)
+    parser.add_argument("--is_cv", default="feasible", choices=["ideal", "feasible", "besty"], type=str)
+    parser.add_argument("--max_epoch", default=200, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
-    parser.add_argument("--clf_num_layers", default=2, type=int)
+    parser.add_argument("--clf_num_layers", default=1, type=int)
     parser.add_argument("--is_visdom", default=False)
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
@@ -473,7 +473,7 @@ def load_args():
     parser.add_argument("--tree_hidden_dim", default=300, type=int, 
                         help="dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm")
     parser.add_argument("--DTA_hidden_dim", default=512, type=int)
-    parser.add_argument("--dropout", default=0.3, type=float)
+    parser.add_argument("--dropout", default=0.7, type=float)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
     parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
     # parser.add_argument("--mode", default="", help="for evaluation mode!")
@@ -483,7 +483,7 @@ def load_args():
     parser.add_argument("--lr", default=1e-3, type=float)
     parser.add_argument("--l2reg", default=1e-5, type=float)
     parser.add_argument("--clip", default=5.0, type=float)
-    parser.add_argument("--optimizer", default="adam", choices=["adam", "adagrad", "adadelta"])
+    parser.add_argument("--optimizer", default="adadelta", choices=["adam", "adagrad", "adadelta"])
     parser.add_argument("--patience", default=10, type=int)
     parser.add_argument("--fix_word_embedding", default=False, action="store_true")
     parser.add_argument("--is_pretrain", default="", type=str)
