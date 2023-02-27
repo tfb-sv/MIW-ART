@@ -1,3 +1,7 @@
+source ~/.bashrc
+conda activate AR-TreeDTA
+cd /truba/home/nozel/ART-Mol/
+
 ##############################################
 
 source ~/.bashrc
@@ -19,6 +23,10 @@ dos2unix bbbp2k.slurm
 ##############################################
 
 sbatch bbbp2k.slurm
+sbatch bace.slurm
+sbatch tox21.slurm
+sbatch bbbp8k.slurm
+sbatch lipo.slurm
 
 ##############################################
 

@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH -c 20
 #SBATCH -p akya-cuda
-#SBATCH --time=300:00:00
+#SBATCH --time=359:59:59
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/hiv.log
 

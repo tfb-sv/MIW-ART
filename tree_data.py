@@ -54,7 +54,7 @@ class data_loaderX(object):
             self.all_dataset.reset_index(inplace=True, drop=True)
             self.all_dataset.to_csv(self.all_loc)
         ########################################################################################
-        self.label_name = "y_true"
+        self.label_name = "affinity_score"   # y_true
         self.input_name = "smiles"
         if args.tokenization == "cha":
             ####################################################

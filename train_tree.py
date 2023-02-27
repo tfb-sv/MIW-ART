@@ -456,7 +456,7 @@ def load_args():
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
     parser.add_argument("--is_cv", default="feasible", choices=["ideal", "feasible", "besty"], type=str)
-    parser.add_argument("--max_epoch", default=200, type=int)
+    parser.add_argument("--max_epoch", default=150, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
@@ -473,7 +473,7 @@ def load_args():
     parser.add_argument("--tree_hidden_dim", default=300, type=int, 
                         help="dimension of final sentence embedding. each direction will be (hidden_dim // 2) when leaf rnn is bilstm")
     parser.add_argument("--DTA_hidden_dim", default=512, type=int)
-    parser.add_argument("--dropout", default=0.7, type=float)
+    parser.add_argument("--dropout", default=0.5, type=float)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
     parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
     # parser.add_argument("--mode", default="", help="for evaluation mode!")
@@ -503,10 +503,10 @@ if __name__ == "__main__":
         # global plotter
         # env_namex= (f"ART-Mol_{args.data_name.upper()}")
         # plotter = TorchLossPlotter(env_name = env_namex)
-    if "truba" in os.getcwd():
-        args.is_debug = False
-    else:
+    if "OneDrive" in os.getcwd():
         args.is_debug = True
+    else:
+        args.is_debug = False
     main(args)
 
 ########################################################################################
