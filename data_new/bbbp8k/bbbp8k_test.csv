@@ -1,4 +1,4 @@
-,smiles,affinity_score
+,smiles,y_true
 0,CCCN(CCC)CCc1ccc(O)c2c1CC(C)=N2,1
 1,N=C(N)c1ccc(C=Cc2ccc(C(=N)N)cc2O)cc1,0
 2,CN(C(=O)Cc1ccc(Cl)c(Cl)c1)[C@H]1CCCC[C@@H]1N1CCCC1,1

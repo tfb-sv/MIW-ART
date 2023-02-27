@@ -1,4 +1,4 @@
-,smiles,affinity_score
+,smiles,y_true
 0,CCCCC[C@@H](C)[C@@H](C)c1cc(OC(=O)CCCN2CCCCCC2)c2c(c1)OC(C)(C)C1=C2C[C@@H](C)CC1,1
 1,CCCCCCCC/C=C/CCCCCCC(N)(C=O)CO,0
 2,CC[C@@]1(O)C[C@H](O[C@@H]2C[C@H](N(C)C)[C@@H](O[C@@H]3C[C@H](O)[C@H](O[C@@H]4CCC(=O)[C@H](C)O4)[C@H](C)O3)[C@@H](C)O2)c2c(cc3c(c2O)C(=O)c2c(O)cccc2C3=O)[C@H]1C(=O)OC,0
