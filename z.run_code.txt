@@ -19,8 +19,7 @@ cd C:\Users\WS001\Desktop\ART-Mol
 ##############################################
 ##############################################
 
-python train_tree.py --data_name "hiv"
-python train_tree.py --data_name "bbbp2k"
+python train_tree.py --data_name "clintox" --is_cv "feasible"
 
 ["bace", "bbbp2k", "clintox", "tox21", "hiv"]
 
