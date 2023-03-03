@@ -19,7 +19,7 @@
     "tree_hidden_dim": [1500],
     "use_batchnorm": [1],
     "rank_input": ["h"],
-    "max_epoch": [150]
+    "max_epoch": [250]
     },
 "tox21":
     {

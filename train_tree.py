@@ -76,7 +76,7 @@ def train(args, cnt, cv_keyz, data, key):
         args.max_epoch = 2
         project_name = (f"try_project")
     else:
-        project_name = (f"ART_MolinT7_{args.data_name.upper()}")
+        project_name = (f"{args.proj_name}_{args.data_name.upper()}")
     ##########################
     if args.is_cv == "ideal":
         run_name = (f"hypc_{cnt}")
@@ -488,6 +488,7 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    parser.add_argument("--proj_name", default="ART_MolinT7", type=str)
     parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
