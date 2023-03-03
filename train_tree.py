@@ -35,15 +35,17 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     ##########################
     model_arg, labels, smis = batch
     ##########################
-    probs, _ = model(**model_arg)   # probs = logits
-    # threshold = 0.5
-    ##########################
+    probs, _ = model(**model_arg)
+    threshold = 0.5
+    ####################################################
     if args.task == "clf":
-        labels_pred = probs > 0.5      
-    # elif args.task == "reg":
-    #     logits = logits.view(-1)
+        labels_pred = probs > threshold      
     ##########################
-    loss = criterion(input=probs, target=torch.unsqueeze(labels.float(), dim=-1))   # probs = logits
+    elif args.task == "reg":
+        pass
+    ####################################################
+    labelz = torch.unsqueeze(labels.float(), dim=-1)
+    loss = criterion(input=probs, target=labelz)
     ##########################
     optimizer.zero_grad()
     loss.backward()
@@ -52,14 +54,16 @@ def train_iter(args, batch, model, params, criterion, optimizer):
         clip_grad_norm_(parameters=params, max_norm=args.clip) 
     ##########################
     optimizer.step()
-    ##########################
+    ####################################################
     if args.task == "clf":
         labelsx = labels.cpu().detach().numpy().tolist()
         labels_predx = labels_pred.cpu().detach().numpy().tolist()
         probsx = probs.cpu().detach().numpy().tolist()
         return loss, labelsx, labels_predx, probsx
-    # elif args.task == "reg":
-    #     return loss
+    ##########################
+    elif args.task == "reg":
+        return loss
+    ####################################################
     #######################################################################################
 
 ########################################################################################
@@ -133,24 +137,32 @@ def train(args, cnt, cv_keyz, data, key):
     ######################################################################################## SET LOSS FUNCTION
     if args.task == "clf":
         criterion = nn.BCELoss()   # nn.CrossEntropyLoss()
+        ##########################
+        loss_outputs = {
+                        "bce loss train": [],
+                        "bce loss valid": [],
+                        "roc-auc": [],
+                        "prc-auc": [],
+                        "accuracy": [],
+                        "bce loss test": [],
+                        "roc-aucT": [],
+                        "prc-aucT": [],
+                        "accuracyT": []
+                        }
+    ##########################
     elif args.task == "reg":
         criterion = nn.MSELoss()
+        ##########################
+        loss_outputs = {
+                        "mse loss train": [],
+                        "mse loss valid": [],
+                        "mse loss test": []
+                        }
+    ##########################
     best_metric = 10
     second_best_metric = 0
     ######################################################################################## SET DATA HOLDERS
     trpack = [model, params, criterion, optimizer]
-    ##########################
-    loss_outputs = {
-                    "ce loss train": [],
-                    "ce loss valid": [],
-                    "roc-auc": [],
-                    "prc-auc": [],
-                    "accuracy": [],
-                    "ce loss test": [],
-                    "roc-aucT": [],
-                    "prc-aucT": [],
-                    "accuracyT": []
-                    }
     ######################################################################################## START TRAIN LOOPS
     ########################################################################################
     for epoch_num in range(args.max_epoch):
@@ -159,17 +171,17 @@ def train(args, cnt, cv_keyz, data, key):
             for train_batch_num, (train_batch) in enumerate(data.generator("train")):
                 if args.task == "clf":
                     train_loss, _, _, _ = train_iter(args, train_batch, *trpack)
-                # elif args.task == "reg":
-                #     train_loss = train_iter(args, train_batch, *trpack) 
+                elif args.task == "reg":
+                    train_loss = train_iter(args, train_batch, *trpack) 
                 ##########################
                 train_loss_list.append(train_loss.item())   
-                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  BCE Loss = {train_loss.item():.4f}  |")
+                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  MSE Loss = {train_loss.item():.4f}  |")
                 pbar_train.update()
                 ######################################################################################## START VALID LOOP
                 ########################################################################################
                 if (train_batch_num + 1) % data.num_train_batches == 0:  
                     train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
-                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  BCE Loss = {train_loss_mean:.4f}  |")
+                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  MSE Loss = {train_loss_mean:.4f}  |")
                     pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         ground_truth, predictions, probabilities = [], [], []
@@ -181,8 +193,8 @@ def train(args, cnt, cv_keyz, data, key):
                                 predictions.extend(preds)
                                 probabilities.extend(probz)
                             ##########################
-                            # elif args.task == "reg": 
-                            #     _, val_loss = eval_iter(args, valid_batch, model)
+                            elif args.task == "reg": 
+                                val_loss = eval_iter(args, valid_batch, model, criterion)
                             val_loss_list.append(val_loss.item())
                             pbar_val.update()
                         ########################################################################################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -194,14 +206,15 @@ def train(args, cnt, cv_keyz, data, key):
                                 ground_truthT.extend(labels)
                                 predictionsT.extend(preds)
                                 probabilitiesT.extend(probz)
+                                ########################## NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                roc_scoreT, prc_scoreT, test_accuracy = calc_metrics(ground_truthT, predictionsT, probabilitiesT, data)
                             ##########################
-                            # elif args.task == "reg":
-                            #     _, test_loss = eval_iter(args, test_batch, *trpack)
+                            elif args.task == "reg":
+                                test_loss = eval_iter(args, test_batch, model, criterion)
                             ##########################
-                            test_loss_list.append(test_loss.item())
-                        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
-                        roc_scoreT, prc_scoreT, test_accuracy = calc_metrics(ground_truthT, predictionsT, probabilitiesT, data)
+                            test_loss_list.append(test_loss.item()) 
                         ######################################################################################## CALCULATE COMMON METRICS
+                        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
                         valid_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
                         ######################################################################################## PROCESSES FOR CLF             
                         if args.task == "clf":
@@ -220,45 +233,68 @@ def train(args, cnt, cv_keyz, data, key):
                                 ##########################
                                 save_model(args, model, "bce", best_metric, cnt)
                                 ##########################
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  BCE Loss = {valid_loss_mean}  |  ROC-AUC = {roc_score}  |  PRC-AUC = {prc_score}  |  Accuracy = {valid_accuracy}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  MSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                             ####################################################
                             else:
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  BCE Loss = {valid_loss_mean}  |  ROC-AUC = {roc_score}  |  PRC-AUC = {prc_score}  |  Accuracy = {valid_accuracy}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                         ######################################################################################## PROCESSES FOR REG  
-                        # elif args.task == "reg": 
-                        #     main_metric = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)  
-                              ##########################
-                        #     if main_metric < best_metric:
-                        #         best_metric = main_metric
-                        #         model_filename = (f"m-{args.data_name}-{main_metric:.4f}-{cnt}.pkl")
-                        #         model_path = args.train_save_dir + "/" + args.data_name + "/" + model_filename
+                        elif args.task == "reg": 
+                            main_metric = test_loss_mean  
+                            ##########################
+                            if main_metric < best_metric:
+                                save_model(args, model, "mse", best_metric, cnt)
+                                ##########################
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.update()
+                            ####################################################
+                            else:
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.update()
                     ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
-                    loss_outputs["ce loss train"].append(train_loss_mean)
-                    loss_outputs["ce loss valid"].append(valid_loss_mean)
-                    loss_outputs["roc-auc"].append(roc_score)
-                    loss_outputs["prc-auc"].append(prc_score)
-                    loss_outputs["accuracy"].append(valid_accuracy)
-                    ##########################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    loss_outputs["ce loss test"].append(test_loss_mean)
-                    loss_outputs["roc-aucT"].append(roc_scoreT)
-                    loss_outputs["prc-aucT"].append(prc_scoreT)
-                    loss_outputs["accuracyT"].append(test_accuracy)
-                    ##########################
-                    # if args.is_visdom:
-                        # graph_title = args.data_name.upper()
-                        # line_name_t = (f"train_{cnt}")
-                        # line_name_v = (f"valid_{cnt}")
-                        # plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
-                        # plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
-                        # plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
-                        # plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
-                        # plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
-                    ##########################
-                    if args.wandb_mode == "online":
-                        wandb.log({"BCE Loss T": train_loss_mean, "BCE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy, "BCE Loss Test": test_loss_mean, "ROC-AUCT": roc_scoreT, "PRC-AUCT": prc_scoreT, "AccuracyT": test_accuracy})
+                    if args.task == "clf":
+                        loss_outputs["bce loss train"].append(train_loss_mean)
+                        loss_outputs["bce loss valid"].append(valid_loss_mean)
+                        loss_outputs["roc-auc"].append(roc_score)
+                        loss_outputs["prc-auc"].append(prc_score)
+                        loss_outputs["accuracy"].append(valid_accuracy)
+                        ##########################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        loss_outputs["bce loss test"].append(test_loss_mean)
+                        loss_outputs["roc-aucT"].append(roc_scoreT)
+                        loss_outputs["prc-aucT"].append(prc_scoreT)
+                        loss_outputs["accuracyT"].append(test_accuracy)
+                        ##########################
+                        # if args.is_visdom:
+                            # graph_title = args.data_name.upper()
+                            # line_name_t = (f"train_{cnt}")
+                            # line_name_v = (f"valid_{cnt}")
+                            # plotter.plot("CE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # CE Loss T
+                            # plotter.plot("CE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # CE Loss V
+                            # plotter.plot("ROC-AUC", line_name_v, graph_title, epoch_num, roc_score)
+                            # plotter.plot("PRC-AUC", line_name_v, graph_title, epoch_num, prc_score)
+                            # plotter.plot("Accuracy", line_name_v, graph_title, epoch_num, valid_accuracy)   
+                        ##########################
+                        if args.wandb_mode == "online":
+                            wandb.log({"BCE Loss T": train_loss_mean, "BCE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy, "BCE Loss Test": test_loss_mean, "ROC-AUCT": roc_scoreT, "PRC-AUCT": prc_scoreT, "AccuracyT": test_accuracy})
+                    ########################################################################################
+                    if args.task == "reg":
+                        loss_outputs["mse loss train"].append(train_loss_mean)
+                        loss_outputs["mse loss valid"].append(valid_loss_mean)
+                        ##########################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        loss_outputs["mse loss test"].append(test_loss_mean)
+                        ##########################
+                        # if args.is_visdom:
+                            # graph_title = args.data_name.upper()
+                            # line_name_t = (f"train_{cnt}")
+                            # line_name_v = (f"valid_{cnt}")
+                            # plotter.plot("BCE Loss", line_name_t, graph_title, epoch_num, train_loss_mean)   # BCE Loss T
+                            # plotter.plot("BCE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # BCE Loss V 
+                        ##########################
+                        if args.wandb_mode == "online":
+                            wandb.log({"MSE Loss T": train_loss_mean, "MSE Loss V": valid_loss_mean, "MSE Loss Test": test_loss_mean})
+                    ########################################################################################
                 ########################################################################################
                 ######################################################################################## FINISH EVERYTHING
     ##########################
@@ -475,7 +511,7 @@ def load_args():
     parser.add_argument("--DTA_hidden_dim", default=512, type=int)
     parser.add_argument("--dropout", default=0.5, type=float)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
-    parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
+    parser.add_argument("--task", default="clf", choices=["clf", "reg"])
     # parser.add_argument("--mode", default="", help="for evaluation mode!")
     ##########################
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], type=str)

@@ -19,31 +19,33 @@ torch.manual_seed(0)
 ########################################################################################
 
 def eval_iter(args, batch, model, criterion):
-    # mode = args.mode
+    #######################################################################################
     model.eval()   # .train(False) ???
+    ##########################
+    model_arg, labels, smis = batch
+    ##########################
+    probs, _ = model(**model_arg)
+    threshold = 0.5
+    ####################################################
     if args.task == "clf":
-        model_arg = batch[0]
-        labels = batch[1]
-        # smis = batch[2]
-        # if mode == "emb":
-        #     logits = model(**model_arg)   # actually not logits, but hyp_h matrix
-        #     return logits
-    # elif args.task == "reg":
-    #     model_arg, labels = batch
-    probs, _ = model(**model_arg)   # probs = logits
-    # threshold = 0.5
-    if args.task == "clf":
-        labels_pred = probs > 0.5
-        loss = criterion(input=probs, target=torch.unsqueeze(labels.float(), dim=-1))   # probs = logits
+        labels_pred = probs > threshold   
+    ##########################
+    elif args.task == "reg":
+        pass
+    ####################################################
+    labelz = torch.unsqueeze(labels.float(), dim=-1)
+    loss = criterion(input=probs, target=labelz)
+    ####################################################
+    if args.task == "clf":  
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL
         labels_predx = labels_pred.cpu().detach().numpy().tolist()   # NRL
         probsx = probs.cpu().detach().numpy().tolist()
         return loss, labelsx, labels_predx, probsx
-    # elif args.task == "reg":
-    #     logits = logits.view(-1)
-    #     criterion = nn.MSELoss()
-    #     loss = criterion(input=logits, target=labels)
-    #     return logits, loss
+    ##########################
+    elif args.task == "reg":
+        return loss
+    ####################################################
+    #######################################################################################
 
 ########################################################################################
 

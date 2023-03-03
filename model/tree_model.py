@@ -104,7 +104,7 @@ class Classifier(nn.Module):
     def forward(self, sentence):
         x = self.dense1(sentence)
         x = self.fcs(x)
-        x = self.out(x)   # probabilities, not logits. because there is sigmoid func after the final layer
+        x = self.out(x)   # if it is clf, than x = probabilities, not logits. because there will be sigmoid func after the final layer
         return x
         
     ########################################################################################
@@ -125,7 +125,8 @@ class ARTM_model(nn.Module):
         self.word_embedding = nn.Embedding(num_embeddings=args.num_words, embedding_dim=args.word_dim)                                 
         self.encoder = Encoder(args)
         self.classifier = Classifier(args)
-        self.sigmoid = nn.Sigmoid()
+        if args.task == "clf":
+            self.sigmoid = nn.Sigmoid()
         ##########################
         self.reset_parameters()
         ##########################
@@ -149,6 +150,8 @@ class ARTM_model(nn.Module):
         x = self.classifier(h)
         if self.args.task == "clf":
             x = self.sigmoid(x)
+        elif self.args.task == "reg":
+            pass   # nothing is needed.
         return x, supplements
         
     ########################################################################################
