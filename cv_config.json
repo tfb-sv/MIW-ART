@@ -1,6 +1,7 @@
 {
 "bbbp2k":
     {
+    "optimizer": ["adadelta"],
     "dropout": [0.3],
     "clf_num_layers": [5],
     "DTA_hidden_dim": [6144], 
@@ -12,6 +13,7 @@
     },
 "bace":
     {
+    "optimizer": ["adadelta"],
     "dropout": [0.3, 0.5],
     "clf_num_layers": [1],
     "DTA_hidden_dim": [512, 6144], 
@@ -23,6 +25,7 @@
     },
 "tox21":
     {
+    "optimizer": ["adadelta"],
     "dropout": [0.5],
     "clf_num_layers": [5],
     "DTA_hidden_dim": [1024, 2048], 
@@ -34,6 +37,7 @@
     },
 "clintox":
     {
+    "optimizer": ["adadelta"],
     "dropout": [0.5],
     "clf_num_layers": [3],
     "DTA_hidden_dim": [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 3072, 4096], 
@@ -45,6 +49,7 @@
     },
 "bbbp8k":
     {
+    "optimizer": ["adadelta"],
     "dropout": [0.5],
     "clf_num_layers": [1, 2, 3, 5, 7, 10],
     "DTA_hidden_dim": [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 3072, 4096], 
