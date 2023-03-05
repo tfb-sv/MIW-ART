@@ -8,4 +8,4 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/tox21.log
 
-~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "tox21" --is_cv "feasible"
+~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "tox21" --is_cv "ideal" --proj_name "T8"
