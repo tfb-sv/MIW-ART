@@ -20,6 +20,7 @@ torch.manual_seed(0)
 
 def eval_iter(args, batch, model, criterion):
     #######################################################################################
+    eps = 1e-8
     model.eval()   # .train(False) ???
     ##########################
     model_arg, labels, smis = batch
@@ -35,6 +36,7 @@ def eval_iter(args, batch, model, criterion):
     ####################################################
     labelz = torch.unsqueeze(labels.float(), dim=-1)
     loss = criterion(input=probs, target=labelz)
+    loss = torch.sqrt(loss + eps)
     ####################################################
     if args.task == "clf":  
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL

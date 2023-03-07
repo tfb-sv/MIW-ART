@@ -31,6 +31,7 @@ CUDA_VISIBLE_DEVICES=1
 
 def train_iter(args, batch, model, params, criterion, optimizer):
     #######################################################################################
+    eps = 1e-8
     model.train(True)
     ##########################
     model_arg, labels, smis = batch
@@ -46,6 +47,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     ####################################################
     labelz = torch.unsqueeze(labels.float(), dim=-1)
     loss = criterion(input=probs, target=labelz)
+    loss = torch.sqrt(loss + eps)
     ##########################
     optimizer.zero_grad()
     loss.backward()
@@ -154,9 +156,9 @@ def train(args, cnt, cv_keyz, data, key):
         criterion = nn.MSELoss()
         ##########################
         loss_outputs = {
-                        "mse loss train": [],
-                        "mse loss valid": [],
-                        "mse loss test": []
+                        "rmse loss train": [],
+                        "rmse loss valid": [],
+                        "rmse loss test": []
                         }
     ##########################
     best_metric = 10
@@ -175,13 +177,13 @@ def train(args, cnt, cv_keyz, data, key):
                     train_loss = train_iter(args, train_batch, *trpack) 
                 ##########################
                 train_loss_list.append(train_loss.item())   
-                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  MSE Loss = {train_loss.item():.4f}  |")
+                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss.item():.4f}  |")
                 pbar_train.update()
                 ######################################################################################## START VALID LOOP
                 ########################################################################################
                 if (train_batch_num + 1) % data.num_train_batches == 0:  
                     train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
-                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  MSE Loss = {train_loss_mean:.4f}  |")
+                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss_mean:.4f}  |")
                     pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
                         ground_truth, predictions, probabilities = [], [], []
@@ -233,24 +235,24 @@ def train(args, cnt, cv_keyz, data, key):
                                 ##########################
                                 save_model(args, model, "bce", best_metric, cnt)
                                 ##########################
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  RMSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                             ####################################################
                             else:
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  RMSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                         ######################################################################################## PROCESSES FOR REG  
                         elif args.task == "reg": 
                             main_metric = test_loss_mean  
                             ##########################
                             if main_metric < best_metric:
-                                save_model(args, model, "mse", best_metric, cnt)
+                                save_model(args, model, "rmse", best_metric, cnt)
                                 ##########################
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  RMSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                             ####################################################
                             else:
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  RMSE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                     ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
@@ -280,10 +282,10 @@ def train(args, cnt, cv_keyz, data, key):
                             wandb.log({"BCE Loss T": train_loss_mean, "BCE Loss V": valid_loss_mean, "ROC-AUC": roc_score, "PRC-AUC": prc_score, "Accuracy": valid_accuracy, "BCE Loss Test": test_loss_mean, "ROC-AUCT": roc_scoreT, "PRC-AUCT": prc_scoreT, "AccuracyT": test_accuracy})
                     ########################################################################################
                     if args.task == "reg":
-                        loss_outputs["mse loss train"].append(train_loss_mean)
-                        loss_outputs["mse loss valid"].append(valid_loss_mean)
+                        loss_outputs["rmse loss train"].append(train_loss_mean)
+                        loss_outputs["rmse loss valid"].append(valid_loss_mean)
                         ##########################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        loss_outputs["mse loss test"].append(test_loss_mean)
+                        loss_outputs["rmse loss test"].append(test_loss_mean)
                         ##########################
                         # if args.is_visdom:
                             # graph_title = args.data_name.upper()
@@ -293,7 +295,7 @@ def train(args, cnt, cv_keyz, data, key):
                             # plotter.plot("BCE Loss", line_name_v, graph_title, epoch_num, valid_loss_mean)   # BCE Loss V 
                         ##########################
                         if args.wandb_mode == "online":
-                            wandb.log({"MSE Loss T": train_loss_mean, "MSE Loss V": valid_loss_mean, "MSE Loss Test": test_loss_mean})
+                            wandb.log({"RMSE Loss T": train_loss_mean, "RMSE Loss V": valid_loss_mean, "RMSE Loss Test": test_loss_mean})
                     ########################################################################################
                 ########################################################################################
                 ######################################################################################## FINISH EVERYTHING
