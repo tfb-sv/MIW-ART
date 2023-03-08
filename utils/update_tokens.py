@@ -11,10 +11,12 @@ import json
 def smiles_segmenter(smi):
     pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
     regex = re.compile(pattern)
+    smi = smi.replace(" ", "")
     tokens = [token for token in regex.findall(smi)]
-    if smi != "".join(tokens):
-        print(smi)
-    assert smi == "".join(tokens)
+    smi_new = "".join(tokens)
+    if smi != smi_new:
+        print(f"\n{smi}\n{smi_new}")
+    assert smi == smi_new
     return tokens
 
 ########################################################################################
@@ -50,11 +52,13 @@ def update_token_dict(dataset_loc, main_token_dict_path):
 
 ########################################################################################
 
-task_name = "lipo"
-new_dataset_all_loc = f"data/{task_name}/{task_name}_all.csv"
-main_token_dict_path = "data/CHARSET.json"
+datasets = ["bace", "bbbp2k", "clintox", "tox21", "lipo", "esol"]
+main_token_dict_path = "data_new/CHARSET.json"
 
-update_token_dict(new_dataset_all_loc, main_token_dict_path)
+for task_name in datasets:
+    new_dataset_all_loc = f"data_new/{task_name}/{task_name}_all.csv"
+    update_token_dict(new_dataset_all_loc, main_token_dict_path)
+    print(f"\n{task_name}")
 
 ########################################################################################
 

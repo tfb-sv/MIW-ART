@@ -6,6 +6,8 @@ cd C:\Users\nural\OneDrive\Masaüstü\ART-Mol
 
 import deepchem as dc
 import pandas as pd
+# from rdkit import RDLogger
+# RDLogger.DisableLog('rdApp.*')
 
 ############################################################
 
@@ -13,18 +15,20 @@ def get_molnet_from_deepchem(pre_task_name):
     ############################################################
     clms = ["smiles", "y_true"]
     ############################################################
-    dct = {"bace": 0, "bbbp2k": 0, "clintox": -1, "tox21": -1, "lipo": 0}
+    dct = {"bace": 0, "bbbp2k": 0, "clintox": -1, "tox21": -1, "lipo": 0, "esol": 0}   # taskların numarasını belli ediyor!
     ############################################################
     if pre_task_name == "bace":
         task_name = "bace_classification"
     elif pre_task_name == "bbbp2k":
         task_name = "bbbp"
+    elif pre_task_name == "esol":
+        task_name = "delaney"
     else:
         task_name = pre_task_name
     ############################################################
     attr_name = f"load_{task_name}"
     func = getattr(dc.molnet, attr_name)
-    _, (train, valid, test), _ = func()
+    _, (train, valid, test), _ = func(splitter="scaffold", reload=False)
     ############################################################
     train = pd.concat([pd.DataFrame(train.ids), pd.DataFrame(train.y[:,dct[pre_task_name]])], axis=1)
     train.columns = clms
@@ -43,7 +47,7 @@ def get_molnet_from_deepchem(pre_task_name):
 
 ############################################################
 
-for ptn in ["bace", "bbbp2k", "clintox", "tox21", "lipo"]:
+for ptn in ["bace", "bbbp2k", "clintox", "tox21", "lipo", "esol"]:
     get_molnet_from_deepchem(ptn)
     print(ptn)
 

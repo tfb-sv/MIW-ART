@@ -30,12 +30,12 @@ class data_loaderX(object):
         self.args = args
         ##########################
         if args.is_debug:
-            self.train_loc = (f"data/{args.data_name}/{args.data_name}_train_fake.csv")
+            self.train_loc = (f"{args.data_folder}/{args.data_name}/{args.data_name}_train_fake.csv")
         else:
-            self.train_loc = (f"data/{args.data_name}/{args.data_name}_train.csv")
-        self.val_loc = (f"data/{args.data_name}/{args.data_name}_val.csv")
-        self.test_loc = (f"data/{args.data_name}/{args.data_name}_test.csv")
-        self.all_loc = (f"data/{args.data_name}/{args.data_name}_all.csv")
+            self.train_loc = (f"{args.data_folder}/{args.data_name}/{args.data_name}_train.csv")
+        self.val_loc = (f"{args.data_folder}/{args.data_name}/{args.data_name}_val.csv")
+        self.test_loc = (f"{args.data_folder}/{args.data_name}/{args.data_name}_test.csv")
+        self.all_loc = (f"{args.data_folder}/{args.data_name}/{args.data_name}_all.csv")
         ##########################
         self.train_dataset = pd.read_csv(self.train_loc)       
         self.train_dataset.reset_index(inplace=True, drop=True)  
@@ -54,11 +54,11 @@ class data_loaderX(object):
             self.all_dataset.reset_index(inplace=True, drop=True)
             self.all_dataset.to_csv(self.all_loc)
         ########################################################################################
-        self.label_name = "affinity_score"   # y_true
-        self.input_name = "smiles"
+        self.label_name = args.y_label
+        self.input_name = args.x_label
         if args.tokenization == "cha":
             ####################################################
-            with open("data/CHARSET.json", "r") as f:
+            with open(f"{args.data_folder}/CHARSET.json", "r") as f:
                 self.word_to_id_l = json.load(f)
             ####################################################
             self.train_label = self.train_dataset[self.label_name].tolist()
@@ -121,10 +121,12 @@ class data_loaderX(object):
     def smiles_segmenter(self, smi):   # for both cha and bpe
         pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
         regex = re.compile(pattern)
+        smi = smi.replace(" ", "")
         tokens = [token for token in regex.findall(smi)]
-        if smi != "".join(tokens):
-            print(smi)
-        assert smi == "".join(tokens)
+        smi_new = "".join(tokens)
+        if smi != smi_new:
+            print(f"\n{smi}\n{smi_new}")
+        assert smi == smi_new
         return tokens
     
     ########################################################################################

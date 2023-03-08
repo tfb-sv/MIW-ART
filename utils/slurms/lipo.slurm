@@ -8,4 +8,4 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/lipo.log
 
-~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "lipo" --is_cv "feasible" --task "reg"
+~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "lipo" --is_cv "feasible" --task "reg" --proj_name "T8"

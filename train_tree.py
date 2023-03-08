@@ -490,7 +490,10 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
-    parser.add_argument("--proj_name", default="ART_MolinT7", type=str)
+    parser.add_argument("--x_label", default="smiles", type=str)
+    parser.add_argument("--y_label", default="affinity_score", type=str)   # y_true
+    parser.add_argument("--data_folder", default="data", type=str)
+    parser.add_argument("--proj_name", default="T9", type=str)
     parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
