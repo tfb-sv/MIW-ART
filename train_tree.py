@@ -172,14 +172,18 @@ def train(args, cnt, cv_keyz, data, key):
         train_loss_list, val_loss_list = [], []
         with tqdm(total=(data.num_train_batches), unit="batch") as pbar_train:                      
             for train_batch_num, (train_batch) in enumerate(data.generator("train")):
+                ##########################
                 if args.task == "clf":
                     train_loss, _, _, _ = train_iter(args, train_batch, *trpack)
+                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  BCE Loss = {train_loss.item():.4f}  |")
+                    pbar_train.update()
+                ##########################
                 elif args.task == "reg":
                     train_loss = train_iter(args, train_batch, *trpack) 
+                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss.item():.4f}  |")
+                    pbar_train.update()
                 ##########################
                 train_loss_list.append(train_loss.item())   
-                pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss.item():.4f}  |")
-                pbar_train.update()
                 ################################################################################################################################################################################ START VALID LOOP
                 ################################################################################################################################################################################
                 if (train_batch_num + 1) % data.num_train_batches == 0:  
@@ -236,11 +240,11 @@ def train(args, cnt, cv_keyz, data, key):
                                 ##########################
                                 save_model(args, model, "bce", best_metric, cnt)
                                 ##########################
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  RMSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  BCE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                             ####################################################
                             else:
-                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  RMSE Loss = {valid_loss_mean}  |")
+                                pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  BCE Loss = {valid_loss_mean}  |")
                                 pbar_val.update()
                         ######################################################################################## PROCESSES FOR REG  
                         elif args.task == "reg": 
