@@ -1,1 +1,0 @@
-tüm csv'lerdeki label'lar "affinity_score" olarak değiştirildi, kolaylık açısından!

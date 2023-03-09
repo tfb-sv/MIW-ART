@@ -52,11 +52,12 @@ def update_token_dict(dataset_loc, main_token_dict_path):
 
 ########################################################################################
 
-datasets = ["bace", "bbbp2k", "clintox", "tox21", "lipo", "esol"]
+data_folder = "data"   # "data_new"
+datasets = ["esol"]   # ["bace", "bbbp2k", "clintox", "tox21", "lipo", "esol"]
 main_token_dict_path = "data_new/CHARSET.json"
 
 for task_name in datasets:
-    new_dataset_all_loc = f"data_new/{task_name}/{task_name}_all.csv"
+    new_dataset_all_loc = f"{data_folder}/{task_name}/{task_name}_all.csv"
     update_token_dict(new_dataset_all_loc, main_token_dict_path)
     print(f"\n{task_name}")
 
