@@ -4,8 +4,8 @@
 #SBATCH -n 1
 #SBATCH -c 10
 #SBATCH -p akya-cuda
-#SBATCH --time=359:59:59
+#SBATCH --time=49:59:59
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/bbbp2k.log
 
-~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "bbbp2k" --is_cv "ideal" --proj_name "T8"
+~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "bbbp2k" --is_cv "besty" --proj_name "best"

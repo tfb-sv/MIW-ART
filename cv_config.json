@@ -2,14 +2,14 @@
 "bbbp2k":
     {
     "optimizer": ["adadelta"],
-    "dropout": [0.3, 0.5, 0.8],
+    "dropout": [0.3],
     "clf_num_layers": [5],
-    "DTA_hidden_dim": [512, 6144], 
+    "DTA_hidden_dim": [6144], 
     "lr": [1e-3],
-    "tree_hidden_dim": [300, 1500],
+    "tree_hidden_dim": [300],
     "use_batchnorm": [1],
     "rank_input": ["h"],
-    "max_epoch": [250]
+    "max_epoch": [350]
     },
 "bace":
     {
