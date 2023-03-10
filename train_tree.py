@@ -88,7 +88,7 @@ def train(args, cnt, cv_keyz, data, key):
         run_name = (f"{key}_{getattr(args, key)}_{cnt}")
         prmz = {key: getattr(args, key)}
     elif args.is_cv == "besty":
-        run_name = (f"besty_{key}")
+        run_name = (f"besty_{getattr(args, key)}")
         prmz = {cv_keyz[i]: getattr(args, cv_keyz[i]) for i in range(len(cv_keyz))}
     ##########################
     if args.wandb_mode == "online":
