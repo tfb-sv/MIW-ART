@@ -198,6 +198,8 @@ def main(args, hyp_no, data):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    ##########################
+    parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true
     parser.add_argument("--data_folder", default="data_new", type=str)
@@ -234,10 +236,14 @@ def load_args():
 if __name__ == "__main__":
     ########################################################################################
     args = load_args()
-    ########################################################################################
+    ##########################
     print(f"\n")
+    ##########################
+    data_names = args.data_names.replace(" ", "")
+    data_names = data_names.split(",")
     ########################################################################################
-    for task_name in os.listdir(args.eval_load_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
+    # for task_name in os.listdir(args.eval_load_dir):   # THIS IS AN ALL_in_ONE PROCEDURE !
+    for task_name in data_names:
         if "." in task_name:
             continue
         if "saveds" in task_name:

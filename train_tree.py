@@ -251,6 +251,8 @@ def train(args, cnt, cv_keyz, data, key):
                             main_metric = test_loss_mean  
                             ##########################
                             if main_metric < best_metric:
+                                best_metric = main_metric
+                                ##########################
                                 save_model(args, model, "rmse", best_metric, cnt)
                                 ##########################
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  RMSE Loss = {valid_loss_mean}  |")
@@ -502,6 +504,7 @@ def main(args):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    ##########################
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="affinity_score", type=str)   # y_true
     parser.add_argument("--data_folder", default="data", type=str)
