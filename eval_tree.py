@@ -198,6 +198,9 @@ def main(args, hyp_no, data):
 def load_args():
     ##########################
     parser = argparse.ArgumentParser()
+    parser.add_argument("--x_label", default="smiles", type=str)
+    parser.add_argument("--y_label", default="y_true", type=str)   # y_true
+    parser.add_argument("--data_folder", default="data_new", type=str)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--mode", default="test", choices=["test", "newick"])
     parser.add_argument("--data_name", default="")

@@ -10,6 +10,7 @@ from utils.inspection_tools import *
 ########################################################################################
 
 def main(data_name, thr1, thr2, contour_num, xt, yt):
+    data_folder = "data_new"
     ########################################################################################
     load_dir = "../results/evaluation_results"
     save_dir = "../results/inspection_results"
@@ -26,7 +27,7 @@ def main(data_name, thr1, thr2, contour_num, xt, yt):
     with open(newicks_load_path, "r") as f:
         task_newicks = json.load(f)
     ##########################
-    encoder_load_path = "data/CHARSET.json"
+    encoder_load_path = f"{data_folder}/CHARSET.json"
     with open(encoder_load_path, "r") as f:
         encoder = json.load(f)
     decoder = {v: k for k, v in encoder.items()}
@@ -66,18 +67,23 @@ def main(data_name, thr1, thr2, contour_num, xt, yt):
 ########################################################################################
 
 if __name__ == "__main__":
-    thr = 0.15
-    cn = int(1 / thr)
+    thr = 20
+    cbr = 0.15
+    cn = int(1 / cbr)
     graph_props = {
-                   "bace": [thr, thr, cn, 100, 100],
-                   "bbbp2k": [thr, thr, cn, 100, 400],
-                   "clintox": [thr, thr, cn, 10, 200],
-                   "hiv": [thr, thr, cn, 100, 100],
-                   "tox21": [thr, thr, cn, 100, 100]
+                   "bace": [thr, cbr, cn, 50, 4000],
+                   "bbbp2k": [thr, cbr, cn, 50, 200],
+                   "clintox": [thr, cbr, cn, 100, 1000],
+                   "tox21": [thr, cbr, cn, 50, 200],
+                   "bbbp8k": [thr, cbr, cn, 50, 200],
+                   "lipo": [thr, cbr, cn, 50, 200],
+                   "esol": [thr, cbr, cn, 50, 200]
                    }
-    data_name = "tox21"
-    lst = graph_props[data_name]
-    main(data_name, lst[0], lst[1], lst[2], lst[3], lst[4])
+    # data_name = "tox21"
+    data_names = ["bace", "clintox"]
+    for data_name in data_names:
+        lst = graph_props[data_name]
+        main(data_name, lst[0], lst[1], lst[2], lst[3], lst[4])
 
 ########################################################################################    
 ########################################################################################

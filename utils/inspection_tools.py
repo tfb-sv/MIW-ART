@@ -22,9 +22,10 @@ def check_smiles_length(smi):
     pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
     regex = re.compile(pattern)
     tokens = [token for token in regex.findall(smi)]
-    if smi != "".join(tokens):
-        print(smi)
-    assert smi == "".join(tokens)
+    smi_new = "".join(tokens)
+    if smi != smi_new:
+        print(f"\n{smi}\n{smi_new}")
+    assert smi == smi_new
     if len(tokens) < 3:
         return False
     else:
@@ -319,8 +320,10 @@ def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_l
     cnt = 0
     for i in range(len(z)):
         zi = np.round(z[i], 2)
-        if zi >= thr:
-            cnt += 1
+        cnt += 1
+        # if zi >= thr:
+        if cnt <= thr:
+            # cnt += 1
             x_good.append(x[i])
             y_good.append(y[i])
             z_good[smis[i]] = i
