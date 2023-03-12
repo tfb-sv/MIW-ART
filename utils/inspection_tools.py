@@ -329,9 +329,9 @@ def plot_contour(all_subtrees, repeat_dict, args):
     ur = y
     ##########################
     if args.repeat_type == "ur":
-        y_label = "\nln(Unique Repeat Count)\n"
+        y_label = "\nloge(Unique Repeat Count)\n"
     elif args.repeat_type == "tr":
-        y_label = "\nln(Total Repeat Count)\n"
+        y_label = "\nloge(Total Repeat Count)\n"
     ##########################
     x = np.asarray(x)
     x = np.log(x).tolist()
@@ -452,7 +452,7 @@ def plot_contour(all_subtrees, repeat_dict, args):
     ####################################################
     plt.title(f"\nFragment Importance Contour Plot\n({args.data_name.upper()} Task - {len(z)} fragments)\n\n", fontsize=70)
     plt.ylabel(y_label)   # , fontsize = ?
-    plt.xlabel("\nln(Fragment Size)\n")   # , fontsize = ?
+    plt.xlabel("\nloge(Fragment Size)\n")   # , fontsize = ?
     plt.yticks(y_ticks)
     plt.xticks(x_ticks)
     # plt.ylim(0, int(np.floor(max(y))))

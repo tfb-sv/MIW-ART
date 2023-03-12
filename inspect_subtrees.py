@@ -86,13 +86,13 @@ def load_args():
     parser = argparse.ArgumentParser()
     ##########################
     parser.add_argument("--data_names", default="", type=str)
-    parser.add_argument("--data_folder", default="data_new", type=str)
+    parser.add_argument("--data_folder", default="data", type=str)
     parser.add_argument("--load_dir", default="../results/evaluation_results", type=str)
     parser.add_argument("--save_dir", default="../results/inspection_results", type=str)
     ####################################################
     parser.add_argument("--task", default="clf", type=str)
     parser.add_argument("--thr", default=20, type=int)
-    parser.add_argument("--cbr", default=0.2, type=float)
+    parser.add_argument("--cbr", default=0.25, type=float)
     parser.add_argument("--contour_level_line", default=0, type=int)
     parser.add_argument("--xt", default=2, type=int)
     parser.add_argument("--yt", default=2, type=int)
