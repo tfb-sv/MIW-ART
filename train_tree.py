@@ -48,6 +48,13 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     loss = criterion(input=probs, target=labelz)
     ##########################
     optimizer.zero_grad()
+    ####################################################
+    if args.task == "reg":
+        eps = 1e-8
+        loss = torch.sqrt(loss + eps)
+    elif args.task == "clf":
+        pass
+    ####################################################
     loss.backward()
     ##########################
     if args.is_clip:
@@ -62,8 +69,6 @@ def train_iter(args, batch, model, params, criterion, optimizer):
         return loss, labelsx, labels_predx, probsx
     ##########################
     elif args.task == "reg":
-        eps = 1e-8
-        loss = torch.sqrt(loss + eps)
         return loss
     ####################################################
     #######################################################################################
@@ -170,7 +175,7 @@ def train(args, cnt, cv_keyz, data, key):
     ################################################################################################################################################################################
     for epoch_num in range(args.max_epoch):
         train_loss_list, val_loss_list = [], []
-        with tqdm(total=(data.num_train_batches), unit="batch") as pbar_train:                      
+        with tqdm(total=(data.num_train_batches), unit="batch", disable=args.tqdm_off) as pbar_train:                      
             for train_batch_num, (train_batch) in enumerate(data.generator("train")):
                 ##########################
                 if args.task == "clf":
@@ -190,7 +195,7 @@ def train(args, cnt, cv_keyz, data, key):
                     train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
                     pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss_mean:.4f}  |")
                     pbar_train.update()
-                    with tqdm(total=(data.num_valid_batches), unit="batch") as pbar_val:
+                    with tqdm(total=(data.num_valid_batches), unit="batch", disable=args.tqdm_off) as pbar_val:
                         ground_truth, predictions, probabilities = [], [], []
                         ########################################################################################
                         for valid_batch_num, (valid_batch) in enumerate(data.generator("valid")):                           
@@ -505,6 +510,7 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     ##########################
+    parser.add_argument("--tqdm_off", default=True, type=bool)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true
     parser.add_argument("--data_folder", default="data", type=str)
@@ -562,6 +568,7 @@ if __name__ == "__main__":
         # plotter = TorchLossPlotter(env_name = env_namex)
     if "OneDrive" in os.getcwd():
         args.is_debug = True
+        args.tqdm_off = False
     else:
         args.is_debug = False
     main(args)

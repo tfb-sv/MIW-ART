@@ -81,7 +81,7 @@ def validity_check(smi):
 
 def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, thr, task):   # thr2   # NRLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! frag_size yeni canon eklenince toplanıp bölünse mi ?? (frag_size_total; cnt) sonra bölersin gerekince
     ####################################################
-    is_unique = True
+    # is_unique = True
     sub_csmi = Chem.CanonSmiles(sub_smi)
     is_smi_len_ok = check_smiles_length(sub_csmi)
     ####################################################
@@ -103,31 +103,75 @@ def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss,
         ##########################
     else:
         ####################################################
-        while sub_smi in smi:
-            point = frag_size * fixed_loss
-            ##########################
-            if sub_csmi not in repeat_dict:
-                temp_smi_lst = [[smi, test_loss]]
-                repeat_dict[sub_csmi] = [1, 1, point, frag_size, temp_smi_lst]
-                ##########################
-            else:
-                temp1 = repeat_dict[sub_csmi][0]
-                temp_smi_lst = repeat_dict[sub_csmi][4]
-                if is_unique:
-                    temp1 += 1
-                    temp_smi_lst.append([smi, test_loss])
-                    repeat_dict[sub_csmi][4] = temp_smi_lst
-                temp2 = repeat_dict[sub_csmi][1]
-                temp2 += 1   
-                temp3 = repeat_dict[sub_csmi][2]
-                temp3 += point
-                temp4 = repeat_dict[sub_csmi][3]
-                temp4 += frag_size
-                repeat_dict[sub_csmi] = [temp1, temp2, temp3, temp4, temp_smi_lst]   # [unique repeat, total repeat, total point, total fragment size, smis and losses]
-            ##########################
-            smi = smi.replace(sub_smi, "", 1)
-            is_unique = False
+        # while sub_smi in smi:
+        #########################
+            # point = frag_size * fixed_loss
+            #########################
+            # if sub_csmi not in repeat_dict:
+                # temp_smi_dct = {}
+                # temp_smi_dct[smi] = test_loss
+                # repeat_dict[sub_csmi] = [1, 1, point, frag_size, temp_smi_dct]
+                #########################
+            # else:
+                #########################
+                # if is_unique:
+                    #########################    
+                    # temp_smi_dct = repeat_dict[sub_csmi][4]   # smis and losses
+                    # if smi not in temp_smi_dct:                  
+                        # temp_smi_dct[smi] = test_loss
+                        # repeat_dict[sub_csmi][4] = temp_smi_dct
+                        #########################
+                        # temp0 = repeat_dict[sub_csmi][0]   # unique_repeat
+                        # temp0 += 1
+                        # repeat_dict[sub_csmi][0] = temp0
+                    #########################
+                #########################
+                # temp1 = repeat_dict[sub_csmi][1]   # total_repeat
+                # temp1 += 1 
+                # repeat_dict[sub_csmi][1] = temp1
+                #########################
+                # temp2 = repeat_dict[sub_csmi][2]   # total_point
+                # temp2 += point
+                # repeat_dict[sub_csmi][2] = temp2
+                #########################
+                # temp3 = repeat_dict[sub_csmi][3]   # total_fragment_size
+                # temp3 += frag_size
+                # repeat_dict[sub_csmi][3] = temp3
+                #########################
+                # # repeat_dict[sub_csmi] = [temp0, temp1, temp2, temp3, temp_smi_dct]   # [unique repeat, total repeat, total point, total fragment size, smis and losses]
+            #########################
+            # smi = smi.replace(sub_smi, "", 1)
+            # is_unique = False
+            #########################
         ####################################################
+        if sub_smi in smi:
+            point = frag_size * fixed_loss
+            #########################
+            if sub_csmi not in repeat_dict:
+                temp_smi_dct = {}
+                temp_smi_dct[smi] = test_loss
+                repeat_dict[sub_csmi] = [1, 0, point, frag_size, temp_smi_dct]   # index 1 currently useless now.
+                #########################
+            else:  
+                temp_smi_dct = repeat_dict[sub_csmi][4]   # smis and losses
+                ########################
+                if smi not in temp_smi_dct:                  
+                    temp_smi_dct[smi] = test_loss
+                    repeat_dict[sub_csmi][4] = temp_smi_dct
+                    ########################
+                    temp0 = repeat_dict[sub_csmi][0]   # unique_repeat
+                    temp0 += 1
+                    repeat_dict[sub_csmi][0] = temp0
+                    ########################
+                    temp2 = repeat_dict[sub_csmi][2]   # total_point
+                    temp2 += point
+                    repeat_dict[sub_csmi][2] = temp2
+                    ########################
+                    temp3 = repeat_dict[sub_csmi][3]   # total_fragment_size
+                    temp3 += frag_size
+                    repeat_dict[sub_csmi][3] = temp3
+                ########################
+            #########################
         return repeat_dict
     ####################################################
 
@@ -183,9 +227,9 @@ def sanity_check(smi, sub_smi):
 
 ########################################################################################
 
-def find_fragments(task_newicks, decoder):
+def find_fragments(task_newicks, decoder, data_name):
     all_subtrees, not_valid_dict, not_ok_dict = {}, {}, {}
-    print(f"\n>>  Finding fragments...  <<\n")
+    print(f"\n>>  Finding {data_name.upper()} fragments...  <<\n")
     with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
@@ -231,10 +275,10 @@ def passFilter(x, sign, thr):
 
 ########################################################################################
 
-def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task):
+def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task, data_name):
     ##########################
     repeat_dict = {}
-    print(f"\n>>  Inspecting fragments...  <<\n")
+    print(f"\n>>  Inspecting {data_name.upper()} fragments...  <<\n")
     ####################################################
     with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
@@ -273,20 +317,22 @@ def set_xyz(all_subtrees, repeat_dict):
         # cid = compound.cid
         # name = compound.name
         unique_repeat = repeat_dict[sub_smi][0]
-        total_repeat = repeat_dict[sub_smi][1]
+        # total_repeat = repeat_dict[sub_smi][1]
         total_point = repeat_dict[sub_smi][2]
-        total_point = int(np.round(total_point, 0))
         total_frag_size = repeat_dict[sub_smi][3]
-        frag_size = np.round((total_frag_size / total_repeat), 2)
-        ##########################
-        smis_lst_dct = {}
         smis_and_losses = repeat_dict[sub_smi][4]
-        for i in range(len(smis_and_losses)):
-            temp77_smi = smis_and_losses[i][0]
-            temp77_loss = smis_and_losses[i][1] 
-            # just_smis.append(temp77_smi)
-            # just_test_losses.append(temp77_loss)
-            smis_lst_dct[temp77_smi] = temp77_loss
+        ##########################
+        total_point = int(np.round(total_point, 0))
+        # frag_size = np.round((total_frag_size / total_repeat), 2)
+        frag_size = np.round((total_frag_size / unique_repeat), 2)
+        ##########################
+        # smis_lst_dct = {}
+        # for i in range(len(smis_and_losses)):
+            # temp77_smi = smis_and_losses[i][0]
+            # temp77_loss = smis_and_losses[i][1] 
+            # # just_smis.append(temp77_smi)
+            # # just_test_losses.append(temp77_loss)
+            # smis_lst_dct[temp77_smi] = temp77_loss
         ##########################
         # frag_size = frag_size_dict[sub_smi]
         # frag_size = int(frag_size)
@@ -298,8 +344,8 @@ def set_xyz(all_subtrees, repeat_dict):
         y_lst.append(unique_repeat)
         z_lst.append(total_point)
         sub_smis.append(sub_smi)
-        w_lst.append(total_repeat)
-        subs2smis_dct[sub_smi] = smis_lst_dct
+        # w_lst.append(total_repeat)
+        subs2smis_dct[sub_smi] = smis_and_losses
         # cids.append(cid)
         # names.append(name)
     ##########################
@@ -307,7 +353,7 @@ def set_xyz(all_subtrees, repeat_dict):
     xyz["y"] = y_lst
     xyz["z"] = z_lst
     xyz["sub_smis"] = sub_smis
-    xyz["w"] = w_lst
+    # xyz["w"] = w_lst
     xyz["smis"] = subs2smis_dct
     # xyz["cid"] = cids
     # xyz["name"] = names
@@ -324,7 +370,7 @@ def plot_contour(all_subtrees, repeat_dict, args):
     y = xyz["y"]   # unique_repeat
     z = xyz["z"]   # total_point
     sub_smis = xyz["sub_smis"]
-    tr = xyz["w"]   # total_repeat
+    # tr = xyz["w"]   # total_repeat
     smis = xyz["smis"]   # parent smiles and test loss dict
     ur = y
     ##########################
@@ -402,12 +448,13 @@ def plot_contour(all_subtrees, repeat_dict, args):
             ##########################
             m = Chem.MolFromSmiles(sub_smi)
             ##########################
-            parents = pd.DataFrame([smis[sub_smi]]).transpose()
+            parents = pd.DataFrame(list(smis[sub_smi].keys()))
+            # parents = pd.DataFrame.from_dict(smis[sub_smi])
             parents.columns = ["smiles"]
-            parents.to_csv(f"{save_loc}/{(i + 1)} - CID {c.cid}.csv")
+            parents.to_csv(f"{save_loc}/csvs/{(i + 1)} - CID {c.cid}.csv")
             ##########################
             fig = Draw.MolToMPL(m, size=(350, 350))
-            title = (f"{c.iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
+            title = (f"{c.iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    FS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
             fig.suptitle(title, fontsize=35, x=1.25, y=0.8)
             fig.set_size_inches(5.5, 5.5)
             ##########################

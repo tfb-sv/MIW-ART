@@ -106,7 +106,7 @@ def main(args, hyp_no, data):
             model.eval()   # .train(True) ???
             model = model.to(args.device)
             ##########################
-            with tqdm(total=(data.num_test_batches), unit=" molecule") as pbar_test:
+            with tqdm(total=(data.num_test_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
                 test_loss_list, ground_truth, predictions, probabilities = [], [], [], []
                 ##########################
                 for test_batch_num, (test_batch) in enumerate(data.generator("test")):
@@ -168,7 +168,7 @@ def main(args, hyp_no, data):
         ##########################
         vis_decoder_chem_dict = data.word_to_id_l
         ##########################
-        with tqdm(total=(data.num_all_batches), unit=" molecule") as pbar_test:
+        with tqdm(total=(data.num_all_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
             all_newicks = {}
             ##########################
             for test_batch_num, (test_batch) in enumerate(data.generator("all")):
@@ -199,6 +199,7 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     ##########################
+    parser.add_argument("--tqdm_off", default=False, type=bool)
     parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true

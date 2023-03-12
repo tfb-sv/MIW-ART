@@ -13,6 +13,7 @@ def main(args):
     ########################################################################################
     task_path = (f"{args.save_dir}/{args.data_name}")
     image_path = (f"{task_path}/images")
+    csv_path = (f"{task_path}/csvs")
     ##########################
     # if os.path.exists(task_path):   # klasör varsa, inspection_results/task
     #     shutil.rmtree(task_path)   # klasör siliyor, inspection_results/task
@@ -25,6 +26,8 @@ def main(args):
         os.mkdir(task_path)   # , exist_ok=True
     if not os.path.exists(image_path):
         os.mkdir(image_path)   # , exist_ok=True
+    if not os.path.exists(csv_path):
+        os.mkdir(csv_path)   # , exist_ok=True
     ##########################
     newicks_load_path = (f"{args.load_dir}/{args.data_name}/all_newicks_{args.data_name}.json")
     with open(newicks_load_path, "r") as f:
@@ -51,9 +54,9 @@ def main(args):
         newicks_load_path = (f"{args.save_dir}/{args.data_name}/all_subtrees_{args.data_name}.json")
         with open(newicks_load_path, "r") as f:
             all_subtrees = json.load(f)
-    ####################################################
+    ##################################################
     except:
-        all_subtrees, _, _ = find_fragments(task_newicks, decoder)
+        all_subtrees, _, _ = find_fragments(task_newicks, decoder, args.data_name)
         ##########################
         newicks_save_path = (f"{args.save_dir}/{args.data_name}/all_subtrees_{args.data_name}.json")
         with open(newicks_save_path, "w") as f:
@@ -64,9 +67,9 @@ def main(args):
         repeat_dict_load_path = (f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json")
         with open(repeat_dict_load_path, "r") as f:
             repeat_dict = json.load(f)
-    ####################################################
+    ##################################################
     except:
-        repeat_dict = inspect_fragments(all_subtrees, task_newicks, args.task_avg_loss, args.task)
+        repeat_dict = inspect_fragments(all_subtrees, task_newicks, args.task_avg_loss, args.task, args.data_name)
         ##########################
         repeat_dict_save_path = (f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json")
         with open(repeat_dict_save_path, "w") as f:
@@ -92,7 +95,7 @@ def load_args():
     ####################################################
     parser.add_argument("--task", default="clf", type=str)
     parser.add_argument("--thr", default=20, type=int)
-    parser.add_argument("--cbr", default=0.25, type=float)
+    parser.add_argument("--cbr", default=0.2, type=float)
     parser.add_argument("--contour_level_line", default=0, type=int)
     parser.add_argument("--xt", default=2, type=int)
     parser.add_argument("--yt", default=2, type=int)
