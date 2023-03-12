@@ -25,23 +25,24 @@ cd C:\Users\WS001\Desktop\ART-Mol
 ##############################################
 ##############################################
 
-python train_tree.py --data_name "clintox" --is_cv "feasible"
-
-python train_tree.py --data_name "lipo" --is_cv "feasible" --task "reg"
-
-["bace", "bbbp2k", "clintox", "tox21", "hiv", "bbbp8k", "lipo"]
+["bace", "bbbp2k", "clintox", "tox21", "hiv", "bbbp8k", "lipo", "esol"]
 
 ##############################################
 ##############################################
 
-python eval_tree.py --mode newick --data_names "bbbp2k"
+python train_tree.py --data_name "lipo" --is_cv "feasible"
 
 ##############################################
 ##############################################
 
-python inspect_subtrees.py
+python eval_tree.py --mode newick --data_names "bace, bbbp2k, clintox"
 
-python inspect_subtrees.py --data_names "bbbp2k"
+##############################################
+##############################################
+
+python inspect_subtrees.py --data_names "bace"
+
+python inspect_subtrees.py --data_names "bace, bbbp2k, clintox"
 
 ##############################################
 ##############################################

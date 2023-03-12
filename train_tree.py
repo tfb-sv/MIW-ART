@@ -31,7 +31,6 @@ CUDA_VISIBLE_DEVICES=1
 
 def train_iter(args, batch, model, params, criterion, optimizer):
     #######################################################################################
-    eps = 1e-8
     model.train(True)
     ##########################
     model_arg, labels, smis = batch
@@ -47,12 +46,11 @@ def train_iter(args, batch, model, params, criterion, optimizer):
     ####################################################
     labelz = torch.unsqueeze(labels.float(), dim=-1)
     loss = criterion(input=probs, target=labelz)
-    loss = torch.sqrt(loss + eps)
     ##########################
     optimizer.zero_grad()
     loss.backward()
     ##########################
-    if args.is_clip:   # NRL
+    if args.is_clip:
         clip_grad_norm_(parameters=params, max_norm=args.clip) 
     ##########################
     optimizer.step()
@@ -64,6 +62,8 @@ def train_iter(args, batch, model, params, criterion, optimizer):
         return loss, labelsx, labels_predx, probsx
     ##########################
     elif args.task == "reg":
+        eps = 1e-8
+        loss = torch.sqrt(loss + eps)
         return loss
     ####################################################
     #######################################################################################
@@ -482,14 +482,14 @@ def main(args):
             if k in cv_keys:
                 logging.info(k + " = " + str(v))
         ##########################   
-        key = "data_folder"
-        for d_f in ["data", "data_new"]:   # range(args.init_repeat):
-            setattr(args, key, d_f)
-            if d_f == "data_new":
-                setattr(args, "y_label", "y_true")
-            data = data_loaderX(args)
-            train(args, cv_no, cv_keys, data, key)
-            cv_no += 1
+        # key = "data_folder"
+        # for d_f in ["data"]:   # range(args.init_repeat):
+        # setattr(args, key, d_f)
+        # if d_f == "data_new":
+            # setattr(args, "y_label", "y_true")
+        data = data_loaderX(args)
+        train(args, cv_no, cv_keys, data, "best_hypc")
+        # cv_no += 1
         ##########################
         end = time.time()
         total = np.round(((end - start) / 60), 2)
@@ -506,9 +506,9 @@ def load_args():
     parser = argparse.ArgumentParser()
     ##########################
     parser.add_argument("--x_label", default="smiles", type=str)
-    parser.add_argument("--y_label", default="affinity_score", type=str)   # y_true
+    parser.add_argument("--y_label", default="y_true", type=str)   # y_true
     parser.add_argument("--data_folder", default="data", type=str)
-    parser.add_argument("--proj_name", default="T9", type=str)
+    parser.add_argument("--proj_name", default="T11", type=str)
     parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)

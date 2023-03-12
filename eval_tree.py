@@ -36,7 +36,6 @@ def eval_iter(args, batch, model, criterion):
     ####################################################
     labelz = torch.unsqueeze(labels.float(), dim=-1)
     loss = criterion(input=probs, target=labelz)
-    loss = torch.sqrt(loss + eps)
     ####################################################
     if args.task == "clf":  
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL
@@ -45,6 +44,7 @@ def eval_iter(args, batch, model, criterion):
         return loss, labelsx, labels_predx, probsx
     ##########################
     elif args.task == "reg":
+        loss = torch.sqrt(loss + eps)   # for RMSE
         return loss
     ####################################################
     #######################################################################################
@@ -202,7 +202,7 @@ def load_args():
     parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true
-    parser.add_argument("--data_folder", default="data_new", type=str)
+    parser.add_argument("--data_folder", default="data", type=str)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--mode", default="test", choices=["test", "newick"])
     parser.add_argument("--data_name", default="")

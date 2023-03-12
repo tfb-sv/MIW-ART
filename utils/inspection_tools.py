@@ -12,6 +12,8 @@ import seaborn as sns
 import pubchempy as pcp
 import os
 import re
+import argparse
+import pandas as pd
 # from scipy.interpolate import griddata
 RDLogger.DisableLog('rdApp.*')
 
@@ -77,31 +79,57 @@ def validity_check(smi):
 
 ########################################################################################
 
-def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict):   # NRLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! frag_size yeni canon eklenince toplanıp bölünse mi ?? (frag_size_total; cnt) sonra bölersin gerekince
+def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, thr, task):   # thr2   # NRLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! frag_size yeni canon eklenince toplanıp bölünse mi ?? (frag_size_total; cnt) sonra bölersin gerekince
+    ####################################################
     is_unique = True
     sub_csmi = Chem.CanonSmiles(sub_smi)
     is_smi_len_ok = check_smiles_length(sub_csmi)
+    ####################################################
+    if task == "reg":
+        # if test_loss > (thr / 2):
+            # return repeat_dict
+        # if label > thr2:   # label'ın yüksek ya da düşük olmasını mı istiyoruz?
+            # return repeat_dict
+        pass
+        ##########################
+    else:   # task == "clf":   # HEREEEEEEE !!!! test loss yanlış bir şey mi?? prediction değil mi, softmax mı?
+        # if int(test_loss) != 0:
+            # return repeat_dict
+        if label != 1:
+            return repeat_dict
+    ####################################################
     if not is_smi_len_ok:
         return repeat_dict
+        ##########################
     else:
+        ####################################################
         while sub_smi in smi:
             point = frag_size * fixed_loss
+            ##########################
             if sub_csmi not in repeat_dict:
-                repeat_dict[sub_csmi] = [1, 1, point, frag_size]
+                temp_smi_lst = [[smi, test_loss]]
+                repeat_dict[sub_csmi] = [1, 1, point, frag_size, temp_smi_lst]
+                ##########################
             else:
                 temp1 = repeat_dict[sub_csmi][0]
+                temp_smi_lst = repeat_dict[sub_csmi][4]
                 if is_unique:
                     temp1 += 1
+                    temp_smi_lst.append([smi, test_loss])
+                    repeat_dict[sub_csmi][4] = temp_smi_lst
                 temp2 = repeat_dict[sub_csmi][1]
                 temp2 += 1   
                 temp3 = repeat_dict[sub_csmi][2]
                 temp3 += point
                 temp4 = repeat_dict[sub_csmi][3]
                 temp4 += frag_size
-                repeat_dict[sub_csmi] = [temp1, temp2, temp3, temp4]   # [unique repeat, total repeat, total point, total fragment size]
+                repeat_dict[sub_csmi] = [temp1, temp2, temp3, temp4, temp_smi_lst]   # [unique repeat, total repeat, total point, total fragment size, smis and losses]
+            ##########################
             smi = smi.replace(sub_smi, "", 1)
             is_unique = False
+        ####################################################
         return repeat_dict
+    ####################################################
 
 ########################################################################################
 
@@ -203,22 +231,24 @@ def passFilter(x, sign, thr):
 
 ########################################################################################
 
-def inspect_fragments(all_subtrees, task_newicks):
+def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task):
     ##########################
     repeat_dict = {}
     print(f"\n>>  Inspecting fragments...  <<\n")
+    ####################################################
     with tqdm(task_newicks.items(), unit=" molecule") as tqdm_bar:
         for nwck_cnt, lst in enumerate(tqdm_bar):
             smi = lst[0]
             main_newick = lst[1][0]
             test_loss = lst[1][1]
+            label = lst[1][2]
             fixed_loss = fix_loss(test_loss)
             ##########################
             for sub_newick in all_subtrees:
                 sub_smi = all_subtrees[sub_newick][0]
                 frag_size = all_subtrees[sub_newick][1]
                 # max_len = all_subtrees[sub_newick][2]
-                repeat_dict = search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict)    
+                repeat_dict = search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, task_avg_loss, task)    
     ##########################
     return repeat_dict
 
@@ -228,27 +258,37 @@ def set_xyz(all_subtrees, repeat_dict):
     ##########################
     frag_size_dict = {}
     for key in all_subtrees:
-        smi = all_subtrees[key][0]
-        smi = Chem.CanonSmiles(smi)
+        sub_smi = all_subtrees[key][0]
+        sub_smi = Chem.CanonSmiles(sub_smi)
         frag_size = all_subtrees[key][1]
-        frag_size_dict[smi] = frag_size
+        frag_size_dict[sub_smi] = frag_size
     ##########################
     xyz = {}
-    x_lst, y_lst, z_lst, smis, w_lst = [], [], [], [], []
+    x_lst, y_lst, z_lst, sub_smis, w_lst, subs2smis_dct = [], [], [], [], [], {}
     # cids, names = [], []
+    # parents = []
     ##########################
-    for smi in repeat_dict:
-        # compound = pcp.get_compounds(smi, "smiles")[0]
+    for sub_smi in repeat_dict:
+        # compound = pcp.get_compounds(sub_smi, "smiles")[0]
         # cid = compound.cid
         # name = compound.name
-        unique_repeat = repeat_dict[smi][0]
-        total_repeat = repeat_dict[smi][1]
-        total_point = repeat_dict[smi][2]
+        unique_repeat = repeat_dict[sub_smi][0]
+        total_repeat = repeat_dict[sub_smi][1]
+        total_point = repeat_dict[sub_smi][2]
         total_point = int(np.round(total_point, 0))
-        total_frag_size = repeat_dict[smi][3]
+        total_frag_size = repeat_dict[sub_smi][3]
         frag_size = np.round((total_frag_size / total_repeat), 2)
         ##########################
-        # frag_size = frag_size_dict[smi]
+        smis_lst_dct = {}
+        smis_and_losses = repeat_dict[sub_smi][4]
+        for i in range(len(smis_and_losses)):
+            temp77_smi = smis_and_losses[i][0]
+            temp77_loss = smis_and_losses[i][1] 
+            # just_smis.append(temp77_smi)
+            # just_test_losses.append(temp77_loss)
+            smis_lst_dct[temp77_smi] = temp77_loss
+        ##########################
+        # frag_size = frag_size_dict[sub_smi]
         # frag_size = int(frag_size)
         ##########################
         if unique_repeat < 2:
@@ -257,16 +297,18 @@ def set_xyz(all_subtrees, repeat_dict):
         x_lst.append(frag_size) 
         y_lst.append(unique_repeat)
         z_lst.append(total_point)
+        sub_smis.append(sub_smi)
         w_lst.append(total_repeat)
-        smis.append(smi)
+        subs2smis_dct[sub_smi] = smis_lst_dct
         # cids.append(cid)
         # names.append(name)
     ##########################
     xyz["x"] = x_lst
     xyz["y"] = y_lst
     xyz["z"] = z_lst
+    xyz["sub_smis"] = sub_smis
     xyz["w"] = w_lst
-    xyz["smi"] = smis
+    xyz["smis"] = subs2smis_dct
     # xyz["cid"] = cids
     # xyz["name"] = names
     ##########################
@@ -274,110 +316,150 @@ def set_xyz(all_subtrees, repeat_dict):
 
 ######################################################################################## 
 
-def plot_contour(all_subtrees, repeat_dict, data_name, thr, cbr, contour_level_line, atrx, atry, repeat_type):
+def plot_contour(all_subtrees, repeat_dict, args):   
     ####################################################
     xyz, _ = set_xyz(all_subtrees, repeat_dict)
     ##########################
-    ur = xyz["y"]
-    tr = xyz["w"]
+    x = xyz["x"]   # fragment sizes
+    y = xyz["y"]   # unique_repeat
+    z = xyz["z"]   # total_point
+    sub_smis = xyz["sub_smis"]
+    tr = xyz["w"]   # total_repeat
+    smis = xyz["smis"]   # parent smiles and test loss dict
+    ur = y
     ##########################
-    x = xyz["x"]
-    if repeat_type == "ur":
-        y = ur
-        y_label = "\nUnique Repeat Count\n"
-    elif repeat_type == "tr":
-        y = tr
-        y_label = "\nTotal Repeat Count\n"
-    z = np.asarray(xyz["z"])
+    if args.repeat_type == "ur":
+        y_label = "\nln(Unique Repeat Count)\n"
+    elif args.repeat_type == "tr":
+        y_label = "\nln(Total Repeat Count)\n"
+    ##########################
+    x = np.asarray(x)
+    x = np.log(x).tolist()
+    ##########################
+    y = np.asarray(y)
+    y = np.log(y).tolist()
+    ##########################
+    z = np.asarray(z)
     z = z / np.max(z)
     z = z.tolist()
-    smis = xyz["smi"]
     # cids = xyz["cid"]
     # names = xyz["name"]
-    ####################################################
-    z, x, y = zip(*reversed(sorted(zip(z, x, y))))
-    ####################################################
-    contour_level_fill = 250
-    # contour_level_line = 5
     ##########################
-    x_ticks = np.arange(0, max(x), atrx).tolist()
-    x_ticks.append(max(x))
+    thr2 = args.task_avg_loss / np.max(z)
+    ####################################################
+    z, x, y, sub_smis, ur = zip(*reversed(sorted(zip(z, x, y, sub_smis, ur))))
+    #################################################### 
+    # if args.xt == 0:
+        # if args.yt == 0:
+            # args.xt = 1
+            # args.yt = 1
+    ####################################################
+    x_ticks = np.arange(0, (max(x) + args.xt), args.xt, dtype=int).tolist()
+    # x_ticks.append(max(x))
     # x_ticks.append(50)
     # x_ticks = sorted(x_ticks)
     ##########################
-    cb_tick_lst = np.arange(0, max(z), cbr).tolist()
+    cb_tick_lst = np.arange(0, max(z), args.cbr).tolist()
     cb_tick_lst.append(max(z))
     ##########################
-    y_ticks = np.arange(0, max(y), atry).tolist()
-    y_ticks.append(max(y))
+    y_ticks = np.arange(0, (max(y) + args.yt), args.yt, dtype=int).tolist()
+    # y_ticks.append(max(y))
     ####################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="white")
-    x_good, x_bad, y_good, y_bad = [], [], [], []
+    x_good, y_good = [], []
+    # x_bad, y_bad = [], [] 
     z_good = {}
     cids = []
-    save_loc = (f"../results/inspection_results/{data_name}")
+    save_loc = (f"{args.save_dir}/{args.data_name}")
     print("\n")
+    ########################################################################################################
+    ########################################################################################################
     cnt = 0
     for i in range(len(z)):
-        zi = np.round(z[i], 2)
+        zi = np.round(z[i], 4)
         cnt += 1
-        # if zi >= thr:
-        if cnt <= thr:
-            # cnt += 1
+        ####################################################
+        # if args.task == "reg":
+            # if zi > (thr2 / 2):   # mean of the task losses
+                # continue
+        #########################
+        # elif args.task == "clf":
+            # if int(zi) != 0:
+                # continue
+        ####################################################
+        if cnt <= args.thr:
+            ##########################
             x_good.append(x[i])
             y_good.append(y[i])
-            z_good[smis[i]] = i
+            sub_smi = sub_smis[i]
+            z_good[sub_smi] = i
             rank = z[i]
-            c = pcp.get_compounds(smis[i], "smiles")[0]
+            ##########################
+            c = pcp.get_compounds(sub_smis[i], "smiles")[0]
             cid_str = (f"CID {c.cid}")
-            cid_str_annot = (f"CID {c.cid} ({zi:.2f})")
+            cid_str_annot = (f"CID {c.cid} ({zi:.4f})")
             cids.append([cid_str_annot, x[i], y[i]])
-            m = Chem.MolFromSmiles(smis[i])
-            fig = Draw.MolToMPL(m, size=(180, 180))
-            title = (f"{c.iupac_name}\n{cid_str}\n{smis[i]}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]:.2f}     TP = {zi:.2f}\nTask = {data_name.upper()}     Rank = {(i + 1)}")
+            ##########################
+            m = Chem.MolFromSmiles(sub_smi)
+            ##########################
+            parents = pd.DataFrame([smis[sub_smi]]).transpose()
+            parents.columns = ["smiles"]
+            parents.to_csv(f"{save_loc}/{(i + 1)} - CID {c.cid}.csv")
+            ##########################
+            fig = Draw.MolToMPL(m, size=(350, 350))
+            title = (f"{c.iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    TR = {tr[i]}\nFS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
             fig.suptitle(title, fontsize=35, x=1.25, y=0.8)
             fig.set_size_inches(5.5, 5.5)
+            ##########################
             if not os.path.exists(save_loc):
                 os.mkdir(save_loc)
-            save_name = (f"{save_loc}/images/{repeat_type.upper()} {(i + 1)} - {cid_str}.png")
+            ##########################
+            # save_name = (f"{save_loc}/images/{args.repeat_type.upper()} {(i + 1)} - {cid_str}.png")
+            save_name = (f"{save_loc}/images/{(i + 1)} - {cid_str}.png")
             plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
             plt.close(fig)
             print(f"{cnt} -> {cid_str_annot}")
+            ####################################################
         else:
-            x_bad.append(x[i])
-            y_bad.append(y[i])
+            # x_bad.append(x[i])
+            # y_bad.append(y[i])
+            pass
+        ####################################################
     print("\n")
-    ####################################################
+    ########################################################################################################
+    ########################################################################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="whitegrid")
     fig, ax = plt.subplots()
-    plt.tricontourf(x, y, z, contour_level_fill, cmap="CMRmap_r", zorder=1)   # "RdBu_r", "Spectral_r"
-    plt.colorbar(ticks=cb_tick_lst, label="\nImportance Metric\n")
-    scatter_good = ax.scatter(x_bad, y_bad, marker="o", c="white", zorder=2)
-    contours = plt.tricontour(x, y, z, contour_level_line, linewidths=3, colors="white", zorder=3)
+    plt.tricontourf(x, y, z, args.contour_level_fill, cmap="CMRmap_r", zorder=1)   # "RdBu_r", "Spectral_r"
+    plt.colorbar(ticks=cb_tick_lst, label="\nImportance Metric\n= (avg frag size * avg frag test loss) / max frag size\n")
+    # scatter_bad = ax.scatter(x_bad, y_bad, marker="o", c="white", zorder=2)
+    contours = plt.tricontour(x, y, z, args.contour_level_line, linewidths=3, colors="black", zorder=3)
     # ax.axvline(50, ymax=max(y), linewidth=3.5, c="black", zorder=4)
     ax.clabel(contours, inline=True, fontsize=20, zorder=5)
-    ax.scatter(x_good, y_good, marker="X", s=300, c="white", edgecolors="black", zorder=6)
+    scatter_good = ax.scatter(x_good, y_good, marker="X", s=300, c="white", edgecolors="black", zorder=6)
     # ax.scatter(x_good, y_good, marker="o", s=1500, linewidth=5, facecolors="none", edgecolors="black", zorder=7)
-    for i in range(len(cids)):
-        ax.annotate(cids[i][0], ((cids[i][1] + 0.15), (cids[i][2] + 4)), fontsize=35, zorder=7)
-    ax.legend(
-              # *scatter_good.legend_elements(),
-              ("X", "o"),
-              # ("Goods", "Bads"),
-              loc="upper right",
-              fontsize=50,
-              )
-    # ax.add_artist(legend)
     ####################################################
-    plt.title(f"\nFragment Importance Contour Plot\n({data_name.upper()} Task)\n\n", fontsize=70)
+    # for i in range(len(cids)):
+        # ax.annotate(cids[i][0], ((cids[i][1] + 0.15), (cids[i][2] + 4)), fontsize=35, zorder=7)
+    # ax.legend(
+              # # *scatter_good.legend_elements(),
+              # ("X", "o"),
+              # # ("Goods", "Bads"),
+              # loc="upper right",
+              # fontsize=50,
+              # )
+    # # ax.add_artist(legend)
+    ####################################################
+    plt.title(f"\nFragment Importance Contour Plot\n({args.data_name.upper()} Task - {len(z)} fragments)\n\n", fontsize=70)
     plt.ylabel(y_label)   # , fontsize = ?
-    plt.xlabel("\nFragment Size\n")   # , fontsize = ?
+    plt.xlabel("\nln(Fragment Size)\n")   # , fontsize = ?
     plt.yticks(y_ticks)
     plt.xticks(x_ticks)
-    plt.ylim(0, max(y))
-    plt.xlim(0, max(x))
+    # plt.ylim(0, int(np.floor(max(y))))
+    # plt.xlim(0, int(np.floor(max(y))))
     ####################################################
-    save_name = (f"{save_loc}/images/{repeat_type} importance map.png")
+    # save_name = (f"{save_loc}/images/{args.repeat_type.upper()} importance map.png")
+    save_name = (f"{save_loc}/images/{args.data_name.upper()} Importance Map.png")
     plt.savefig(fname=save_name, bbox_inches='tight')
     plt.close(fig)
     ####################################################
