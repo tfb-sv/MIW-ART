@@ -1,0 +1,13 @@
+,smiles
+0,s1ccnc1-c1cc(ccc1)CC(NC(=O)COC)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+1,s1ccnc1-c1cc(ccc1)CC(NC(=O)C(OCC)C)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+2,s1ccnc1-c1ccc(cc1)CC(NC(=O)COC)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+3,s1ccnc1-c1cc(ccc1)CC(NC(=O)C(OC)OC)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+4,s1ccnc1-c1cc(ccc1)CC(NC(=O)C)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+5,s1ccnc1-c1cc(ccc1)CC(NC(=O)C(O)C)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+6,s1ccnc1-c1cc(ccc1)CC(NC(=O)CC)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+7,s1ccnc1-c1cc(ccc1)CC(NC(=O)COCC)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+8,s1ccnc1-c1cc(ccc1)C[C@H](NC(=O)[C@H](OC)C)[C@H](O)C[NH2+][C@H]1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+9,s1ccnc1-c1cc(ccc1)CC(NC(=O)C1OCCC1)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+10,s1ccnc1-c1cc(ccc1)CC(NC(=O)[C@@H](OC)C)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2
+11,s1ccnc1-c1cc(ccc1)CC(NC(=O)[C@H]1OCCC1)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2

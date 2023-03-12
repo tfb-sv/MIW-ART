@@ -1,0 +1,15 @@
+,smiles
+0,O1CCCCNc2nc(cc(c2)C(=O)NC(Cc2cc1ccc2)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+1,O1CCCCOc2nc(cc(c2)C(=O)NC(Cc2cc1ccc2)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+2,O=C1N(CCCC1)C(C)(C)[C@@H]1C[C@@H](CCC1)C(=O)N[C@H]([C@H](O)C[NH2+]Cc1cc(ccc1)C(C)C)Cc1ccccc1
+3,O1CCCCNc2cc(N3C=COC3)cc(c2)C(=O)NC(Cc2cc1ccc2)C(O)C[NH2+]Cc1cc(ccc1)C(C)C
+4,S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NCCCCCOCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+5,O1CCCCNc2cc(cc(c2)C(=O)NC(Cc2cc1ccc2)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)COC
+6,O=C1N(CC[C@]12[N@H+](CCC2)CCC)[C@H](C(=O)N[C@H]([C@H](O)C[NH2+]Cc1cc(ccc1)C(C)C)Cc1ccccc1)C
+7,S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NCC\C=C\COCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+8,S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NC(COC\C=C/CCN(C)C2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+9,S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)N[C@H](C\C=C\COCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)c1ccccc1)C
+10,S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NCCCCCCOCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C
+11,O=C1N[C@@H](C[C@@H](CCCCCCCCC(=O)N(C)[C@H]1C)C)[C@H](O)C[NH2+]Cc1cc(ccc1)C(C)C
+12,O1C[C@H](NC(=O)c2cc(cc(c2)[C@@H](O)[NH2+][C@H](C\C=C\C1)c1ccccc1)C)[C@H](O)C[NH2+]Cc1cc(ccc1)C(C)C
+13,O=C1N(CCC1)C(C)(C)C1CC(CCC1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]Cc1cc(ccc1)C(C)C
