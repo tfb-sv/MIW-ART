@@ -41,14 +41,14 @@ python train_tree.py --data_name "lipo" --is_cv "besty"
 ##############################################
 ##############################################
 
-python eval_tree.py --mode newick --data_names "bace, bbbp2k, clintox"
+python eval_tree.py --mode newick --data_names "bace, bbbp2k, clintox, tox21, lipo, esol"
 
 ##############################################
 ##############################################
 
 python inspect_subtrees.py --data_names "bace"
 
-python inspect_subtrees.py --data_names "bace, bbbp2k, clintox"
+python inspect_subtrees.py --data_names "bace, bbbp2k, clintox, tox21, lipo, esol"
 
 ##############################################
 ##############################################
