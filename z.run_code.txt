@@ -19,7 +19,19 @@ cd C:\Users\WS001\Desktop\ART-Mol
 ##############################################
 ##############################################
 
-["bace", "bbbp2k", "clintox", "tox21", "bbbp8k", "lipo", "esol"]
+["bace", "bbbp2k", "clintox", "tox21", "bbbp8k", "lipo", "esol", "freesolv", "bace_reg"]
+
+"bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k"
+
+##############################################
+##############################################
+
+python utils/get_molnet_data_from_deepchem.py --data_names "freesolv, bace_reg"
+
+##############################################
+##############################################
+
+python utils/update_tokens.py --data_names "bace, bbbp2k, clintox, tox21, bbbp8k, lipo, esol"
 
 ##############################################
 ##############################################

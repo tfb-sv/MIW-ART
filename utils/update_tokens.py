@@ -1,10 +1,13 @@
-cd C:\Users\nural\OneDrive\Masaüstü\ART-Mol
+########################################################################################
+
+# cd C:\Users\nural\OneDrive\Masaüstü\ART-Mol
 
 ########################################################################################
 
 import pandas as pd
 import re
 import json
+import argparse
 
 ########################################################################################
 
@@ -22,8 +25,6 @@ def smiles_segmenter(smi):
 ########################################################################################
 
 def update_token_dict(dataset_loc, main_token_dict_path):
-    # dataset_loc = "data/hiv/hiv_all.csv"
-    # main_token_dict_path = "data/CHARSET.json"
     df = pd.read_csv(dataset_loc)
     with open(main_token_dict_path, "r") as f:    
         main_token_dict = json.load(f)
@@ -52,25 +53,66 @@ def update_token_dict(dataset_loc, main_token_dict_path):
 
 ########################################################################################
 
-data_folder = "data"   # "data_new"
-datasets = ["esol"]   # ["bace", "bbbp2k", "clintox", "tox21", "lipo", "esol"]
-main_token_dict_path = "data_new/CHARSET.json"
+def main(args):
+    ####################################################
+    data_names = args.data_names.replace(" ", "")
+    data_names = data_names.split(",")
+    ####################################################
+    for data_name in data_names:
+        args.data_name = data_name
+        new_dataset_all_loc = f"{args.data_folder}/{args.data_name}/{args.data_name}_all.csv"
+        update_token_dict(new_dataset_all_loc, args.tokens_path)
+        print(f"\n{args.data_name}")
+    ####################################################
 
-for task_name in datasets:
-    new_dataset_all_loc = f"{data_folder}/{task_name}/{task_name}_all.csv"
-    update_token_dict(new_dataset_all_loc, main_token_dict_path)
-    print(f"\n{task_name}")
+########################################################################################
+
+def load_args():
+    ##########################
+    parser = argparse.ArgumentParser()
+    ##########################
+    parser.add_argument("--data_folder", default="data", type=str)
+    parser.add_argument("--data_names", default="", type=str)
+    parser.add_argument("--data_name", default="", type=str)
+    parser.add_argument("--tokens_path", default="CHARSET.json", type=str)
+    ##########################
+    args = parser.parse_args()
+    ##########################    
+    return args
+
+########################################################################################
+
+if __name__ == "__main__":
+    ##########################
+    args = load_args()
+    args.tokens_path = args.data_folder + "/" + args.tokens_path
+    main(args)
+    ##########################
 
 ########################################################################################
 
 
 
 
-
-
-
-
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

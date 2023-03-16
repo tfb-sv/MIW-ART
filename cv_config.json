@@ -90,9 +90,35 @@
     "rank_input": ["h"],
     "max_epoch": [150]
     },
+"freesolv":
+    {
+    "task": ["reg"],
+    "optimizer": ["adadelta", "adam", "adagrad"],
+    "dropout": [0.1, 0.3, 0.5, 0.7, 0.8, 0.9],
+    "clf_num_layers": [1, 2, 3, 5, 7, 10],
+    "DTA_hidden_dim": [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 3072, 4096], 
+    "lr": [1e-3, 1e-4, 1e-5],
+    "tree_hidden_dim": [50, 100, 200, 300, 500, 1000, 1500],
+    "use_batchnorm": [1, 0],
+    "rank_input": ["w", "h"],
+    "max_epoch": [100]
+    },
+"bace_reg":
+    {
+    "task": ["reg"],
+    "optimizer": ["adadelta", "adam", "adagrad"],
+    "dropout": [0.1, 0.3, 0.5, 0.7, 0.8, 0.9],
+    "clf_num_layers": [1, 2, 3, 5, 7, 10],
+    "DTA_hidden_dim": [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 3072, 4096], 
+    "lr": [1e-3, 1e-4, 1e-5],
+    "tree_hidden_dim": [50, 100, 200, 300, 500, 1000, 1500],
+    "use_batchnorm": [1, 0],
+    "rank_input": ["w", "h"],
+    "max_epoch": [100]
+    },
 "example":
     {
-    "task": ["clf"],
+    "task": ["reg"],
     "optimizer": ["adadelta", "adam", "adagrad"],
     "dropout": [0.1, 0.3, 0.5, 0.7, 0.8, 0.9],
     "clf_num_layers": [1, 2, 3, 5, 7, 10],
