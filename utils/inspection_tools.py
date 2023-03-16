@@ -92,7 +92,7 @@ def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss,
         pass
     ####################################################
     if args.task == "reg":
-        if label > args.thr2:   # kesin yüksek olmasını mı istiyoruz, datasetlere bak !
+        if label < args.thr2:   # kesin yüksek olmasını mı istiyoruz, datasetlere bak !
             return repeat_dict
         # pass
         ##########################
