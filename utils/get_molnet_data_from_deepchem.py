@@ -24,11 +24,11 @@ def get_molnet_from_deepchem(args):
     os.mkdir(task_path)   # klasör oluşturuyor, training_results/{task} folder
     ############################################################
     clms = [args.x_label, args.y_label]
-    ############################################################
+    ##########################
     dct = {"bace": 0, "bbbp2k": 0, "clintox": -1, "tox21": -1, "lipo": 0, "esol": 0, "freesolv": 0, "bace_reg": 0}   # y tasklarının numarasını belli ediyor!
-    ############################################################
+    ##########################
     dct2 = {"bace": "bace_classification", "bbbp2k": "bbbp", "bace_reg": "bace_regression", "esol": "delaney"}
-    ############################################################
+    ##########################
     if args.ptn in dct2:
         task_name = dct2[args.ptn]
     else:

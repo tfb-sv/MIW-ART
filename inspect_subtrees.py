@@ -10,25 +10,25 @@ from utils.inspection_tools import *
 ########################################################################################
 
 def main(args):
+    ######################################################################################## DEAL WITH THE FOLDERS
     ########################################################################################
     task_path = (f"{args.save_dir}/{args.data_name}")
     image_path = (f"{task_path}/images")
     csv_path = (f"{task_path}/csvs")
     ##########################
-    # if os.path.exists(task_path):   # klasör varsa, inspection_results/task
-    #     shutil.rmtree(task_path)   # klasör siliyor, inspection_results/task
-    ##########################
-    # if not os.path.exists(args.save_dir):
-    #     os.mkdir(args.save_dir, exist_ok=True)   # klasör oluşturuyor, inspection_results
-    # os.mkdir(task_path)   # klasör oluşturuyor, inspection_results/task
+    if not os.path.exists(args.save_dir):
+        os.mkdir(args.save_dir)   # , exist_ok=True
     ##########################
     if not os.path.exists(task_path):
         os.mkdir(task_path)   # , exist_ok=True
+    ##########################
     if not os.path.exists(image_path):
         os.mkdir(image_path)   # , exist_ok=True
+    ##########################
     if not os.path.exists(csv_path):
         os.mkdir(csv_path)   # , exist_ok=True
-    ##########################
+    ########################################################################################
+    ######################################################################################## LOAD NECESSARY FILES
     newicks_load_path = (f"{args.load_dir}/{args.data_name}/all_newicks_{args.data_name}.json")
     with open(newicks_load_path, "r") as f:
         task_newicks = json.load(f)
@@ -38,18 +38,21 @@ def main(args):
         encoder = json.load(f)
     decoder = {v: k for k, v in encoder.items()}
     ######################################################################################## 
-    ########################################################################################    
+    ######################################################################################## CALCULATE AVERAGE TEST LOSS
     total_loss = 0
     total_cnt = 0
+    if args.task == "reg":
+        label_lst = []
     for smi in task_newicks:
         test_loss = task_newicks[smi][1]
-        test_label = task_newicks[smi][2]
-        total_loss += np.square(test_loss - test_label)
+        if args.task == "reg":
+            test_label = task_newicks[smi][2]
+            label_lst.append(test_label)
         total_cnt += 1
-    task_avg_loss = np.round((total_loss / total_cnt), 4)
-    args.task_avg_loss = task_avg_loss
+    args.task_avg_loss = np.round((total_loss / total_cnt), 4)
+    args.thr2 = (max(label_lst) - min(label_lst)) / 2   # y_label_avg
     ########################################################################################
-    ########################################################################################
+    ######################################################################################## FIND FRAGMENTS
     try:
         newicks_load_path = (f"{args.save_dir}/{args.data_name}/all_subtrees_{args.data_name}.json")
         with open(newicks_load_path, "r") as f:
@@ -62,7 +65,7 @@ def main(args):
         with open(newicks_save_path, "w") as f:
             json.dump(all_subtrees, f)
     ########################################################################################
-    ########################################################################################
+    ######################################################################################## INSPECT FRAGMENTS
     try:
         repeat_dict_load_path = (f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json")
         with open(repeat_dict_load_path, "r") as f:
@@ -75,8 +78,7 @@ def main(args):
         with open(repeat_dict_save_path, "w") as f:
             json.dump(repeat_dict, f)
     ########################################################################################
-    ########################################################################################
-    # _ = plot_contour(all_subtrees, repeat_dict, args.data_name, | thr1, thr2, contour_num, xt, yt, "ur", task, | task_avg_loss)
+    ######################################################################################## MAIN FUNCTION
     _ = plot_contour(all_subtrees, repeat_dict, args)
     ########################################################################################   
     ########################################################################################
@@ -94,6 +96,7 @@ def load_args():
     parser.add_argument("--save_dir", default="../results/inspection_results", type=str)
     ####################################################
     parser.add_argument("--task", default="clf", type=str)
+    parser.add_argument("--thr2", default=5, type=int)
     parser.add_argument("--thr", default=20, type=int)
     parser.add_argument("--cbr", default=0.2, type=float)
     parser.add_argument("--contour_level_line", default=0, type=int)

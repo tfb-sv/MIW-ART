@@ -358,13 +358,15 @@ def save_model(args, model, metric, best_metric, cnt):
 def main(args):
     ################################################################################################################################################################################
     ################################################################################################################################################################################
-    temp_path = (f"{args.train_save_dir}/{args.data_name}")
-    if os.path.exists(temp_path):   # klasör varsa, training_results/task
-        shutil.rmtree(temp_path)   # klasör siliyor, training_results/task
+    task_path = (f"{args.train_save_dir}/{args.data_name}")
     ##########################
     if not os.path.exists(args.train_save_dir):
-        os.mkdir(args.train_save_dir, exist_ok=True)   # klasör oluşturuyor, training_results
-    os.mkdir(temp_path)   # klasör oluşturuyor, training_results/task
+        os.mkdir(args.train_save_dir, exist_ok=True)
+    ##########################
+    if os.path.exists(task_path):
+        shutil.rmtree(task_path)
+    ##########################
+    os.mkdir(task_path, exist_ok=True)
     ##########################
     frmt = "%(asctime)-30s %(levelname)-5s |  %(message)s"
     logging.basicConfig(level=logging.INFO, 

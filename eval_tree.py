@@ -151,15 +151,17 @@ def main(args, hyp_no, data):
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
+        ####################################################
+        task_path = (f"{args.eval_save_dir}/{args.data_name}")
         ##########################
-        temp_path = (f"{args.eval_save_dir}/{args.data_name}")
-        if os.path.exists(temp_path):   # klasör varsa, evaluation_results/task
-            shutil.rmtree(temp_path)   # klasör siliyor, evaluation_results/task
-        #########################
         if not os.path.exists(args.eval_save_dir):
-            os.mkdir(args.eval_save_dir, exist_ok=True)   # klasör oluşturuyor, evaluation_results
-        os.mkdir(temp_path)   # klasör oluşturuyor, evaluation_results/task
+            os.mkdir(args.eval_save_dir, exist_ok=True)
         ##########################
+        if os.path.exists(task_path):
+            shutil.rmtree(task_path)
+        #########################
+        os.mkdir(task_path)
+        ####################################################
         modelX = ARTM_model
         model = modelX(args)
         model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
@@ -167,10 +169,10 @@ def main(args, hyp_no, data):
         model = model.to(args.device)
         ##########################
         vis_decoder_chem_dict = data.word_to_id_l
-        ##########################
+        ####################################################
         with tqdm(total=(data.num_all_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
             all_newicks = {}
-            ##########################
+            ####################################################
             for test_batch_num, (test_batch) in enumerate(data.generator("all")):
                 ##########################
                 if args.task == "clf":
@@ -182,10 +184,10 @@ def main(args, hyp_no, data):
                 logits, supplements = model(**model_arg)   # logits gereksiz
                 newick = getNewick(postOrder(supplements["tree"][0]))
                 all_newicks[smi] = [newick, test_loss.item(), label]
-                ##########################
+                ####################################################
                 pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |")
                 pbar_test.update()
-        ##########################
+        ####################################################
         newicks_save_path = (f"{args.eval_save_dir}/{args.data_name}/all_newicks_{args.data_name}.json")
         with open(newicks_save_path, "w") as f:
             json.dump(all_newicks, f)

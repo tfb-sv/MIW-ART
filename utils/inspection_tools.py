@@ -79,78 +79,38 @@ def validity_check(smi):
 
 ########################################################################################
 
-def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, thr, task):   # thr2   # NRLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! frag_size yeni canon eklenince toplanıp bölünse mi ?? (frag_size_total; cnt) sonra bölersin gerekince
+def search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, args):
     ####################################################
     # is_unique = True
     sub_csmi = Chem.CanonSmiles(sub_smi)
     is_smi_len_ok = check_smiles_length(sub_csmi)
     ####################################################
-    if task == "reg":
-        # if test_loss > (thr / 2):
-            # return repeat_dict
-        # if label > thr2:   # label'ın yüksek ya da düşük olmasını mı istiyoruz?
-            # return repeat_dict
-        pass
+    if test_loss > (args.thr):
+        return repeat_dict
         ##########################
-    else:   # task == "clf":   # HEREEEEEEE !!!! test loss yanlış bir şey mi?? prediction değil mi, softmax mı?
-        # if int(test_loss) != 0:
-            # return repeat_dict
-        if label != 1:
+    else:
+        pass
+    ####################################################
+    if args.task == "reg":
+        if label > args.thr2:   # kesin yüksek olmasını mı istiyoruz, datasetlere bak !
+            return repeat_dict
+        # pass
+        ##########################
+    else:   # "clf"
+        if int(label) != 1:
             return repeat_dict
     ####################################################
     if not is_smi_len_ok:
         return repeat_dict
         ##########################
     else:
-        ####################################################
-        # while sub_smi in smi:
-        #########################
-            # point = frag_size * fixed_loss
-            #########################
-            # if sub_csmi not in repeat_dict:
-                # temp_smi_dct = {}
-                # temp_smi_dct[smi] = test_loss
-                # repeat_dict[sub_csmi] = [1, 1, point, frag_size, temp_smi_dct]
-                #########################
-            # else:
-                #########################
-                # if is_unique:
-                    #########################    
-                    # temp_smi_dct = repeat_dict[sub_csmi][4]   # smis and losses
-                    # if smi not in temp_smi_dct:                  
-                        # temp_smi_dct[smi] = test_loss
-                        # repeat_dict[sub_csmi][4] = temp_smi_dct
-                        #########################
-                        # temp0 = repeat_dict[sub_csmi][0]   # unique_repeat
-                        # temp0 += 1
-                        # repeat_dict[sub_csmi][0] = temp0
-                    #########################
-                #########################
-                # temp1 = repeat_dict[sub_csmi][1]   # total_repeat
-                # temp1 += 1 
-                # repeat_dict[sub_csmi][1] = temp1
-                #########################
-                # temp2 = repeat_dict[sub_csmi][2]   # total_point
-                # temp2 += point
-                # repeat_dict[sub_csmi][2] = temp2
-                #########################
-                # temp3 = repeat_dict[sub_csmi][3]   # total_fragment_size
-                # temp3 += frag_size
-                # repeat_dict[sub_csmi][3] = temp3
-                #########################
-                # # repeat_dict[sub_csmi] = [temp0, temp1, temp2, temp3, temp_smi_dct]   # [unique repeat, total repeat, total point, total fragment size, smis and losses]
-            #########################
-            # smi = smi.replace(sub_smi, "", 1)
-            # is_unique = False
-            #########################
-        ####################################################
         if sub_smi in smi:
             point = frag_size * fixed_loss
             #########################
             if sub_csmi not in repeat_dict:
                 temp_smi_dct = {}
                 temp_smi_dct[smi] = test_loss
-                repeat_dict[sub_csmi] = [1, 0, point, frag_size, temp_smi_dct]   # index 1 currently useless now.
+                repeat_dict[sub_csmi] = [1, 0, point, frag_size, temp_smi_dct]   # index 1 (2nd one) currently useless now.
                 #########################
             else:  
                 temp_smi_dct = repeat_dict[sub_csmi][4]   # smis and losses
@@ -292,7 +252,7 @@ def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task, data_name
                 sub_smi = all_subtrees[sub_newick][0]
                 frag_size = all_subtrees[sub_newick][1]
                 # max_len = all_subtrees[sub_newick][2]
-                repeat_dict = search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, task_avg_loss, task)    
+                repeat_dict = search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, args)    
     ##########################
     return repeat_dict
 
