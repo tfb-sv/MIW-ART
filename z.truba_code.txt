@@ -20,6 +20,8 @@ sbatch lipo.slurm
 sbatch bbbp2k.slurm
 sbatch tox21.slurm
 
+sbatch freesolv.slurm
+sbatch bace_reg.slurm
 sbatch bbbp8k.slurm
 
 ##############################################
