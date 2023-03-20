@@ -34,18 +34,23 @@ def eval_iter(args, batch, model, criterion):
     elif args.task == "reg":
         pass
     ####################################################
+    # print(f"\npredcs={probs}\nlabels{labels}\n")
     labelz = torch.unsqueeze(labels.float(), dim=-1)
     loss = criterion(input=probs, target=labelz)
     ####################################################
     if args.task == "clf":  
         labelsx = labels.cpu().detach().numpy().tolist()   # NRL
-        labels_predx = labels_pred.cpu().detach().numpy().tolist()   # NRL
+        labels_predx = labels_pred.cpu().detach().numpy()
+        labels_predx = labels_predx.astype("int")
+        labels_predx = labels_predx.tolist()   # NRL
         probsx = probs.cpu().detach().numpy().tolist()
-        return loss, labelsx, labels_predx, probsx
+        return loss, labelsx, labels_predx, probsx, smis
     ##########################
     elif args.task == "reg":
         loss = torch.sqrt(loss + eps)   # for RMSE
-        return loss
+        labelsx = labelz.cpu().detach().numpy().tolist()
+        labels_predx = probs.cpu().detach().numpy().tolist()
+        return loss, labelsx, labels_predx, smis
     ####################################################
     #######################################################################################
 
@@ -98,44 +103,60 @@ def main(args, hyp_no, data):
     if args.mode == "test":   
         ##########################
         rocs, prcs, accs, ces = [], [], [], []
-        for i in range(3):
+        # for i in range(3):
+        ####################################################
+        ####################################################
+        modelX = ARTM_model
+        model = modelX(args)
+        model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
+        model.eval()   # .train(True) ???
+        model = model.to(args.device)
+        ##########################
+        labelZ, predZ, smileZ = [], [], []
+        ##########################
+        with tqdm(total=(data.num_test_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
+            test_loss_list, ground_truth, predictions, probabilities = [], [], [], []
             ##########################
-            modelX = ARTM_model
-            model = modelX(args)
-            model.load_state_dict(torch.load(args.ckpt, map_location=torch.device(args.device)))   # loaded ???
-            model.eval()   # .train(True) ???
-            model = model.to(args.device)
+            for test_batch_num, (test_batch) in enumerate(data.generator("test")):
+                ##########################
+                if args.task == "clf":
+                    test_loss, labels, preds, probz, smis = eval_iter(args, test_batch, model, criterion)
+                    ground_truth.extend(labels)
+                    predictions.extend(preds)
+                    probabilities.extend(probz)
+                    pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  BCE Loss = {test_loss.item():.4f}  |")
+                ##########################
+                elif args.task == "reg":
+                    test_loss, labels, preds, smis = eval_iter(args, test_batch, model, criterion)
+                    pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  RMSE Loss = {test_loss.item():.4f}  |")
+                ##########################
+                labelZ.extend(labels)
+                predZ.extend(preds)
+                smileZ.extend(smis)
+                ##########################
+                test_loss_list.append(test_loss.item())
+                pbar_test.update()
             ##########################
-            with tqdm(total=(data.num_test_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
-                test_loss_list, ground_truth, predictions, probabilities = [], [], [], []
-                ##########################
-                for test_batch_num, (test_batch) in enumerate(data.generator("test")):
-                    ##########################
-                    if args.task == "clf":
-                        test_loss, labels, preds, probz = eval_iter(args, test_batch, model, criterion)
-                        ground_truth.extend(labels)
-                        predictions.extend(preds)
-                        probabilities.extend(probz)
-                    ##########################
-                    # elif args.task == "reg":
-                    #     _, test_loss = eval_iter(args, test_batch, *trpack)
-                    ##########################
-                    pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  CE Loss = {test_loss.item():.4f}  |")
-                    pbar_test.update()
-                    test_loss_list.append(test_loss.item())
-                ##########################
-                test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
-                ##########################
-                pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  CE Loss = {test_loss_mean}  |")
-            ##########################
-            if args.task == "clf":
-                roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
-                rocs.append(roc_score)
-                prcs.append(prc_score)
-                accs.append(test_accuracy)
-                ces.append(test_loss_mean)
+            test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
+            #########################
+            # if args.task == "clf":
+                # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  BCE Loss = {test_loss_mean}  |")
+            #########################
+            # elif args.task == "reg":
+                # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  RMSE Loss = {test_loss_mean}  |")
+            #########################
+            # pbar_test.update()
         ##########################
         if args.task == "clf":
+            roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
+            rocs.append(roc_score)
+            prcs.append(prc_score)
+            accs.append(test_accuracy)
+            ces.append(test_loss_mean)
+        ####################################################
+        ####################################################
+        if args.task == "clf":
+        ##########################
             roc_score = np.round((np.mean(rocs) * 100), 1)
             prc_score = np.round((np.mean(prcs) * 100), 1)
             test_accuracy = np.round((np.mean(accs) * 100), 1)
@@ -148,6 +169,29 @@ def main(args, hyp_no, data):
             ##########################
             print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
             print(f"|>>  BCE Loss % = {test_loss_mean} ({ce_std})  \n|>>  ROC-AUC % = {roc_score} ({roc_std})  \n|>>  PRC-AUC % = {prc_score} ({prc_std})  \n|>>  Accuracy % = {test_accuracy} ({acc_std})\n\n")
+        ####################################################
+        elif args.task == "reg":
+            ##########################
+            print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
+            print(f"|>>  RMSE Loss = {test_loss_mean}\n\n")
+            ##########################
+        ####################################################
+        ####################################################
+        if args.export_preds:
+            ##########################
+            smileZ = pd.DataFrame(smileZ)
+            ##########################
+            labelZ = pd.DataFrame(labelZ)
+            ##########################
+            predZ = pd.DataFrame(predZ)
+            ##########################
+            fdf = pd.concat([smileZ, labelZ, predZ], axis=1)
+            fdf.columns = ["smiles", "y_true", "y_pred"]
+            ##########################
+            fdf.to_csv(f"ys_check_{args.data_name.upper()}.csv")
+            ##########################
+        ####################################################
+        ####################################################
     #######################################################################################################################
     #######################################################################################################################
     elif args.mode == "newick":
@@ -176,6 +220,8 @@ def main(args, hyp_no, data):
             for test_batch_num, (test_batch) in enumerate(data.generator("all")):
                 ##########################
                 if args.task == "clf":
+                    test_loss, _, _, _, _ = eval_iter(args, test_batch, model, criterion)
+                if args.task == "reg":
                     test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
                 ##########################
                 model_arg = test_batch[0]
@@ -201,6 +247,7 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     ##########################
+    parser.add_argument("--export_preds", default=False, type=bool)
     parser.add_argument("--tqdm_off", default=False, type=bool)
     parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--x_label", default="smiles", type=str)
@@ -215,7 +262,7 @@ def load_args():
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--batch_size", default=1, type=int)   
-    parser.add_argument("--task", default="clf", choices=["clf"])   # , "reg"
+    parser.add_argument("--task", default="clf", choices=["clf", "reg"])
     ##########################
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--dropout", default=0.3, type=float)
@@ -279,6 +326,7 @@ if __name__ == "__main__":
                         break
                     print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Testing STARTED.  <<")
                 data = data_loaderX(args)
+                args.tqdm_off = False
                 main(args, hyp_no, data)
     ########################################################################################
         

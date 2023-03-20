@@ -181,14 +181,13 @@ def train(args, cnt, cv_keyz, data, key):
                 if args.task == "clf":
                     train_loss, _, _, _ = train_iter(args, train_batch, *trpack)
                     pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  BCE Loss = {train_loss.item():.4f}  |")
-                    pbar_train.update()
                 ##########################
                 elif args.task == "reg":
                     train_loss = train_iter(args, train_batch, *trpack) 
                     pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss.item():.4f}  |")
-                    pbar_train.update()
                 ##########################
                 train_loss_list.append(train_loss.item())   
+                pbar_train.update()
                 ################################################################################################################################################################################ START VALID LOOP
                 ################################################################################################################################################################################
                 if (train_batch_num + 1) % data.num_train_batches == 0:  
@@ -206,7 +205,7 @@ def train(args, cnt, cv_keyz, data, key):
                                 probabilities.extend(probz)
                             ##########################
                             elif args.task == "reg": 
-                                val_loss = eval_iter(args, valid_batch, model, criterion)
+                                val_loss, _, _ = eval_iter(args, valid_batch, model, criterion)
                             val_loss_list.append(val_loss.item())
                             pbar_val.update()
                         ########################################################################################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -214,7 +213,7 @@ def train(args, cnt, cv_keyz, data, key):
                         for test_batch_num, (test_batch) in enumerate(data.generator("test")):
                             ##########################
                             if args.task == "clf":
-                                test_loss, labels, preds, probz = eval_iter(args, test_batch, model, criterion)
+                                test_loss, labels, preds, probz, _ = eval_iter(args, test_batch, model, criterion)
                                 ground_truthT.extend(labels)
                                 predictionsT.extend(preds)
                                 probabilitiesT.extend(probz)
@@ -222,7 +221,7 @@ def train(args, cnt, cv_keyz, data, key):
                                 roc_scoreT, prc_scoreT, test_accuracy = calc_metrics(ground_truthT, predictionsT, probabilitiesT, data)
                             ##########################
                             elif args.task == "reg":
-                                test_loss = eval_iter(args, test_batch, model, criterion)
+                                test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
                             ##########################
                             test_loss_list.append(test_loss.item()) 
                         ######################################################################################## CALCULATE COMMON METRICS
@@ -246,11 +245,11 @@ def train(args, cnt, cv_keyz, data, key):
                                 save_model(args, model, "bce", best_metric, cnt)
                                 ##########################
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  BCE Loss = {valid_loss_mean}  |")
-                                pbar_val.update()
                             ####################################################
                             else:
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  BCE Loss = {valid_loss_mean}  |")
-                                pbar_val.update()
+                            ####################################################
+                            pbar_val.update()
                         ######################################################################################## PROCESSES FOR REG  
                         elif args.task == "reg": 
                             main_metric = test_loss_mean  
@@ -261,11 +260,11 @@ def train(args, cnt, cv_keyz, data, key):
                                 save_model(args, model, "rmse", best_metric, cnt)
                                 ##########################
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  MODEL SAVED.  |  RMSE Loss = {valid_loss_mean}  |")
-                                pbar_val.update()
                             ####################################################
                             else:
                                 pbar_val.set_description(f">>  EPOCH {(epoch_num + 1)}V  |  RMSE Loss = {valid_loss_mean}  |")
-                                pbar_val.update()
+                            ####################################################
+                            pbar_val.update()
                     ######################################################################################## EXPORT DATA TO HOLDERS
                     ########################################################################################
                     if args.task == "clf":
@@ -361,12 +360,12 @@ def main(args):
     task_path = (f"{args.train_save_dir}/{args.data_name}")
     ##########################
     if not os.path.exists(args.train_save_dir):
-        os.mkdir(args.train_save_dir, exist_ok=True)
+        os.mkdir(args.train_save_dir)   # , exist_ok=True
     ##########################
     if os.path.exists(task_path):
         shutil.rmtree(task_path)
     ##########################
-    os.mkdir(task_path, exist_ok=True)
+    os.mkdir(task_path)   # , exist_ok=True
     ##########################
     frmt = "%(asctime)-30s %(levelname)-5s |  %(message)s"
     logging.basicConfig(level=logging.INFO, 

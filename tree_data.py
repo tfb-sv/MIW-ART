@@ -213,7 +213,10 @@ class data_loaderX(object):
                 minibatch.reset_index(inplace=True, drop=True) 
                 chemicals, labels, l_chems, smis = self.get_cha_data(minibatch)
             ##########################
-            labels = torch.LongTensor(labels).to(self.args.device)
+            if self.args.task == "clf":
+                labels = torch.LongTensor(labels).to(self.args.device)
+            elif self.args.task == "reg":
+                labels = torch.FloatTensor(labels).to(self.args.device)
             model_arg = self.wrap_to_model_arg(chemicals, l_chems)
             ##########################
             yield model_arg, labels, smis

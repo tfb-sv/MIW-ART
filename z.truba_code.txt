@@ -14,14 +14,13 @@ dos2unix bbbp2k.slurm
 
 sbatch bace.slurm
 sbatch clintox.slurm
-sbatch esol.slurm
-sbatch lipo.slurm
 sbatch bbbp2k.slurm
 sbatch tox21.slurm
 
+sbatch esol.slurm
+sbatch lipo.slurm
 sbatch freesolv.slurm
 sbatch bace_reg.slurm
-
 sbatch bbbp8k.slurm
 
 ##############################################

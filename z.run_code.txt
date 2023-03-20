@@ -41,7 +41,11 @@ python train_tree.py --data_name "lipo" --is_cv "besty"
 ##############################################
 ##############################################
 
-python eval_tree.py --mode newick --data_names "bace, bbbp2k, clintox, tox21, lipo, esol"
+python eval_tree.py --mode "test" --data_names "freesolv" --export_preds True
+
+python eval_tree.py --mode "test" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k" --export_preds True
+
+python eval_tree.py --mode "newick" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol"
 
 ##############################################
 ##############################################
