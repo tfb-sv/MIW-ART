@@ -199,13 +199,13 @@ def train(args, cnt, cv_keyz, data, key):
                         ########################################################################################
                         for valid_batch_num, (valid_batch) in enumerate(data.generator("valid")):                           
                             if args.task == "clf":
-                                val_loss, labels, preds, probz = eval_iter(args, valid_batch, model, criterion)
+                                val_loss, labels, preds, probz, _ = eval_iter(args, valid_batch, model, criterion)
                                 ground_truth.extend(labels)
                                 predictions.extend(preds)
                                 probabilities.extend(probz)
                             ##########################
                             elif args.task == "reg": 
-                                val_loss, _, _ = eval_iter(args, valid_batch, model, criterion)
+                                val_loss, _, _, _ = eval_iter(args, valid_batch, model, criterion)
                             val_loss_list.append(val_loss.item())
                             pbar_val.update()
                         ########################################################################################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
