@@ -1,4 +1,17 @@
 {
+"bace":    
+    {
+    "task": ["clf"],
+    "optimizer": ["adadelta"],
+    "dropout": [0.3],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [6144], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [300],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [200]
+    },
 "bbbp2k":
     {
     "task": ["clf"],
@@ -11,19 +24,6 @@
     "use_batchnorm": [1],
     "rank_input": ["h"],
     "max_epoch": [400]
-    },
-"bace":
-    {
-    "task": ["clf"],
-    "optimizer": ["adadelta"],
-    "dropout": [0.3],
-    "clf_num_layers": [1],
-    "DTA_hidden_dim": [6144], 
-    "lr": [1e-3],
-    "tree_hidden_dim": [300],
-    "use_batchnorm": [1],
-    "rank_input": ["h"],
-    "max_epoch": [200]
     },
 "tox21":
     {
@@ -64,18 +64,18 @@
     "rank_input": ["w"],
     "max_epoch": [250]
     },
-"lipo":
+"bace_reg":
     {
     "task": ["reg"],
-    "optimizer": ["adam"],
-    "dropout": [0.3],
+    "optimizer": ["adagrad"],
+    "dropout": [0.8],
     "clf_num_layers": [1],
-    "DTA_hidden_dim": [512], 
+    "DTA_hidden_dim": [3072], 
     "lr": [1e-3],
-    "tree_hidden_dim": [500],
+    "tree_hidden_dim": [1500],
     "use_batchnorm": [1],
-    "rank_input": ["h"],
-    "max_epoch": [150]
+    "rank_input": ["w"],
+    "max_epoch": [350]
     },
 "esol":
     {
@@ -103,18 +103,18 @@
     "rank_input": ["h"],
     "max_epoch": [350]
     },
-"bace_reg":
+"lipo":
     {
     "task": ["reg"],
-    "optimizer": ["adagrad"],
-    "dropout": [0.8],
+    "optimizer": ["adam"],
+    "dropout": [0.3],
     "clf_num_layers": [1],
-    "DTA_hidden_dim": [3072], 
+    "DTA_hidden_dim": [512], 
     "lr": [1e-3],
-    "tree_hidden_dim": [1500],
+    "tree_hidden_dim": [500],
     "use_batchnorm": [1],
-    "rank_input": ["w"],
-    "max_epoch": [350]
+    "rank_input": ["h"],
+    "max_epoch": [150]
     },
 "example":
     {
