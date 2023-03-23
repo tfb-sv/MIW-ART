@@ -235,7 +235,7 @@ def passFilter(x, sign, thr):
 
 ########################################################################################
 
-def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task, data_name):
+def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task, data_name, args):
     ##########################
     repeat_dict = {}
     print(f"\n>>  Inspecting {data_name.upper()} fragments...  <<\n")

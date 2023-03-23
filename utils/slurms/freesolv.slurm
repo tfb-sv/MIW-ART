@@ -8,4 +8,4 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/freesolv.log
 
-~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "freesolv" --is_cv "besty" --proj_name "B2"
+~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "freesolv" --is_cv "besty" --proj_name "B3"

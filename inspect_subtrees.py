@@ -50,7 +50,8 @@ def main(args):
             label_lst.append(test_label)
         total_cnt += 1
     args.task_avg_loss = np.round((total_loss / total_cnt), 4)
-    args.thr2 = (max(label_lst) - min(label_lst)) / 2   # y_label_avg
+    if args.task == "reg":
+        args.thr2 = (max(label_lst) - min(label_lst)) / 2   # y_label_avg
     ########################################################################################
     ######################################################################################## FIND FRAGMENTS
     try:
@@ -72,7 +73,7 @@ def main(args):
             repeat_dict = json.load(f)
     ##################################################
     except:
-        repeat_dict = inspect_fragments(all_subtrees, task_newicks, args.task_avg_loss, args.task, args.data_name)
+        repeat_dict = inspect_fragments(all_subtrees, task_newicks, args.task_avg_loss, args.task, args.data_name, args)
         ##########################
         repeat_dict_save_path = (f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json")
         with open(repeat_dict_save_path, "w") as f:

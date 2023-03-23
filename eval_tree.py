@@ -129,16 +129,22 @@ def main(args, hyp_no, data):
                 elif args.task == "reg":
                     test_loss, labels, preds, smis = eval_iter(args, test_batch, model, criterion)
                     pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  RMSE Loss = {test_loss.item():.4f}  |")
+                    test_loss = torch.square(test_loss)
                 ##########################
                 labelZ.extend(labels)
                 predZ.extend(preds)
                 smileZ.extend(smis)
                 ##########################
                 test_loss_list.append(test_loss.item())
+                ##########################
                 pbar_test.update()
+            ####################################################
+            if args.task == "clf":
+                test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
             ##########################
-            test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
-            #########################
+            elif args.task == "reg":
+                test_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(test_loss_list))).item(), 4)
+            ###################################################
             # if args.task == "clf":
                 # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  BCE Loss = {test_loss_mean}  |")
             #########################
@@ -146,15 +152,15 @@ def main(args, hyp_no, data):
                 # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  RMSE Loss = {test_loss_mean}  |")
             #########################
             # pbar_test.update()
-        ##########################
+        ####################################################
         if args.task == "clf":
             roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
             rocs.append(roc_score)
             prcs.append(prc_score)
             accs.append(test_accuracy)
             ces.append(test_loss_mean)
-        ####################################################
-        ####################################################
+        ######################################################################################################## BEGINNING OF THE POINTLESS SECTION
+        ########################################################################################################
         if args.task == "clf":
         ##########################
             roc_score = np.round((np.mean(rocs) * 100), 1)
@@ -175,8 +181,8 @@ def main(args, hyp_no, data):
             print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
             print(f"|>>  RMSE Loss = {test_loss_mean}\n\n")
             ##########################
-        ####################################################
-        ####################################################
+        ######################################################################################################## END OF THE POINTLESS SECTION, CLEAR HERE.
+        ########################################################################################################
         if args.export_preds:
             ##########################
             smileZ = pd.DataFrame(smileZ)

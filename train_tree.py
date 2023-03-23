@@ -174,7 +174,7 @@ def train(args, cnt, cv_keyz, data, key):
     ################################################################################################################################################################################ START TRAIN LOOPS
     ################################################################################################################################################################################
     for epoch_num in range(args.max_epoch):
-        train_loss_list, val_loss_list = [], []
+        train_loss_list, valid_loss_list = [], []
         with tqdm(total=(data.num_train_batches), unit="batch", disable=args.tqdm_off) as pbar_train:                      
             for train_batch_num, (train_batch) in enumerate(data.generator("train")):
                 ##########################
@@ -185,13 +185,20 @@ def train(args, cnt, cv_keyz, data, key):
                 elif args.task == "reg":
                     train_loss = train_iter(args, train_batch, *trpack) 
                     pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss.item():.4f}  |")
+                    train_loss = torch.square(train_loss)
                 ##########################
                 train_loss_list.append(train_loss.item())   
                 pbar_train.update()
                 ################################################################################################################################################################################ START VALID LOOP
                 ################################################################################################################################################################################
-                if (train_batch_num + 1) % data.num_train_batches == 0:  
-                    train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
+                if (train_batch_num + 1) % data.num_train_batches == 0: 
+                    ##########################
+                    if args.task == "clf":
+                        train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
+                    ##########################
+                    elif args.task == "reg":
+                        train_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(train_loss_list))).item(), 4)
+                    ##########################
                     pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss_mean:.4f}  |")
                     pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch", disable=args.tqdm_off) as pbar_val:
@@ -199,14 +206,15 @@ def train(args, cnt, cv_keyz, data, key):
                         ########################################################################################
                         for valid_batch_num, (valid_batch) in enumerate(data.generator("valid")):                           
                             if args.task == "clf":
-                                val_loss, labels, preds, probz, _ = eval_iter(args, valid_batch, model, criterion)
+                                valid_loss, labels, preds, probz, _ = eval_iter(args, valid_batch, model, criterion)
                                 ground_truth.extend(labels)
                                 predictions.extend(preds)
                                 probabilities.extend(probz)
                             ##########################
                             elif args.task == "reg": 
-                                val_loss, _, _, _ = eval_iter(args, valid_batch, model, criterion)
-                            val_loss_list.append(val_loss.item())
+                                valid_loss, _, _, _ = eval_iter(args, valid_batch, model, criterion)
+                                valid_loss = torch.square(valid_loss)
+                            valid_loss_list.append(valid_loss.item())
                             pbar_val.update()
                         ########################################################################################   # NRL !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         ground_truthT, predictionsT, probabilitiesT, test_loss_list = [], [], [], []
@@ -222,11 +230,17 @@ def train(args, cnt, cv_keyz, data, key):
                             ##########################
                             elif args.task == "reg":
                                 test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
+                                test_loss = torch.square(test_loss)
                             ##########################
                             test_loss_list.append(test_loss.item()) 
                         ######################################################################################## CALCULATE COMMON METRICS
-                        test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
-                        valid_loss_mean = np.round(torch.mean(torch.Tensor(val_loss_list)).item(), 4)
+                        if args.task == "clf":
+                            test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
+                            valid_loss_mean = np.round(torch.mean(torch.Tensor(valid_loss_list)).item(), 4)
+                        ##########################
+                        elif args.task == "reg":
+                            test_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(test_loss_list))).item(), 4)
+                            valid_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(valid_loss_list))).item(), 4)
                         ######################################################################################## PROCESSES FOR CLF             
                         if args.task == "clf":
                             roc_score, prc_score, valid_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
