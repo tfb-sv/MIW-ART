@@ -19,8 +19,9 @@ sbatch tox21.slurm
 
 sbatch esol.slurm
 sbatch lipo.slurm
-sbatch freesolv.slurm
 sbatch bace_reg.slurm
+sbatch freesolv.slurm
+
 sbatch bbbp8k.slurm
 
 ##############################################
