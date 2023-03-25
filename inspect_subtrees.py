@@ -5,6 +5,7 @@ import os
 import json
 import shutil
 from utils.inspection_tools import *
+import argparse
 
 ########################################################################################
 ########################################################################################
@@ -136,18 +137,7 @@ if __name__ == "__main__":
 ########################################################################################    
 ########################################################################################
 
-
-
-
-# data_name, thr, cbr, cn                , xt,   yt,   repeat_type, task, task_avg_loss   # for ARGs >
-# data_name, thr1,thr2,contour_num,        xt,   yt,   "ur",        task, task_avg_loss   # for MAIN FUNC >
-# data_name, thr, cbr, contour_level_line, atrx, atry, repeat_type, task, task_avg_loss   # for plot_contour FUNC
-    
-    
-
-
-
-
+ 
 
 
 
