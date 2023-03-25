@@ -20,7 +20,7 @@ torch.manual_seed(0)
 
 def eval_iter(args, batch, model, criterion):
     #######################################################################################
-    eps = 1e-8
+    # eps = 1e-8
     model.eval()   # .train(False) ???
     ##########################
     model_arg, labels, smis = batch
@@ -47,7 +47,7 @@ def eval_iter(args, batch, model, criterion):
         return loss, labelsx, labels_predx, probsx, smis
     ##########################
     elif args.task == "reg":
-        loss = torch.sqrt(loss + eps)   # for RMSE
+        # loss = torch.sqrt(loss + eps)   # for RMSE
         labelsx = labelz.cpu().detach().numpy().tolist()
         labels_predx = probs.cpu().detach().numpy().tolist()
         return loss, labelsx, labels_predx, smis
@@ -129,7 +129,7 @@ def main(args, hyp_no, data):
                 elif args.task == "reg":
                     test_loss, labels, preds, smis = eval_iter(args, test_batch, model, criterion)
                     pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  RMSE Loss = {test_loss.item():.4f}  |")
-                    test_loss = torch.square(test_loss)
+                    # test_loss = torch.square(test_loss)
                 ##########################
                 labelZ.extend(labels)
                 predZ.extend(preds)
@@ -159,7 +159,7 @@ def main(args, hyp_no, data):
             prcs.append(prc_score)
             accs.append(test_accuracy)
             ces.append(test_loss_mean)
-        ######################################################################################################## BEGINNING OF THE POINTLESS SECTION
+        ######################################################################################################## BEGINNING OF THE POINTLESS SECTION !!!!!!!!!!!!!!!!!!!!!!!!!!!
         ########################################################################################################
         if args.task == "clf":
         ##########################
@@ -181,7 +181,7 @@ def main(args, hyp_no, data):
             print(f"\n\n>>  {args.data_name.upper()} {args.tokenization} Testing is COMPLETED.  |  RESULTS:\n\n")
             print(f"|>>  RMSE Loss = {test_loss_mean}\n\n")
             ##########################
-        ######################################################################################################## END OF THE POINTLESS SECTION, CLEAR HERE.
+        ######################################################################################################## END OF THE POINTLESS SECTION, CLEAR HERE. !!!!!!!!!!!!!!!!!!!!!!!!!!!
         ########################################################################################################
         if args.export_preds:
             ##########################

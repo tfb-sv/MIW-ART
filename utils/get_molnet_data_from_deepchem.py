@@ -7,6 +7,8 @@
 import deepchem as dc
 import pandas as pd
 import argparse
+import os
+import shutil
 # from rdkit import RDLogger
 # RDLogger.DisableLog('rdApp.*')
 
@@ -17,15 +19,15 @@ def get_molnet_from_deepchem(args):
     if not os.path.exists(args.data_folder):   # klasör yoksa, "data" folder
         os.mkdir(args.data_folder, exist_ok=True)   # , exist_ok=True   # klasör oluşturuyor, "training_results" folder
     ##########################
-    task_path = (f"{args.data_folder}/{args.ptn})
+    task_path = (f"{args.data_folder}/{args.ptn}")
     ##########################
-    if os.path.exists(temp_path):   # klasör varsa, training_results/{task} folder
-        shutil.rmtree(temp_path)   # klasör siliyor, training_results/{task} folder
+    if os.path.exists(task_path):   # klasör varsa, training_results/{task} folder
+        shutil.rmtree(task_path)   # klasör siliyor, training_results/{task} folder
     os.mkdir(task_path)   # klasör oluşturuyor, training_results/{task} folder
     ############################################################
     clms = [args.x_label, args.y_label]
     ##########################
-    dct = {"bace": 0, "bbbp2k": 0, "clintox": -1, "tox21": -1, "lipo": 0, "esol": 0, "freesolv": 0, "bace_reg": 0}   # y tasklarının numarasını belli ediyor!
+    dct = {"bace": 0, "bbbp2k": 0, "clintox": -1, "tox21": -1, "sider": 0, "lipo": 0, "esol": 0, "freesolv": 0, "bace_reg": 0}   # y tasklarının numarasını belli ediyor!
     ##########################
     dct2 = {"bace": "bace_classification", "bbbp2k": "bbbp", "bace_reg": "bace_regression", "esol": "delaney"}
     ##########################
@@ -51,7 +53,7 @@ def get_molnet_from_deepchem(args):
     test.to_csv(f"{args.data_folder}/{args.ptn}/{args.ptn}_test.csv")
     allx.to_csv(f"{args.data_folder}/{args.ptn}/{args.ptn}_all.csv")
     ############################################################
-    return
+    return train
 
 ############################################################
 
