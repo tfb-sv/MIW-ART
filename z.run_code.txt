@@ -36,7 +36,7 @@ python utils/update_tokens.py --data_names "freesolv, bace"
 ##############################################
 ##############################################
 
-python train_tree.py --data_name "lipo"
+python train_tree.py --data_name "freesolv"
 
 ##############################################
 ##############################################

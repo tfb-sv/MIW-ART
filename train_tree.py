@@ -192,11 +192,12 @@ def train(args, cnt, cv_keyz, data, key):
                     ##########################
                     if args.task == "clf":
                         train_loss_mean = np.round(torch.mean(torch.Tensor(train_loss_list)).item(), 4)
+                        pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  BCE Loss = {train_loss_mean:.4f}  |")
                     ##########################
                     elif args.task == "reg":
                         train_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(train_loss_list))).item(), 4)
-                    ##########################
-                    pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss_mean:.4f}  |")
+                        pbar_train.set_description(f">>  EPOCH {(epoch_num + 1)}T  |  RMSE Loss = {train_loss_mean:.4f}  |")
+                    ########################## 
                     pbar_train.update()
                     with tqdm(total=(data.num_valid_batches), unit="batch", disable=args.tqdm_off) as pbar_val:
                         ground_truth, predictions, probabilities = [], [], []
@@ -500,11 +501,11 @@ def load_args():
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true
     parser.add_argument("--data_folder", default="data", type=str)
-    parser.add_argument("--proj_name", default="T11", type=str)
+    parser.add_argument("--proj_name", default="B5", type=str)
     parser.add_argument("--init_repeat", default=1, type=int)
     parser.add_argument("--is_debug", default=False, action="store_true")
     parser.add_argument("--wandb_mode", default="online", choices=["online", "offline", "disabled"], type=str)
-    parser.add_argument("--is_cv", default="feasible", choices=["ideal", "feasible", "besty"], type=str)
+    parser.add_argument("--is_cv", default="besty", choices=["ideal", "feasible", "besty"], type=str)
     parser.add_argument("--max_epoch", default=150, type=int)
     parser.add_argument("--tokenization", default="cha", choices=["bpe", "cha"])
     parser.add_argument("--max_smi_len", default=100, type=int)
