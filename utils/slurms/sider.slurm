@@ -8,4 +8,4 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/sider.log
 
-~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "sider" --is_cv "feasible" --proj_name "T1"
+~/miniconda3/envs/AR-TreeDTA/bin/python -u train_tree.py --data_name "sider" --is_cv "ideal" --proj_name "T2"
