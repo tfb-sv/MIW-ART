@@ -81,7 +81,7 @@ def main(args):
         #######################################
         plt.legend(loc=legend_loc)
         #########################################################################
-        save_loc = (f"../results/z.training_curves/{data_name.upper()}_curves.png")
+        save_loc = (f"../results/training_curves/{data_name.upper()}_curves.png")
         plt.savefig(fname=save_loc, bbox_inches='tight')
         #######################################
         plt.close(fig)
