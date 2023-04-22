@@ -96,7 +96,7 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     ##########################
-    parser.add_argument("--load_dir", default="../results/x.training_results", type=str)
+    parser.add_argument("--load_dir", default="../results/training_results", type=str)
     parser.add_argument("--save_dir", default="../results/training_curves", type=str)
     parser.add_argument("--lw", default=5, type=int)
     ##########################

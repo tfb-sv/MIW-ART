@@ -381,6 +381,10 @@ def plot_contour(all_subtrees, repeat_dict, args):
     ########################################################################################################
     ########################################################################################################
     cnt = 0
+    mols = []
+    mcidz = []
+    print(f">> {args.data_name.upper()} fragments are being visualized..\n")
+    #########################
     for i in range(len(z)):
         zi = np.round(z[i], 4)
         cnt += 1
@@ -403,10 +407,13 @@ def plot_contour(all_subtrees, repeat_dict, args):
             ##########################
             c = pcp.get_compounds(sub_smis[i], "smiles")[0]
             cid_str = (f"CID {c.cid}")
-            cid_str_annot = (f"CID {c.cid} ({zi:.4f})")
+            cid_str2 = (f"{(i + 1)} - {cid_str}")
+            cid_str_annot = (f"{cid_str} ({zi:.4f})")
             cids.append([cid_str_annot, x[i], y[i]])
             ##########################
             m = Chem.MolFromSmiles(sub_smi)
+            mols.append(m)
+            mcidz.append(cid_str2)
             ##########################
             parents = pd.DataFrame(list(smis[sub_smi].keys()))
             # parents = pd.DataFrame.from_dict(smis[sub_smi])
@@ -434,6 +441,13 @@ def plot_contour(all_subtrees, repeat_dict, args):
         ####################################################
     print("\n")
     ########################################################################################################
+    ########################################################################################################
+    fig_grid = Draw.MolsToGridImage(mols, 
+                                    legends=mcidz, 
+                                    molsPerRow=4,
+                                    subImgSize=(400, 400))
+    save_name = (f"{save_loc}/images/{args.data_name.upper()} All Fragments.png")
+    fig_grid.save(save_name, format="PNG")
     ########################################################################################################
     sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="whitegrid")
     fig, ax = plt.subplots()
