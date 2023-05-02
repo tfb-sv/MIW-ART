@@ -194,7 +194,7 @@ def main(args, hyp_no, data):
             fdf = pd.concat([smileZ, labelZ, predZ], axis=1)
             fdf.columns = ["smiles", "y_true", "y_pred"]
             ##########################
-            fdf.to_csv(f"../results/z.predicted_values/ys_check_{args.data_name.upper()}.csv")
+            fdf.to_csv(f"../results/ys_check_{args.data_name.upper()}.csv")
             ##########################
         ####################################################
         ####################################################
