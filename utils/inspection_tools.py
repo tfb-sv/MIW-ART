@@ -405,11 +405,12 @@ def plot_contour(all_subtrees, repeat_dict, args):
             z_good[sub_smi] = i
             rank = z[i]
             ##########################
-            c = pcp.get_compounds(sub_smis[i], "smiles")[0]
+            c = pcp.get_compounds(sub_smi, "smiles")[0]
             cid_str = (f"CID {c.cid}")
-            cid_str2 = (f"{(i + 1)} - {cid_str}")
+            cid_str2 = (f"{(i + 1)} - {cid_str} ({zi:.4f})")
             cid_str_annot = (f"{cid_str} ({zi:.4f})")
             cids.append([cid_str_annot, x[i], y[i]])
+            iupac_name = c.iupac_name
             ##########################
             m = Chem.MolFromSmiles(sub_smi)
             mols.append(m)
@@ -421,7 +422,7 @@ def plot_contour(all_subtrees, repeat_dict, args):
             parents.to_csv(f"{save_loc}/csvs/{(i + 1)} - CID {c.cid}.csv")
             ##########################
             fig = Draw.MolToMPL(m, size=(350, 350))
-            title = (f"{c.iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    FS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
+            title = (f"{iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    FS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
             fig.suptitle(title, fontsize=35, x=1.25, y=0.8)
             fig.set_size_inches(5.5, 5.5)
             ##########################
@@ -432,7 +433,7 @@ def plot_contour(all_subtrees, repeat_dict, args):
             save_name = (f"{save_loc}/images/{(i + 1)} - {cid_str}.png")
             plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
             plt.close(fig)
-            print(f"{cnt} -> {cid_str_annot}")
+            print(f"{cnt} - {cid_str_annot} => {sub_smi}")
             ####################################################
         else:
             # x_bad.append(x[i])

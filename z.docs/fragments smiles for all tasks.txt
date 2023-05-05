@@ -1,0 +1,263 @@
+
+
+
+
+>> BACE
+
+1 - CID None (1.0000) => CC(C)(C)Cc1cnc2c(c1)C([NH2+]CCO)CC1(CCC1)O2
+2 - CID None (0.8505) => C[NH2+]C1CC2(CCC2)Oc2ncc(CC(C)(C)C)cc21
+3 - CID 1140 (0.5321) => Cc1ccccc1
+4 - CID None (0.5317) => CC(=O)NC(C)C(O)C[NH2+]C1CC2(CCC2)Oc2ncc(CC(C)(C)C)cc21
+5 - CID None (0.3480) => COCC(=O)NC(C)C(O)C[NH2+]C1CC2(CCC2)Oc2ncc(CC(C)(C)C)cc21
+6 - CID 712 (0.3280) => C=O
+7 - CID 241 (0.3011) => c1ccccc1
+8 - CID 70295272 (0.2505) => CN1C(=O)[C](c2ccc(OC(F)F)cc2)N=C1N
+9 - CID 713 (0.2314) => NC=O
+10 - CID 6360 (0.1885) => CC(C)C
+11 - CID None (0.1807) => CC(C)(C)Cc1cnc2c(c1)C([NH2+]CC(O)C(Cc1ccc3c(c1)OCO3)NC=O)CC1(CCC1)O2
+12 - CID 177 (0.1624) => CC=O
+13 - CID 31254 (0.1440) => CNC=O
+14 - CID 6373 (0.1378) => FC(F)F
+15 - CID 10041 (0.1371) => CC(C)(C)C
+16 - CID 68015 (0.1334) => FC(F)Oc1ccccc1
+17 - CID None (0.1115) => CCn1cc(C2N=C(N)N(C)C2=O)cn1
+18 - CID 2778329 (0.1093) => Cc1cc(F)cc(F)c1
+19 - CID 28573746 (0.1063) => OCC[NH2+]Cc1cccc(C(F)(F)F)c1
+20 - CID 6334 (0.1023) => CCC
+
+
+
+
+>> BBBP2K
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 7845 (0.7546) => C=CC=C
+3 - CID 8252 (0.6830) => C=CC
+4 - CID 6325 (0.6787) => C=C
+5 - CID 712 (0.5087) => C=O
+6 - CID 177 (0.4974) => CC=O
+7 - CID 15301 (0.4655) => C=CC=CC
+8 - CID 6341 (0.4355) => CCN
+9 - CID 6334 (0.4285) => CCC
+10 - CID 12220 (0.3838) => CC=CC
+11 - CID 674 (0.3726) => CNC
+12 - CID 1140 (0.3575) => Cc1ccccc1
+13 - CID 1146 (0.3341) => CN(C)C
+14 - CID 11723 (0.3088) => CCN(C)C
+15 - CID 12219 (0.2941) => CCNC
+16 - CID 7843 (0.2749) => CCCC
+17 - CID 702 (0.2624) => CCO
+18 - CID 713 (0.2109) => NC=O
+19 - CID 61236 (0.1869) => CCCN(C)C
+20 - CID 176 (0.1760) => CC(=O)O
+
+
+
+
+>> CLINTOX
+
+1 - CID 177 (1.0000) => CC=O
+2 - CID 8252 (0.8864) => C=CC
+3 - CID 713 (0.8436) => NC=O
+4 - CID 54909138 (0.7412) => CNC(=O)c1cc(Oc2ccc(NC)cc2)ccn1
+5 - CID 91585 (0.5978) => O=C1CCC(N2Cc3ccccc3C2=O)C(=O)N1
+6 - CID 6325 (0.4544) => C=C
+7 - CID 6334 (0.3743) => CCC
+8 - CID 12220 (0.3203) => CC=CC
+9 - CID 6341 (0.2737) => CCN
+10 - CID 6360 (0.1937) => CC(C)C
+11 - CID 10903 (0.1527) => CCOC
+12 - CID 8254 (0.1471) => COC
+13 - CID 7843 (0.1248) => CCCC
+14 - CID 8003 (0.1024) => CCCCC
+15 - CID 702 (0.0894) => CCO
+16 - CID 62695 (0.0708) => C/C=C/C
+17 - CID 12219 (0.0633) => CCNC
+18 - CID 21585139 (0.0503) => C.O
+19 - CID 3283 (0.0428) => CCOCC
+20 - CID 24529 (0.0279) => O=[N+][O-]
+
+
+
+
+>> TOX21
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 284 (0.3565) => O=CO
+3 - CID 11345724 (0.1913) => O=C(O)CC[C@H](NC(=O)c1ccccc1)C(=O)O
+4 - CID 101652 (0.1826) => FC(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F
+5 - CID 7964 (0.1652) => Clc1ccccc1
+6 - CID 9778 (0.1391) => FC(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F
+7 - CID 6373 (0.1304) => FC(F)F
+8 - CID 6334 (0.1304) => CCC
+9 - CID 67730 (0.1043) => FC(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F
+10 - CID 996 (0.1043) => Oc1ccccc1
+11 - CID 6115 (0.1043) => Nc1ccccc1
+12 - CID 72858 (0.0870) => Oc1ccc(I)cc1I
+13 - CID 176 (0.0870) => CC(=O)O
+14 - CID 6341 (0.0870) => CCN
+15 - CID 9816874 (0.0783) => FC(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F
+16 - CID 7368 (0.0783) => FC(F)(F)c1ccccc1
+17 - CID 702 (0.0783) => CCO
+18 - CID 6334 (0.0783) => [CH]CC
+19 - CID 7564 (0.0696) => Nc1ccc(Nc2ccccc2)cc1
+20 - CID 6253 (0.0696) => Nc1ccn([C@@H]2O[C@H](CO)[C@@H](O)[C@@H]2O)c(=O)n1
+
+
+
+
+>> LIPO
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 713 (0.5263) => NC=O
+3 - CID 712 (0.5078) => C=O
+4 - CID 1140 (0.4339) => Cc1ccccc1
+5 - CID 7964 (0.2120) => Clc1ccccc1
+6 - CID 177 (0.2112) => CC=O
+7 - CID 31254 (0.1782) => CNC=O
+8 - CID 6334 (0.1534) => CCC
+9 - CID 10008 (0.1452) => Fc1ccccc1
+10 - CID 1049 (0.1238) => c1ccncc1
+11 - CID 178 (0.1191) => CC(N)=O
+12 - CID 996 (0.1127) => Oc1ccccc1
+13 - CID 6373 (0.1089) => FC(F)F
+14 - CID 6115 (0.1078) => Nc1ccccc1
+15 - CID 3452818 (0.1019) => O=C(NCC12CC3CC(CC(C3)C1)C2)c1ccccc1
+16 - CID 6341 (0.0909) => CCN
+17 - CID 11569158 (0.0890) => C[C@@H](Oc1cccc2ncnc(Nc3ccc(OCc4ccccn4)c(Cl)c3)c12)C(=O)N(C)C
+18 - CID None (0.0861) => CN(C)C(=O)[CH]Oc1cccc2ncnc(Nc3ccc(OCc4ccccn4)c(Cl)c3)c12
+19 - CID 25142173 (0.0859) => N#CC1(NC(=O)[C@@H]2CCCC[C@H]2C(=O)N2CCc3[nH]c4ccccc4c3C2)CC1
+20 - CID 674 (0.0838) => CNC
+
+
+
+
+>> ESOL
+
+1 - CID 996 (1.0000) => Oc1ccccc1
+2 - CID 241 (0.9630) => c1ccccc1
+3 - CID 6334 (0.7809) => CCC
+4 - CID 1030 (0.5216) => CC(O)CO
+5 - CID 702 (0.4198) => CCO
+6 - CID 10903 (0.4167) => CCOC
+7 - CID 8254 (0.4074) => COC
+8 - CID 7843 (0.3735) => CCCC
+9 - CID 6115 (0.3549) => Nc1ccccc1
+10 - CID 6556 (0.3117) => CCC(C)C
+11 - CID 229 (0.3056) => OC1COC(O)C(O)C1O
+12 - CID 3776 (0.3056) => CC(C)O
+13 - CID 6360 (0.2747) => CC(C)C
+14 - CID 8998 (0.2438) => OCC(O)C(O)CO
+15 - CID 7964 (0.2407) => Clc1ccccc1
+16 - CID 1031 (0.2346) => CCCO
+17 - CID 1140 (0.2191) => Cc1ccccc1
+18 - CID 712 (0.2099) => C=O
+19 - CID 753 (0.2006) => OCC(O)CO
+20 - CID 9261 (0.1975) => c1cnccn1
+
+
+
+
+>> FREESOLV
+
+1 - CID 7843 (1.0000) => CCCC
+2 - CID 6334 (0.9461) => CCC
+3 - CID 8003 (0.9079) => CCCCC
+4 - CID 8058 (0.8652) => CCCCCC
+5 - CID 6556 (0.6809) => CCC(C)C
+6 - CID 8900 (0.6787) => CCCCCCC
+7 - CID 6360 (0.6719) => CC(C)C
+8 - CID 356 (0.4764) => CCCCCCCC
+9 - CID 10041 (0.4562) => CC(C)(C)C
+10 - CID 6403 (0.3169) => CCC(C)(C)C
+11 - CID 7892 (0.3079) => CCCC(C)C
+12 - CID 8252 (0.2989) => C=CC
+13 - CID 8141 (0.2000) => CCCCCCCCC
+14 - CID 6325 (0.1685) => C=C
+15 - CID 8255 (0.1416) => C=C(C)C
+16 - CID 6373 (0.1191) => FC(F)F
+17 - CID 7843 (0.0966) => C[CH]CC
+18 - CID 7844 (0.0539) => C=CCC
+19 - No fragment here.
+20 - No fragment here.
+
+
+
+
+>> BACE_REG
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 1140 (0.9578) => Cc1ccccc1
+3 - CID 7500 (0.4057) => CCc1ccccc1
+4 - CID None (0.3324) => CCn1cc(C2(c3ccccc3)N=C(N)c3ccccc32)cc(C)c1=O
+5 - CID 702 (0.3065) => CCO
+6 - CID 7530 (0.2640) => COc1cccc(C)c1
+7 - CID 7519 (0.2634) => COc1ccccc1
+8 - CID None (0.2563) => CCC(C)C1(NC(C)=O)CCN(C(CCc2ccccc2)C(=O)NC(Cc2cccc(F)c2)C(O)C2Cc3cccc(OC)c3C[NH2+]2)C1=O
+9 - CID None (0.2539) => CCC(C)C1(NC(C)=O)CCN(C(CCc2ccccc2)C(=O)NC(Cc2cccc(F)c2)C(O)C2Cc3cccc(O)c3C[NH2+]2)C1=O
+10 - CID None (0.2513) => CCC(C)C1(NC(C)=O)CCN(C(CCc2ccccc2)C(=O)NC(Cc2cccc(F)c2)C(O)C2Cc3ccccc3C[NH2+]2)C1=O
+11 - CID 61302 (0.2471) => CC(O)CCc1ccccc1
+12 - CID 6360 (0.2439) => CC(C)C
+13 - CID 7668 (0.2073) => CCCc1ccccc1
+14 - CID 14461 (0.1807) => CN(C)C(=N)N
+15 - CID 7929 (0.1712) => Cc1cccc(C)c1
+16 - CID None (0.1606) => CCn1cc(C2(c3cccc(-c4cccnc4)c3)N=C(N)N(C)C2=O)cn1
+17 - CID 6334 (0.1565) => CCC
+18 - CID None (0.1456) => CN1C(=O)[C@@](c2ccc(OC(F)F)cc2)(c2cccc(OCCCF)c2)N=C1N
+19 - CID None (0.1429) => CCC#Cc1cccc([C@@]2(c3ccc(OCF)cc3)N=C(N)N(C)C2=O)c1
+20 - CID None (0.1394) => CC#Cc1cccc([C@@]2(c3ccc(OCF)cc3)N=C(N)N(C)C2=O)c1
+
+
+
+
+>> BBBP8K
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 1140 (0.2916) => Cc1ccccc1
+3 - CID 6334 (0.2518) => CCC
+4 - CID 6341 (0.1631) => CCN
+5 - CID 7843 (0.1433) => CCCC
+6 - CID 6325 (0.1347) => C=C
+7 - CID 7969 (0.0874) => Sc1ccccc1
+8 - CID 8003 (0.0845) => CCCCC
+9 - CID 702 (0.0813) => CCO
+10 - CID 7852 (0.0810) => CCCN
+11 - CID 8252 (0.0804) => C=CC
+12 - CID 7500 (0.0783) => CCc1ccccc1
+13 - CID 6334 (0.0774) => [CH]CC
+14 - CID 1049 (0.0693) => c1ccncc1
+15 - CID 71015 (0.0613) => CN1c2ccccc2Sc2ccccc21
+16 - CID 8082 (0.0594) => C1CCNCC1
+17 - CID 996 (0.0523) => Oc1ccccc1
+18 - CID 6115 (0.0487) => Nc1ccccc1
+19 - CID 6334 (0.0477) => [C]CC
+20 - CID 7964 (0.0474) => Clc1ccccc1
+
+
+
+
+>> SIDER
+
+1 - CID 241 (1.0000) => c1ccccc1
+2 - CID 712 (0.7787) => C=O
+3 - CID 713 (0.6064) => NC=O
+4 - CID 1140 (0.5599) => Cc1ccccc1
+5 - CID 284 (0.5536) => O=CO
+6 - CID 6325 (0.3996) => C=C
+7 - CID 6334 (0.3936) => CCC
+8 - CID 177 (0.3813) => CC=O
+9 - CID 12220 (0.3667) => CC=CC
+10 - CID 31254 (0.3225) => CNC=O
+11 - CID 178 (0.3111) => CC(N)=O
+12 - CID 6341 (0.2156) => CCN
+13 - CID 7843 (0.2001) => CCCC
+14 - CID 176 (0.1878) => CC(=O)O
+15 - CID 674 (0.1717) => CNC
+16 - CID 74687419 (0.1552) => CON=C(C(=O)NC1C(=O)N2C(C(=O)[O-])=C(C)CSC12)c1csc(N)n1
+17 - CID 8003 (0.1540) => CCCCC
+18 - CID 6115 (0.1511) => Nc1ccccc1
+19 - CID 702 (0.1413) => CCO
+20 - CID 59900860 (0.1378) => CCOC(=O)C(CCc1ccccc1)NC
+
+
+

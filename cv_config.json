@@ -23,7 +23,7 @@
     "tree_hidden_dim": [300],
     "use_batchnorm": [1],
     "rank_input": ["h"],
-    "max_epoch": [400]
+    "max_epoch": [200]
     },
 "tox21":
     {
@@ -67,15 +67,15 @@
 "sider":
     {
     "task": ["clf"],
-    "optimizer": ["adagrad", "adadelta"],
-    "dropout": [0.3, 0.9],
+    "optimizer": ["adagrad"],
+    "dropout": [0.9],
     "clf_num_layers": [1],
-    "DTA_hidden_dim": [1024, 2048], 
+    "DTA_hidden_dim": [2048], 
     "lr": [1e-3],
-    "tree_hidden_dim": [50, 500],
+    "tree_hidden_dim": [500],
     "use_batchnorm": [0],
     "rank_input": ["w"],
-    "max_epoch": [500]
+    "max_epoch": [150]
     },
 "bace_reg":
     {
@@ -88,7 +88,7 @@
     "tree_hidden_dim": [1500],
     "use_batchnorm": [1],
     "rank_input": ["w"],
-    "max_epoch": [350]
+    "max_epoch": [100]
     },
 "esol":
     {
@@ -114,7 +114,7 @@
     "tree_hidden_dim": [1500],
     "use_batchnorm": [1],
     "rank_input": ["h"],
-    "max_epoch": [350]
+    "max_epoch": [100]
     },
 "lipo":
     {
