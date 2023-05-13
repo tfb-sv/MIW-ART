@@ -1,3 +1,5 @@
+##############################################
+
 source ~/.bashrc
 conda activate AR-TreeDTA
 cd /truba/home/nozel/ART-Mol/

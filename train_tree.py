@@ -210,7 +210,7 @@ def train(args, cnt, cv_keyz, data, key):
                                 probabilities.extend(probz)
                             ##########################
                             elif args.task == "reg": 
-                                valid_loss, _, _, _ = eval_iter(args, valid_batch, model, criterion)
+                                valid_loss, _, _, _, _ = eval_iter(args, valid_batch, model, criterion)
                                 # valid_loss = torch.square(valid_loss)
                             valid_loss_list.append(valid_loss.item())
                             pbar_val.update()
@@ -526,7 +526,7 @@ def load_args():
     parser.add_argument("--dropout", default=0.5, type=float)
     parser.add_argument("--use_batchnorm", default=True, action="store_true")
     parser.add_argument("--task", default="clf", choices=["clf", "reg"])
-    # parser.add_argument("--mode", default="", help="for evaluation mode!")
+    parser.add_argument("--mode", default="", help="for evaluation mode!")
     ##########################
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], type=str)
     parser.add_argument("--batch_size", default=32, type=int)

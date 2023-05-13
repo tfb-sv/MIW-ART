@@ -144,8 +144,8 @@ class ARTM_model(nn.Module):
         words_embed = self.word_embedding(encoded_ligand)
         words_embed = self.dropout(words_embed)
         h, _, tree = self.encoder(words_embed, encoded_ligand, ligand_length)
-        # if self.args.mode == "emb":
-        #     return h 
+        if self.args.mode == "emb":
+            return h, []
         supplements = {"tree": tree}
         x = self.classifier(h)
         if self.args.task == "clf":

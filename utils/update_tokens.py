@@ -17,21 +17,21 @@ def smiles_segmenter(smi):
     smi = smi.replace(" ", "")
     tokens = [token for token in regex.findall(smi)]
     smi_new = "".join(tokens)
-    if smi != smi_new:
-        print(f"\n{smi}\n{smi_new}")
-    assert smi == smi_new
+    # if smi != smi_new:
+        # print(f"\n{smi}\n{smi_new}")
+    # assert smi == smi_new
     return tokens
 
 ########################################################################################
 
-def update_token_dict(dataset_loc, main_token_dict_path):
+def update_token_dict(dataset_loc, main_token_dict_path, args):
     df = pd.read_csv(dataset_loc)
     with open(main_token_dict_path, "r") as f:    
         main_token_dict = json.load(f)
     ####################################################
     new_token_dict = {}
     for i in range(len(df)):
-        smi = df["smiles"][i]
+        smi = df[args.x_label][i]
         tokens = smiles_segmenter(smi)
         for token in tokens:
             if token not in new_token_dict:
@@ -61,7 +61,7 @@ def main(args):
     for data_name in data_names:
         args.data_name = data_name
         new_dataset_all_loc = f"{args.data_folder}/{args.data_name}/{args.data_name}_all.csv"
-        update_token_dict(new_dataset_all_loc, args.tokens_path)
+        update_token_dict(new_dataset_all_loc, args.tokens_path, args)
         print(f"\n{args.data_name}")
     ####################################################
 
@@ -71,9 +71,10 @@ def load_args():
     ##########################
     parser = argparse.ArgumentParser()
     ##########################
+    parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--data_folder", default="data", type=str)
     parser.add_argument("--data_names", default="", type=str)
-    parser.add_argument("--data_name", default="", type=str)
+    parser.add_argument("--data_name", default="", type=str)   # sonra değer atanıyor
     parser.add_argument("--tokens_path", default="CHARSET.json", type=str)
     ##########################
     args = parser.parse_args()

@@ -124,9 +124,10 @@ class data_loaderX(object):
         smi = smi.replace(" ", "")
         tokens = [token for token in regex.findall(smi)]
         smi_new = "".join(tokens)
-        if smi != smi_new:
-            print(f"\n{smi}\n{smi_new}")
-        assert smi == smi_new
+        if self.args.mode != "emb":      
+            if smi != smi_new:
+                print(f"\n{smi}\n{smi_new}")
+            assert smi == smi_new
         return tokens
     
     ########################################################################################

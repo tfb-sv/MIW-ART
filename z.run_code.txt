@@ -53,19 +53,34 @@ python inspect_subtrees.py --data_names "freesolv, bace"
 ##############################################
 ##############################################
 
-python utils/plot_epoch_curves.py 
+python utils/plot_epoch_curves.py --pr "prc"
 
 python eval_tree.py --mode "test" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider" --export_preds True
 
 python eval_tree.py --mode "newick" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider"
+
+python eval_tree.py --mode "emb" --data_names "bace"
+
+python eval_tree.py --mode "visualize" --data_names "bace"
 
 python inspect_subtrees.py --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider"
 
 ##############################################
 ##############################################
 
-python eval_tree.py --mode "test" --data_names "bbbp8k"
+python utils/plot_epoch_curves.py --pr "prc"
+python utils/plot_epoch_curves.py --pr "roc"
+python inspect_subtrees.py --data_names "bace"
 
+##############################################
+
+python utils/update_tokens.py --x_label "SMILES" --data_names "tei, teiu, tri, vi, viu"
+
+python eval_tree.py --mode "emb" --x_label "SMILES" --y_label "PubChem_CID" --data_names "tei"
+
+python eval_tree.py --mode "emb" --x_label "SMILES" --y_label "PubChem_CID" --data_names "tei, teiu, tri, vi, viu"
+
+##############################################
 
 
 

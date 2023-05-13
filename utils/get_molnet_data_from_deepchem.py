@@ -38,7 +38,7 @@ def get_molnet_from_deepchem(args):
     ############################################################
     attr_name = f"load_{task_name}"
     func = getattr(dc.molnet, attr_name)
-    _, (train, valid, test), _ = func(splitter="scaffold", reload=False)
+    _, (train, valid, test), _ = func(splitter="scaffold", reload=False)   # random also??
     ############################################################
     train = pd.concat([pd.DataFrame(train.ids), pd.DataFrame(train.y[:,dct[args.ptn]])], axis=1)
     train.columns = clms

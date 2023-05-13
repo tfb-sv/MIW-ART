@@ -433,7 +433,9 @@ def plot_contour(all_subtrees, repeat_dict, args):
             save_name = (f"{save_loc}/images/{(i + 1)} - {cid_str}.png")
             plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
             plt.close(fig)
-            print(f"{cnt} - {cid_str_annot} => {sub_smi}")
+            # print(f"{cnt} - {cid_str_annot} => {sub_smi}")
+            latex_out = "\\textbf{" + str(cnt) + " -} " + cid_str_annot + " $\\mathbf{\\rightarrow " + sub_smi + "}$   \\\\"
+            print(latex_out) 
             ####################################################
         else:
             # x_bad.append(x[i])

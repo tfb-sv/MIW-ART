@@ -36,6 +36,9 @@ def eval_iter(args, batch, model, criterion):
     ####################################################
     # print(f"\npredcs={probs}\nlabels{labels}\n")
     labelz = torch.unsqueeze(labels.float(), dim=-1)
+    if args.mode == "emb":
+        probsx = probs.cpu().detach().numpy().tolist()
+        return labelz, [], [], probsx, []
     loss = criterion(input=probs, target=labelz)
     ####################################################
     if args.task == "clf":  
@@ -50,7 +53,7 @@ def eval_iter(args, batch, model, criterion):
         # loss = torch.sqrt(loss + eps)   # for RMSE
         labelsx = labelz.cpu().detach().numpy().tolist()
         labels_predx = probs.cpu().detach().numpy().tolist()
-        return loss, labelsx, labels_predx, smis
+        return loss, labelsx, labels_predx, probs, smis
     ####################################################
     #######################################################################################
 
@@ -90,6 +93,13 @@ def getNewick(postOrderStr):
     return newick
 
 ########################################################################################
+    
+def visualizeTree(postOrderStr):
+    t = Tree(postOrderStr, format=8)
+    print("\n", t.get_ascii())
+    return
+
+########################################################################################
 
 def main(args, hyp_no, data):
     ########################################################################################
@@ -100,10 +110,9 @@ def main(args, hyp_no, data):
     best_metric = 10
     #######################################################################################################################
     #######################################################################################################################   
-    if args.mode == "test":   
+    if args.mode in ["test", "emb"]:   
         ##########################
         rocs, prcs, accs, ces = [], [], [], []
-        # for i in range(3):
         ####################################################
         ####################################################
         modelX = ARTM_model
@@ -114,6 +123,9 @@ def main(args, hyp_no, data):
         ##########################
         labelZ, predZ, smileZ = [], [], []
         ##########################
+        if args.mode == "emb":
+            real_labels = []
+        ##########################
         with tqdm(total=(data.num_test_batches), unit=" molecule", disable=args.tqdm_off) as pbar_test:
             test_loss_list, ground_truth, predictions, probabilities = [], [], [], []
             ##########################
@@ -123,35 +135,60 @@ def main(args, hyp_no, data):
                     test_loss, labels, preds, probz, smis = eval_iter(args, test_batch, model, criterion)
                     ground_truth.extend(labels)
                     predictions.extend(preds)
-                    probabilities.extend(probz)
                     pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  BCE Loss = {test_loss.item():.4f}  |")
                 ##########################
                 elif args.task == "reg":
-                    test_loss, labels, preds, smis = eval_iter(args, test_batch, model, criterion)
+                    test_loss, labels, preds, prob,  smis = eval_iter(args, test_batch, model, criterion)
                     pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |  RMSE Loss = {test_loss.item():.4f}  |")
                     # test_loss = torch.square(test_loss)
                 ##########################
                 labelZ.extend(labels)
                 predZ.extend(preds)
                 smileZ.extend(smis)
-                ##########################
                 test_loss_list.append(test_loss.item())
                 ##########################
+                if args.mode == "emb":
+                    real_label = test_batch[1].item()
+                    real_labels.append(real_label)
+                    probabilities.append(probz)
+                else:
+                    probabilities.extend(probz)
+                ##########################
                 pbar_test.update()
+                ####################################################
+            ####################################################
+            if args.mode == "emb":
+                embZ = pd.DataFrame(probabilities)
+                # print("\n", embZ.columns, "\n")
+                real_labels = pd.DataFrame(real_labels)
+                embZ = pd.concat([real_labels, embZ], axis=1)
+                embZ.columns = ["PubChem_CID", "Embedding"]
+                # embZ.to_csv(f"../results/embedding_{args.data_name.upper()}.csv")
+                embZ.to_pickle(f"../results/embedding_{args.data_name.upper()}.pkl")
+                return
+            ####################################################
+            if args.export_preds:
+                ##########################
+                predZ = pd.DataFrame(predZ)
+                ##########################
+                labelZ = pd.DataFrame(labelZ)
+                ##########################
+                smileZ = pd.DataFrame(smileZ)
+                ##########################
+                fdf = pd.concat([smileZ, labelZ, predZ], axis=1)
+                fdf.columns = ["smiles", "y_true", "y_pred"]
+                ##########################
+                fdf.to_csv(f"../results/ys_check_{args.data_name.upper()}.csv")
+                ##########################
+            ####################################################
+            ####################################################
+            # deal_with_embs(xx)
             ####################################################
             if args.task == "clf":
                 test_loss_mean = np.round(torch.mean(torch.Tensor(test_loss_list)).item(), 4)
             ##########################
             elif args.task == "reg":
                 test_loss_mean = np.round(torch.sqrt(torch.mean(torch.Tensor(test_loss_list))).item(), 4)
-            ###################################################
-            # if args.task == "clf":
-                # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  BCE Loss = {test_loss_mean}  |")
-            #########################
-            # elif args.task == "reg":
-                # pbar_test.set_description(f">>  HYPC NO {hyp_no}  |  RMSE Loss = {test_loss_mean}  |")
-            #########################
-            # pbar_test.update()
         ####################################################
         if args.task == "clf":
             roc_score, prc_score, test_accuracy = calc_metrics(ground_truth, predictions, probabilities, data)
@@ -159,10 +196,7 @@ def main(args, hyp_no, data):
             prcs.append(prc_score)
             accs.append(test_accuracy)
             ces.append(test_loss_mean)
-        ######################################################################################################## BEGINNING OF THE POINTLESS SECTION !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ########################################################################################################
-        if args.task == "clf":
-        ##########################
+            #################################################### BEGINNING OF THE POINTLESS SECTION !!!!!!!!!!!!!!!!!!!!!!!!!!!
             roc_score = np.round((np.mean(rocs) * 100), 1)
             prc_score = np.round((np.mean(prcs) * 100), 1)
             test_accuracy = np.round((np.mean(accs) * 100), 1)
@@ -200,7 +234,7 @@ def main(args, hyp_no, data):
         ####################################################
     #######################################################################################################################
     #######################################################################################################################
-    elif args.mode == "newick":
+    elif args.mode in ["newick", "visualize"]:
         ####################################################
         task_path = (f"{args.eval_save_dir}/{args.data_name}")
         ##########################
@@ -227,16 +261,21 @@ def main(args, hyp_no, data):
                 ##########################
                 if args.task == "clf":
                     test_loss, _, _, _, _ = eval_iter(args, test_batch, model, criterion)
-                if args.task == "reg":
-                    test_loss, _, _, _ = eval_iter(args, test_batch, model, criterion)
+                elif args.task == "reg":
+                    test_loss, _, _, _, _ = eval_iter(args, test_batch, model, criterion)
                 ##########################
                 model_arg = test_batch[0]
                 label = test_batch[1].item()
                 smi = test_batch[2][0]
                 logits, supplements = model(**model_arg)   # logits gereksiz
-                newick = getNewick(postOrder(supplements["tree"][0]))
-                all_newicks[smi] = [newick, test_loss.item(), label]
-                ####################################################
+                ##########################
+                if args.mode == "newick":
+                    newick = getNewick(postOrder(supplements["tree"][0]))
+                    all_newicks[smi] = [newick, test_loss.item(), label]
+                elif args.mode == "visualize":
+                    visualizeTree(postOrder(supplements["tree"][0]))
+                    print(f"\n{smi}")
+                ##########################
                 pbar_test.set_description(f">>  MOLECULE {(test_batch_num + 1)}  |")
                 pbar_test.update()
         ####################################################
@@ -260,7 +299,7 @@ def load_args():
     parser.add_argument("--y_label", default="y_true", type=str)   # y_true
     parser.add_argument("--data_folder", default="data", type=str)
     parser.add_argument("--is_debug", default=False, action="store_true")
-    parser.add_argument("--mode", default="test", choices=["test", "newick"])
+    parser.add_argument("--mode", default="test", choices=["test", "newick", "emb", "visualize"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
     parser.add_argument("--eval_load_dir", default="../results/training_results")
@@ -320,21 +359,91 @@ if __name__ == "__main__":
                     if key == "batch_size":
                         continue
                     if key in list(vars(args).keys()):
+                        if args.mode == "emb":
+                            if key in ["x_label", "y_label", "data_name", "mode"]:
+                                continue
                         setattr(args, key, model_args[key])
                 ##########################
                 ckpt_path = (f"{subfile_path}/{subfile}")
                 args.ckpt = ckpt_path
+                ####################################################
                 if args.mode == "newick":   # düzeltilmesi gerekiyor kaydedilen dosya için ya da hiç for döngüsünde olmayacak ???????????
+                    if args.ckpt == "":
+                        print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
+                        break
                     print(f"\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Newicking STARTED.  <<")
+                    data = data_loaderX(args)
+                ####################################################
                 elif args.mode == "test":
                     if args.ckpt == "":
                         print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
                         break
                     print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Testing STARTED.  <<")
-                data = data_loaderX(args)
+                    data = data_loaderX(args)
+                ####################################################
+                elif args.mode == "emb":
+                    if args.ckpt == "":
+                        print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
+                        break
+                    print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Embedding STARTED.  <<")
+                    data = data_loaderX(args)
+                ####################################################
+                elif args.mode == "visualize":
+                    if args.ckpt == "":
+                        print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
+                        break
+                    print(f"\n\n>>  {args.data_name.upper()} {subfile} {args.tokenization} Visualization STARTED.  <<")
+                    data = data_loaderX(args)
+                ####################################################
                 args.tqdm_off = False
                 main(args, hyp_no, data)
     ########################################################################################
-        
-        
+            
 ########################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
