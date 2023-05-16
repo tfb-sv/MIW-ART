@@ -24,13 +24,14 @@ def count_values(data_names):
         df = pd.read_csv(file_path)
         counts.append([sum(df['y_true'] == 0), sum(df['y_true'] == 1)])
         data_namex = deal_with_names(data_name)
+        data_namex = f"\n{data_namex}\n"
         data_namesx.append(data_namex)
-    counts_df = pd.DataFrame(counts, columns=["# of 0s", "# of 1s"], index=data_namesx)
+    counts_df = pd.DataFrame(counts, columns=["\n# of 0s\n", "\n# of 1s\n"], index=data_namesx)
     return counts_df
 
 #####################################################
 
-data_names_lst = ["bace", "bbbp2k", "bbbp8k", "clintox", "sider", "tox21"]
+data_names_lst = ["bace", "bbbp2k", "clintox", "sider", "tox21"]   # "bbbp8k",
 
 counts_df = count_values(data_names_lst)
 

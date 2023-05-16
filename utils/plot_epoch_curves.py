@@ -109,7 +109,8 @@ def deal_with_names(n):
     tmp_dct = {
                "bace": "BACE Classification",
                "bace_reg": "BACE Regression",
-               "bbbp2k": "BBBP-2K",
+               "bbbp2k": "BBBP",
+               # "bbbp2k": "BBBP-2K",
                "bbbp8k": "BBBP-10K",
                "clintox": "ClinTox",
                "freesolv": "FreeSolv",

@@ -359,9 +359,11 @@ if __name__ == "__main__":
                     if key == "batch_size":
                         continue
                     if key in list(vars(args).keys()):
-                        if args.mode == "emb":
-                            if key in ["x_label", "y_label", "data_name", "mode"]:
-                                continue
+                        # if args.mode == "emb":   # FOR GKC_emb
+                            # if key in ["x_label", "y_label", "data_name", "mode"]:
+                            #     continue
+                        if key == "mode":
+                            continue
                         setattr(args, key, model_args[key])
                 ##########################
                 ckpt_path = (f"{subfile_path}/{subfile}")

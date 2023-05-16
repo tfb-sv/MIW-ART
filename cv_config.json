@@ -62,7 +62,7 @@
     "tree_hidden_dim": [50],
     "use_batchnorm": [0],
     "rank_input": ["w"],
-    "max_epoch": [250]
+    "max_epoch": [500]
     },
 "sider":
     {

@@ -72,7 +72,7 @@ python utils/plot_epoch_curves.py --pr "prc"
 python utils/plot_epoch_curves.py --pr "roc"
 python inspect_subtrees.py --data_names "bace"
 
-##############################################
+############################################## FOR GKC_emb
 
 python utils/update_tokens.py --x_label "SMILES" --data_names "tei, teiu, tri, vi, viu"
 
@@ -82,7 +82,10 @@ python eval_tree.py --mode "emb" --x_label "SMILES" --y_label "PubChem_CID" --da
 
 ##############################################
 
+python eval_tree.py --mode "test" --data_names "bbbp8k"
 
+python eval_tree.py --mode "newick" --data_names "bbbp8k"
+python inspect_subtrees.py --data_names "bbbp8k"
 
 
 
