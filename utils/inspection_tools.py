@@ -33,6 +33,8 @@ def check_smiles_length(smi):
     else:
         return True
 
+########################################################################################
+
 def decode_newick(enc_smis, decoder, smi, node_cnt):
     enc_smis = enc_smis.split("a")
     decoded_lst = [decoder[int(e)] for e in enc_smis]
@@ -46,26 +48,11 @@ def decode_newick(enc_smis, decoder, smi, node_cnt):
     is_ok = sanity_check(smi, sub_smi)
     if not is_ok:
         inv_sub_smi = sub_smi[::-1]
-        # print(f"\n>>  {smi}\n>>  {sub_smi}\n>>  {inv_sub_smi}")
-        # dfşlsşdf
+        print(f"\n>>  {smi}\n>>  {sub_smi}\n>>  {inv_sub_smi}")
+        dfşlsşdf
     if len(decoded_lst) < 3:
         is_ok = False
     return is_ok, sub_smi
-
-########################################################################################
-
-def get_point(t):
-    nodes = [node for node in t.traverse()]
-    root = nodes[0]   # t.get_tree_root()
-    _, max_len = root.get_farthest_leaf()
-    total_point = 0
-    for i in range(len(nodes)):
-        node = nodes[i]
-        if node.name == "-":
-            continue
-        point = (max_len + 1) - t.get_distance(root, node)
-        total_point += point
-    return total_point, max_len
 
 ########################################################################################
 
@@ -221,6 +208,21 @@ def find_fragments(task_newicks, decoder, data_name):
                 else:
                     not_ok_dict[sub_smi] = [smi]
     return all_subtrees, not_valid_dict, not_ok_dict
+
+########################################################################################
+
+def get_point(t):
+    nodes = [node for node in t.traverse()]
+    root = nodes[0]   # t.get_tree_root()
+    _, max_len = root.get_farthest_leaf()
+    total_point = 0
+    for i in range(len(nodes)):
+        node = nodes[i]
+        if node.name == "-":
+            continue
+        point = (max_len + 1) - t.get_distance(root, node)
+        total_point += point
+    return total_point, max_len
 
 ########################################################################################
 
@@ -504,6 +506,7 @@ def visualize_subtrees(all_subtrees, decoder):
         print(t_ascii, "\n")
     return
 
+########################################################################################
 ########################################################################################
 
 

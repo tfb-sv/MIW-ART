@@ -34,7 +34,7 @@ def main(args):
     with open(newicks_load_path, "r") as f:
         task_newicks = json.load(f)
     ##########################
-    encoder_load_path = f"{args.data_folder}/CHARSET.json"
+    encoder_load_path = (f"{args.data_folder}/CHARSET.json")
     with open(encoder_load_path, "r") as f:
         encoder = json.load(f)
     decoder = {v: k for k, v in encoder.items()}
