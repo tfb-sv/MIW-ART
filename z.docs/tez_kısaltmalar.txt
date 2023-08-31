@@ -1,0 +1,6 @@
+IEEE Institute of Electrical and Electronics Engineers
+ACM Association for Computing Machinery
+PLoS Public Library of Science
+CRC Chemical Rubber Company
+ACS American Chemical Society
+AAAI Association for the Advancement of Artificial Intelligence
