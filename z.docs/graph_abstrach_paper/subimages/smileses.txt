@@ -1,0 +1,7 @@
+Molekülün tamamı : CC(F)C(=O)NC(Cc1ccc2OCOc2c1)C(O)CNC1CC2(CCC2)Oc2ncc(CC(C)(C)C)cc21
+Amid olan (kırmızı parça): CC([NH])=O
+Dioksan (Turuncu olan):     c1cccc2OCOc12
+tersiyer butil: (Yeşil olan) :    CC(C)(C)C
+siklobutil (pembe olan) :      C1CCC1
+alkolamin (mavi olan):   NCCO
+siklo (sarı olan) :    c1cnc2OCCCc2c1
