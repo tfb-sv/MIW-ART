@@ -54,7 +54,7 @@ def visualizeTree(postOrderStr):
     print("\n", t.get_ascii())
     return
 
-def main(args, hyp_no, data):
+def main(args, data):
     if args.task == "clf": criterion = nn.BCELoss()
     elif args.task == "reg": criterion = nn.MSELoss()
     best_metric = 10 
@@ -156,24 +156,31 @@ if __name__ == "__main__":
     args = load_args()
     print(f"\n")
     subfile_path = f"{args.eval_load_dir}/{args.data_name}"
-    is_done = False
+    with open("best_hyps.json", "r") as f: cv_all = json.load(f)
+    task_type = cv_all[args.data_name]["task"][0]
+    all_pkls = {}
     for subfile in os.listdir(subfile_path):
-        if is_done == True: break
         if subfile.endswith(".pkl"):
-            print(f"\n>>  {args.data_name.upper()}  |\n")
-            hyp_no = subfile[:-4].split("-")[4]
-            args_file_path = f"{subfile_path}/m-args-{args.data_name}-{hyp_no}.json"
-            with open(args_file_path, "r") as f: model_args = json.load(f)
-            for key in model_args:
-                if key == "batch_size": continue
-                if key in list(vars(args).keys()):
-                    if key == "mode": continue
-                    setattr(args, key, model_args[key])
-            ckpt_path = f"{subfile_path}/{subfile}"
-            args.ckpt = ckpt_path
-            print(f"\n>>  {args.data_name.upper()} {subfile} {args.mode.upper()} STARTED.  <<")
-            data = data_loader(args)
-            main(args, hyp_no, data)
-            is_done = True
-    if is_done == False: print("\n\n>>  !  ERROR  !  NO .PKL FILE FOUND  !  <<\n\n")
+            tmp_score = subfile[:-4].split("-")[3]
+            all_pkls[float(tmp_score)] = subfile
+    if not all_pkls: 
+        print("\n\n>>  !  ERROR  !  NO .PKL FILE FOUND  !  <<\n\n")
+        exit(0)
+    if task_type == "clf": subfile = all_pkls[max(all_pkls.keys())]
+    elif task_type == "reg": subfile = all_pkls[min(all_pkls.keys())]
+    print(f"\n>>  {args.data_name.upper()}  |\n")
+    args_file_path = f"{subfile_path}/m-args-{args.data_name}-0.json"
+    with open(args_file_path, "r") as f: model_args = json.load(f)
+    for key in model_args:
+        if key == "batch_size": continue
+        if key in list(vars(args).keys()):
+            if key == "mode": continue
+            setattr(args, key, model_args[key])
+    ckpt_path = f"{subfile_path}/{subfile}"
+    args.ckpt = ckpt_path
+    print(f"\n>>  {args.data_name.upper()} {subfile} {args.mode.upper()} is STARTED.  <<")
+    data = data_loader(args)
+    main(args, data)
+
+    
   
