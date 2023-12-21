@@ -1,5 +1,4 @@
-# MIW-ART
-# Molecular Interpretation Workflow through Attentive Recursive Tree Model
+# Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 
 Here are some example commands below to run the related scripts. These can be used in Anaconda prompt.
 
