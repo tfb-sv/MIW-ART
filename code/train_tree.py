@@ -9,15 +9,15 @@ from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.nn.utils import clip_grad_norm_
 from torch.nn.functional import softmax
-from model.tree_model import ARTM_model, calc_metrics
-from tree_data import data_loader
-from eval_tree import eval_iter
 from tqdm import tqdm
 import sys
 import json
 import numpy as np
 import copy
 import itertools
+from .model.tree_model import ARTM_model, calc_metrics
+from .utils.tree_data import data_loader
+from .code.eval_tree import eval_iter
 torch.manual_seed(0)
 CUDA_VISIBLE_DEVICES=1
 
@@ -41,7 +41,7 @@ def train_iter(args, batch, model, params, criterion, optimizer):
         return loss, labelsx, labels_predx, probsx
     elif args.task == "reg": return loss
         
-def train(args, cnt, cv_keyz, data, key):
+def train(args, cnt, data):
     # BUILD MODEL
     modelX = ARTM_model
     model = modelX(args)
@@ -172,7 +172,7 @@ def main(args):
                         datefmt="|  %Y-%m-%d  |  %H:%M:%S  |")
     logFormatter = logging.Formatter(frmt)
     start = time.time()
-    with open("best_hyps.json", "r") as f: cv_all = json.load(f)
+    with open("utils/best_hyps.json", "r") as f: cv_all = json.load(f)
     cv_keys = list(cv_all[args.data_name].keys())
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
@@ -190,7 +190,7 @@ def main(args):
         if k == "data_name": logging.info(k + " = " + str(v))
         if k in cv_keys: logging.info(k + " = " + str(v))
     data = data_loader(args)
-    train(args, cv_no, cv_keys, data, "best_hypc")
+    train(args, cv_no, data)
     end = time.time()
     total = np.round(((end - start) / 60), 2)
     print(f"\n>>  {total} minutes elapsed for the training.  <<\n")
@@ -208,7 +208,7 @@ def load_args():
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
     parser.add_argument("--data_name", required=True, type=str) 
-    parser.add_argument("--train_save_dir", default="results/training_results")
+    parser.add_argument("--train_save_dir", default="output/training_results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
     parser.add_argument("--rank_input", default="w", choices=["w", "h"], 
                         help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")

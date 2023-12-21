@@ -2,8 +2,6 @@ import argparse
 import numpy as np
 import torch
 from torch import nn
-from model.tree_model import ARTM_model, calc_metrics
-from tree_data import data_loader
 from ete3 import Tree
 from tqdm import tqdm
 import pandas as pd
@@ -12,6 +10,8 @@ import json
 import pickle
 import os
 import shutil
+from .model.tree_model import ARTM_model, calc_metrics
+from .utils.tree_data import data_loader
 torch.manual_seed(0)
 
 def eval_iter(args, batch, model, criterion):
@@ -132,8 +132,8 @@ def load_args():
     parser.add_argument("--mode", default="test", choices=["test", "newick", "visualize"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
-    parser.add_argument("--eval_load_dir", default="results/training_results")
-    parser.add_argument("--eval_save_dir", default="results/evaluation_results")
+    parser.add_argument("--eval_load_dir", default="output/training_results")
+    parser.add_argument("--eval_save_dir", default="output/evaluation_results")
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--batch_size", default=1, type=int)   
     parser.add_argument("--task", default="clf", choices=["clf", "reg"])
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     args = load_args()
     print(f"\n")
     subfile_path = f"{args.eval_load_dir}/{args.data_name}"
-    with open("best_hyps.json", "r") as f: cv_all = json.load(f)
+    with open("utils/best_hyps.json", "r") as f: cv_all = json.load(f)
     task_type = cv_all[args.data_name]["task"][0]
     all_pkls = {}
     for subfile in os.listdir(subfile_path):

@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-from utils.inspection_tools import *
+from .utils.inspection_tools import *
 import argparse
 
 def main(args):
@@ -52,8 +52,8 @@ def main(args):
 def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_folder", default="data", type=str)
-    parser.add_argument("--load_dir", default="results/evaluation_results", type=str)
-    parser.add_argument("--save_dir", default="results/inspection_results", type=str)
+    parser.add_argument("--load_dir", default="output/evaluation_results", type=str)
+    parser.add_argument("--save_dir", default="output/inspection_results", type=str)
     parser.add_argument("--task", default="clf", type=str)
     parser.add_argument("--thr2", default=5, type=int)
     parser.add_argument("--thr", default=20, type=int)
@@ -64,8 +64,8 @@ def load_args():
 
 if __name__ == "__main__":
     args = load_args()
-    main_dir = os.getcwd()
-    with open(f"{main_dir}/best_hyps.json", "r") as f: best_hyps = json.load(f)
+    # main_dir = os.getcwd()
+    with open(f"utils/best_hyps.json", "r") as f: best_hyps = json.load(f)
     args.task = best_hyps[args.data_name]["task"]
     main(args)
  
