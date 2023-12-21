@@ -36,7 +36,7 @@ Firstly, you need to run the "newick" mode of the "eval_tree.py" script, OR you 
 
 ## Other Informations
 
-The complete contents (around 1.5 GB) of the "results" folder can be accessed through the link below. It is enough to simply replace the "results" folder.
+The complete contents (around 1.5 GB) of the "results" folder can be accessed through the link below. Simply replacing the "results" folder is enough.
 
 https://drive.google.com/drive/folders/1A1q138vF3G-SG-aRxiA8LbI04OZk6H7w?usp=sharing
 
