@@ -8,11 +8,15 @@ import pandas as pd
 import math
 import json
 import pickle
-import os
 import shutil
-from .model.tree_model import ARTM_model, calc_metrics
-from .utils.tree_data import data_loader
 torch.manual_seed(0)
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+from model.tree_model import ARTM_model, calc_metrics
+from utils.tree_data import data_loader
 
 def eval_iter(args, batch, model, criterion):
     model.eval()

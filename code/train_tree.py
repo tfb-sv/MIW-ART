@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 import time
 import shutil
 from collections import defaultdict
@@ -10,16 +9,20 @@ from torch.optim import lr_scheduler
 from torch.nn.utils import clip_grad_norm_
 from torch.nn.functional import softmax
 from tqdm import tqdm
-import sys
 import json
 import numpy as np
 import copy
 import itertools
-from .model.tree_model import ARTM_model, calc_metrics
-from .utils.tree_data import data_loader
-from .code.eval_tree import eval_iter
 torch.manual_seed(0)
 CUDA_VISIBLE_DEVICES=1
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+from model.tree_model import ARTM_model, calc_metrics
+from utils.tree_data import data_loader
+from eval_tree import eval_iter
 
 def train_iter(args, batch, model, params, criterion, optimizer):
     model.train(True)

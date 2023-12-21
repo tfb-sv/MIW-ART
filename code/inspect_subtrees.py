@@ -1,8 +1,12 @@
-import os
 import json
 import shutil
-from .utils.inspection_tools import *
 import argparse
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+from utils.inspection_tools import *
 
 def main(args):
     # DEAL WITH FOLDERS
