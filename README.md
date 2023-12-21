@@ -1,12 +1,12 @@
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 
-Here are some example commands below to run the related scripts. These can be used in Anaconda prompt.
+Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in "environment.yml" file.
 
-## Firstly, indicate the environment and the project folder directory:
+## Firstly, indicate the environment and the project directory:
 
-> activate yourEnv
+> conda activate yourEnv
 
-> cd C:\yourFolders\MIW-ART
+> cd C:\yourDirectory\MIW-ART
 
 ## For training:
 
@@ -36,4 +36,11 @@ You need to run secondly "Newicking" OR you can use an available Newick file whi
 
 ## Other Informations
 
-There are lots of arguments in the related scripts but does not need to any change to run the scripts.
+The complete contents of the "results" folder can be accessed through this link: ""
+
+There are lots of arguments in the related scripts, but no changes are needed to run them.
+
+The folders in "results/training_results", "results/evaluation_results", and "results/inspection_results" are overwritten with each related run, so be careful about this. Also, if the folders within these three result directories do not exist, they will be automatically created.
+
+The publication related to this work will be made available here upon its release.
+
