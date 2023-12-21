@@ -8,7 +8,7 @@ Firstly, indicate the environment and the project folder directory:
 
 > activate myEnv
 
-> cd C:\...\MIW-ART
+> cd C:\someOtherFolders\MIW-ART
 
 For training:
 
