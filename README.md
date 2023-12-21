@@ -1,6 +1,6 @@
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 
-Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in the "environment.yml" file.
+Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in the "environment.yml" or "requirements.txt" files.
 
 ## Firstly, indicate the environment and the project directory:
 
@@ -16,7 +16,7 @@ The following two commands are for example purposes, you should modify these com
 
 ## For testing the model checkpoints, obtaining the Newick strings, or visualizing the tree structures:
 
-Firstly, you need to run the "train_tree.py" script, OR you can use an available model checkpoint, which should be in "results/training_results" folder.
+Firstly, you need to run the "train_tree.py" script OR you can use an available model checkpoint, which should be in "results/training_results" folder.
 
 > python eval_tree.py --mode "test" --data_names "freesolv"
 
@@ -26,7 +26,7 @@ Firstly, you need to run the "train_tree.py" script, OR you can use an available
 
 ## For inspecting the molecular fragments:
 
-Firstly, you need to run the "newick" mode of the "eval_tree.py" script, OR you can use an available Newick file, which should be in "results/evaluation_results" folder.
+Firstly, you need to run the "newick" mode of the "eval_tree.py" script OR you can use an available Newick file, which should be in "results/evaluation_results" folder.
 
 > python inspect_subtrees.py --data_names "freesolv"
 
