@@ -14,7 +14,7 @@ The following two commands are for example purposes, you should modify these com
 
 > python train_tree.py --data_name "freesolv"
 
-## For testing the model checkpoints, obtaining the Newick strings or visualizing the tree structures:
+## For testing the model checkpoints, obtaining the Newick strings, or visualizing the tree structures:
 
 Firstly, you need to run the "train_tree.py" script, OR you can use an available model checkpoint, which should be in "results/training_results" folder.
 
