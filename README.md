@@ -28,7 +28,7 @@ For inspecting the molecular fragments:
 
 (you need to run firstly "training" or you can use an available model checkpoint which is in results/training_results folder)
 
-(you need to run secondly "newicking" or you can use an available newick file which is in results/evaluation_results folder)
+(you need to run secondly "Newicking" or you can use an available Newick file which is in results/evaluation_results folder)
 
 > python inspect_subtrees.py --data_names "freesolv"
 
