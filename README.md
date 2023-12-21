@@ -1,6 +1,6 @@
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 
-Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in "environment.yml" file.
+Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in the "environment.yml" file.
 
 ## Firstly, indicate the environment and the project directory:
 
