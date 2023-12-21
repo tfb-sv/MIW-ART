@@ -4,7 +4,9 @@ Here are some example commands below to run the related scripts. These can be us
 
 ## Firstly, indicate the environment and the project directory:
 
-> conda activate yourEnv
+The following two commands are for example purposes, you should modify these commands according to your needs.
+
+> conda activate yourEnvironment
 
 > cd C:\yourPreDirectory\MIW-ART
 
@@ -34,7 +36,9 @@ Firstly, you need to run "newick" mode of "eval_tree.py" script, OR you can use 
 
 ## Other Informations
 
-The complete contents of the "results" folder can be accessed through this link: ""
+The complete contents of the "results" folder can be accessed through the link below. It is enough to simply replace the "results" folder.
+
+https://drive.google.com/drive/folders/1A1q138vF3G-SG-aRxiA8LbI04OZk6H7w?usp=sharing
 
 There are lots of arguments in the related scripts, but no changes are needed to run them.
 
