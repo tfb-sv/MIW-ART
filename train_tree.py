@@ -185,7 +185,7 @@ def main(args):
     fileHandler = logging.FileHandler(os.path.join(args.train_save_dir, log_file_name))
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
-    print(f"\n\n>>  {args.data_name.upper()} Training STARTED.  <<")
+    print(f"\n\n>>  {args.data_name.upper()} Training is STARTED.  <<")
     for k, v in vars(args).items():
         if k == "data_name": logging.info(k + " = " + str(v))
         if k in cv_keys: logging.info(k + " = " + str(v))
