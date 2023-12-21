@@ -1,2 +1,2 @@
-# ART-Mol
-Molecular Property Prediction by using Attentive Recursive Tree
+# MIW-ART
+Molecular Interpretation Workflow through Attentive Recursive Tree Model
