@@ -47,6 +47,7 @@ def main(args):
         repeat_dict = inspect_fragments(all_subtrees, task_newicks, args.task_avg_loss, args.task, args.data_name, args)
         repeat_dict_save_path = f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json"
         with open(repeat_dict_save_path, "w") as f: json.dump(repeat_dict, f)
+    _ = plot_contour(all_subtrees, repeat_dict, args)
 
 def load_args():
     parser = argparse.ArgumentParser()

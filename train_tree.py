@@ -146,7 +146,7 @@ def train(args, cnt, cv_keyz, data, key):
                         loss_outputs["rmse loss valid"].append(valid_loss_mean)
     loss_file_path = f"{args.train_save_dir}/{args.data_name}/{args.data_name}_metrics_{cnt}.json"
     with open(loss_file_path, "w") as f: json.dump(loss_outputs, f)
-    print(f"\n\n>>  {args.data_name.upper()} {args.data_folder} Training is COMPLETED.  <<\n")
+    print(f"\n\n>>  {args.data_name.upper()} Training is COMPLETED.  <<\n")
 
 def save_model(args, model, metric, best_metric, cnt):
     model_filename = f"{metric.upper()}-m-{args.data_name}-{best_metric:.4f}-{cnt}.pkl"

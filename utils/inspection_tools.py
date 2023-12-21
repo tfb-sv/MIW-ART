@@ -163,3 +163,101 @@ def inspect_fragments(all_subtrees, task_newicks, task_avg_loss, task, data_name
                 frag_size = all_subtrees[sub_newick][1]
                 repeat_dict = search_subtrees(sub_smi, smi, frag_size, fixed_loss, repeat_dict, test_loss, label, args)    
     return repeat_dict
+
+def plot_contour(all_subtrees, repeat_dict, args):   
+    xyz, _ = set_xyz(all_subtrees, repeat_dict)
+    x = xyz["x"]   # fragment sizes
+    y = xyz["y"]   # unique_repeat
+    z = xyz["z"]   # total_point
+    sub_smis = xyz["sub_smis"]
+    smis = xyz["smis"]   # parent smiles and test loss dict
+    ur = y
+    y_label = "\nloge(Unique Repeat Count)\n"
+    x = np.asarray(x)
+    x = np.log(x).tolist()
+    y = np.asarray(y)
+    y = np.log(y).tolist()
+    z = np.asarray(z)
+    z = z / np.max(z)
+    z = z.tolist()
+    thr2 = args.task_avg_loss / np.max(z)
+    z, x, y, sub_smis, ur = zip(*reversed(sorted(zip(z, x, y, sub_smis, ur))))
+    sns.set_theme(rc={'figure.figsize':(27, 27)}, font_scale=3.5, style="white")
+    x_good, y_good = [], []
+    z_good = {}
+    cids = []
+    save_loc = (f"{args.save_dir}/{args.data_name}")
+    print("\n")
+    cnt = 0
+    mols = []
+    mcidz = []
+    print(f">> {args.data_name.upper()} fragments are being visualized..\n")
+    for i in range(len(z)):
+        zi = np.round(z[i], 4)
+        cnt += 1
+        if cnt <= args.thr:
+            x_good.append(x[i])
+            y_good.append(y[i])
+            sub_smi = sub_smis[i]
+            z_good[sub_smi] = i
+            rank = z[i]
+            c = pcp.get_compounds(sub_smi, "smiles")[0]
+            cid_str = (f"CID {c.cid}")
+            cid_str2 = (f"{(i + 1)} - {cid_str} ({zi:.4f})")
+            cid_str_annot = (f"{cid_str} ({zi:.4f})")
+            cids.append([cid_str_annot, x[i], y[i]])
+            iupac_name = c.iupac_name
+            m = Chem.MolFromSmiles(sub_smi)
+            mols.append(m)
+            mcidz.append(cid_str2)
+            parents = pd.DataFrame(list(smis[sub_smi].keys()))
+            parents.columns = ["smiles"]
+            parents.to_csv(f"{save_loc}/csvs/{(i + 1)} - CID {c.cid}.csv")
+            fig = Draw.MolToMPL(m, size=(350, 350))
+            title = (f"{iupac_name}\n{cid_str}\n{sub_smi}\n\nUR = {ur[i]}    FS = {x[i]:.2f}     TP = {zi:.4f}\nTask = {args.data_name.upper()}     Rank = {(i + 1)}")
+            fig.suptitle(title, fontsize=35, x=1.25, y=0.8)
+            fig.set_size_inches(5.5, 5.5)
+            if not os.path.exists(save_loc): os.mkdir(save_loc)
+            save_name = (f"{save_loc}/images/{(i + 1)} - {cid_str}.png")
+            plt.savefig(fname=save_name, bbox_inches="tight", dpi=100)
+            plt.close(fig)
+            cid_out = f"{cnt} - {cid_str_annot} => {sub_smi}"
+            print(cid_out) 
+        else: pass
+    fig_grid = Draw.MolsToGridImage(mols, 
+                                    legends=mcidz, 
+                                    molsPerRow=4,
+                                    subImgSize=(400, 400))
+    save_name = (f"{save_loc}/images/{args.data_name.upper()} All Fragments.png")
+    fig_grid.save(save_name, format="PNG")
+    return xyz
+
+def set_xyz(all_subtrees, repeat_dict):
+    frag_size_dict = {}
+    for key in all_subtrees:
+        sub_smi = all_subtrees[key][0]
+        sub_smi = Chem.CanonSmiles(sub_smi)
+        frag_size = all_subtrees[key][1]
+        frag_size_dict[sub_smi] = frag_size
+    xyz = {}
+    x_lst, y_lst, z_lst, sub_smis, w_lst, subs2smis_dct = [], [], [], [], [], {}
+    for sub_smi in repeat_dict:
+        unique_repeat = repeat_dict[sub_smi][0]
+        total_point = repeat_dict[sub_smi][2]
+        total_frag_size = repeat_dict[sub_smi][3]
+        smis_and_losses = repeat_dict[sub_smi][4]
+        total_point = int(np.round(total_point, 0))
+        frag_size = np.round((total_frag_size / unique_repeat), 2)
+        if unique_repeat < 2: continue
+        x_lst.append(frag_size) 
+        y_lst.append(unique_repeat)
+        z_lst.append(total_point)
+        sub_smis.append(sub_smi)
+        subs2smis_dct[sub_smi] = smis_and_losses
+    xyz["x"] = x_lst
+    xyz["y"] = y_lst
+    xyz["z"] = z_lst
+    xyz["sub_smis"] = sub_smis
+    xyz["smis"] = subs2smis_dct
+    return xyz, frag_size_dict
+    
