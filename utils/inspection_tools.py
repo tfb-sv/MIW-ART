@@ -88,8 +88,8 @@ def recoverFragment(sub_newick, decoder, smi):
             if node.name == "-": continue
             child_right = parent.children[0]
             child_left = parent.children[1]
-            if node.name == child_right.name: parent.name = parent.name + "a" + child_right.name   # means that this node is RIGHT CHILD !  
-            else: parent.name = child_left.name + "a" + parent.name   # means that this node is LEFT CHILD !
+            if node.name == child_right.name: parent.name = parent.name + "a" + child_right.name   # means that this node is RIGHT CHILD
+            else: parent.name = child_left.name + "a" + parent.name   # means that this node is LEFT CHILD
             node.name = "-"
             if child_right.name == "-":
                 if child_left.name == "-":

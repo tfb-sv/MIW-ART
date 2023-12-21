@@ -51,7 +51,6 @@ def main(args):
 
 def load_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--data_folder", default="data", type=str)
     parser.add_argument("--load_dir", default="results/evaluation_results", type=str)
     parser.add_argument("--save_dir", default="results/inspection_results", type=str)
@@ -67,10 +66,6 @@ if __name__ == "__main__":
     args = load_args()
     main_dir = os.getcwd()
     with open(f"{main_dir}/best_hyps.json", "r") as f: best_hyps = json.load(f)
-    data_names = args.data_names.replace(" ", "")
-    data_names = data_names.split(",")
-    for data_name in data_names:
-        args.data_name = data_name
-        args.task = best_hyps[args.data_name]["task"]
-        main(args)
+    args.task = best_hyps[args.data_name]["task"]
+    main(args)
  

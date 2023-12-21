@@ -126,7 +126,6 @@ def main(args, hyp_no, data):
 def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tqdm_off", default=False, type=bool)
-    parser.add_argument("--data_names", default="", type=str)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)
     parser.add_argument("--data_folder", default="data", type=str)
@@ -156,33 +155,27 @@ def load_args():
 if __name__ == "__main__":
     args = load_args()
     print(f"\n")
-    data_names = args.data_names.replace(" ", "")
-    data_names = data_names.split(",")
-    for task_name in data_names:
-        if "." in task_name: continue
-        if "saveds" in task_name: continue
-        args.data_name = task_name
-        print(f"\n>>  {task_name.upper()}  |\n")
-        subfile_path = f"{args.eval_load_dir}/{task_name}"
-        is_done = False
-        for subfile in os.listdir(subfile_path):
-            if is_done == True: break
-            if subfile.endswith(".pkl"):
-                hyp_no = subfile[:-4].split("-")[4]
-                args_file_path = f"{subfile_path}/m-args-{args.data_name}-{hyp_no}.json"
-                with open(args_file_path, "r") as f: model_args = json.load(f)
-                for key in model_args:
-                    if key == "batch_size": continue
-                    if key in list(vars(args).keys()):
-                        if key == "mode": continue
-                        setattr(args, key, model_args[key])
-                ckpt_path = f"{subfile_path}/{subfile}"
-                args.ckpt = ckpt_path
-                if args.ckpt == "":
-                    print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
-                    break
-                print(f"\n>>  {args.data_name.upper()} {subfile} {args.mode.upper()} STARTED.  <<")
-                data = data_loader(args)
-                main(args, hyp_no, data)
-                is_done = True
+    print(f"\n>>  {args.data_name.upper()}  |\n")
+    subfile_path = f"{args.eval_load_dir}/{args.data_name}"
+    is_done = False
+    for subfile in os.listdir(subfile_path):
+        if is_done == True: break
+        if subfile.endswith(".pkl"):
+            hyp_no = subfile[:-4].split("-")[4]
+            args_file_path = f"{subfile_path}/m-args-{args.data_name}-{hyp_no}.json"
+            with open(args_file_path, "r") as f: model_args = json.load(f)
+            for key in model_args:
+                if key == "batch_size": continue
+                if key in list(vars(args).keys()):
+                    if key == "mode": continue
+                    setattr(args, key, model_args[key])
+            ckpt_path = f"{subfile_path}/{subfile}"
+            args.ckpt = ckpt_path
+            if args.ckpt == "":
+                print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
+                break
+            print(f"\n>>  {args.data_name.upper()} {subfile} {args.mode.upper()} STARTED.  <<")
+            data = data_loader(args)
+            main(args, hyp_no, data)
+            is_done = True
   

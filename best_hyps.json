@@ -101,7 +101,7 @@
     "tree_hidden_dim": [1500],
     "use_batchnorm": [1],
     "rank_input": ["h"],
-    "max_epoch": [1]
+    "max_epoch": [100]
     },
 "lipo":
     {
