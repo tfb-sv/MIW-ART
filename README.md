@@ -44,6 +44,6 @@ There are lots of arguments in the related scripts, but no changes are needed to
 
 The folders in "results/training_results", "results/evaluation_results", and "results/inspection_results" are overwritten with each related run, so be careful about this. Also, if the folders within these three result directories do not exist, they will be automatically created.
 
-Note that the order of fragments in the "results/inspection_results" folder may vary slightly, even when using the same model checkpoints as provided by us..
+Note that the order of fragments in the "results/inspection_results" folder may vary slightly, even when using the same model checkpoints as provided by us.
 
 The publication related to this work will be made available here upon its release.
