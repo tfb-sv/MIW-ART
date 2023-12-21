@@ -26,7 +26,7 @@ Firstly, you need to run the "train_tree.py" script, OR you can use an available
 
 ## For inspecting the molecular fragments:
 
-Firstly, you need to run the "newick" mode of "eval_tree.py" script, OR you can use an available Newick file, which should be in "results/evaluation_results" folder.
+Firstly, you need to run the "newick" mode of the "eval_tree.py" script, OR you can use an available Newick file, which should be in "results/evaluation_results" folder.
 
 > python inspect_subtrees.py --data_names "freesolv"
 
