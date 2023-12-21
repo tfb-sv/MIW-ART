@@ -1,110 +1,13 @@
-##############################################
-##############################################
-
 activate torch-rdkit
-cd C:\Users\nural\OneDrive\Masaüstü\ART-Mol
+cd C:\Users\nural\OneDrive\Masaüstü\MIW-ART
 
-##############################################
-##############################################
-
-python -m visdom.server
-
-http://localhost:8097
-
-##############################################
-##############################################
-
-cd C:\Users\WS001\Desktop\ART-Mol
-
-##############################################
-##############################################
-
-["bace", "bbbp2k", "clintox", "tox21", "bbbp8k", "lipo", "esol", "freesolv", "bace_reg", "sider"]
-
-"bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider"
-
-##############################################
-##############################################
-
-python utils/get_molnet_data_from_deepchem.py --data_names "freesolv, bace"
-
-##############################################
-##############################################
-
-python utils/update_tokens.py --data_names "freesolv, bace"
-
-##############################################
-##############################################
+["bace_clf", "bbbp", "clintox", "tox21", "lipo", "esol", "freesolv", "bace_reg", "sider"]
 
 python train_tree.py --data_name "freesolv"
 
-##############################################
-##############################################
+python eval_tree.py --mode "test" --data_names "freesolv"
+python eval_tree.py --mode "newick" --data_names "freesolv"
+python eval_tree.py --mode "visualize" --data_names "freesolv"
 
-python eval_tree.py --mode "test" --data_names "freesolv, bace" --export_preds True
-
-python eval_tree.py --mode "newick" --data_names "freesolv, bace"
-
-##############################################
-##############################################
-
-python inspect_subtrees.py --data_names "freesolv, bace"
-
-##############################################
-##############################################
-
-python utils/plot_epoch_curves.py --pr "prc"
-
-python eval_tree.py --mode "test" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider" --export_preds True
-
-python eval_tree.py --mode "newick" --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider"
-
-python eval_tree.py --mode "emb" --data_names "bace"
-
-python eval_tree.py --mode "visualize" --data_names "bace"
-
-python inspect_subtrees.py --data_names "bace, bbbp2k, clintox, tox21, lipo, esol, freesolv, bace_reg, bbbp8k, sider"
-
-##############################################
-##############################################
-
-python utils/plot_epoch_curves.py --pr "prc"
-python utils/plot_epoch_curves.py --pr "roc"
-python inspect_subtrees.py --data_names "bace"
-
-############################################## FOR GKC_emb
-
-python utils/update_tokens.py --x_label "SMILES" --data_names "tei, teiu, tri, vi, viu"
-
-python eval_tree.py --mode "emb" --x_label "SMILES" --y_label "PubChem_CID" --data_names "tei"
-
-python eval_tree.py --mode "emb" --x_label "SMILES" --y_label "PubChem_CID" --data_names "tei, teiu, tri, vi, viu"
-
-##############################################
-
-python eval_tree.py --mode "test" --data_names "bbbp8k"
-
-python eval_tree.py --mode "newick" --data_names "bbbp8k"
-python inspect_subtrees.py --data_names "bbbp8k"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+python inspect_subtrees.py --data_names "freesolv"
 

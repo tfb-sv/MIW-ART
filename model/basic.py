@@ -9,13 +9,11 @@ class Node():
         self.left = left
         self.right = right
 
-
-class NaryLSTMLayer(nn.Module): # N-ary Tree-LSTM in the paper of treelstm
+class NaryLSTMLayer(nn.Module):   # N-ary Tree-LSTM in the paper of treelstm
     def __init__(self, hidden_dim):
         super().__init__()
         self.hidden_dim = hidden_dim
-        self.comp_linear = nn.Linear(in_features=3 * hidden_dim,
-                                    out_features=5 * hidden_dim)
+        self.comp_linear = nn.Linear(in_features=3 * hidden_dim, out_features=5 * hidden_dim)
         self.zero = nn.Parameter(torch.zeros(1, hidden_dim), requires_grad=False)
         self.reset_parameters()
 
@@ -33,10 +31,8 @@ class NaryLSTMLayer(nn.Module): # N-ary Tree-LSTM in the paper of treelstm
             h, c : The hidden and cell state of the composed parent
         """
         hx, cx = x
-        if l==None:
-            l = (self.zero, self.zero)
-        if r==None:
-            r = (self.zero, self.zero)
+        if l==None: l = (self.zero, self.zero)
+        if r==None: r = (self.zero, self.zero)
         hr, cr = r
         hl, cl = l
         h_cat = torch.cat([hx, hl, hr], dim=1)
@@ -46,12 +42,11 @@ class NaryLSTMLayer(nn.Module): # N-ary Tree-LSTM in the paper of treelstm
         h = o.sigmoid() * c.tanh()
         return h, c 
 
-class TriPadLSTMLayer(nn.Module): # used in my paper
+class TriPadLSTMLayer(nn.Module):
     def __init__(self, hidden_dim):
         super().__init__()
         self.hidden_dim = hidden_dim
-        self.comp_linear = nn.Linear(in_features=3 * hidden_dim,
-                                    out_features=6 * hidden_dim)
+        self.comp_linear = nn.Linear(in_features=3 * hidden_dim, out_features=6 * hidden_dim)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -69,10 +64,8 @@ class TriPadLSTMLayer(nn.Module): # used in my paper
         """
         hm, cm = m
         zero = torch.zeros(1, self.hidden_dim).to(hm.device)
-        if l is None:
-            l = (zero, zero)
-        if r is None:
-            r = (zero, zero)
+        if l is None: l = (zero, zero)
+        if r is None: r = (zero, zero)
         hr, cr = r
         hl, cl = l
         h_cat = torch.cat([hl, hm, hr], dim=1)
@@ -82,9 +75,7 @@ class TriPadLSTMLayer(nn.Module): # used in my paper
         h = o.sigmoid() * c.tanh()
         return h, c 
 
-
 class LayerNorm(nn.Module):
-
     def __init__(self, features, eps=1e-6):
         super().__init__()
         self.gamma = nn.Parameter(torch.ones(features))
@@ -95,7 +86,6 @@ class LayerNorm(nn.Module):
         mean = x.mean(-1, keepdim=True)
         std = x.std(-1, keepdim=True)
         return self.gamma * (x - mean) / (std + self.eps) + self.beta
-
 
 class LayerNormLSTMCell(nn.Module):
     def __init__(self, input_size, hidden_size):
@@ -125,7 +115,6 @@ class LayerNormLSTMCell(nn.Module):
         h = o.sigmoid() * c.tanh()
         return h, c
 
-
 class ForgetMoreLSTMCell(nn.Module):
     def __init__(self, input_size, hidden_size):
         super(ForgetMoreLSTMCell, self).__init__()
@@ -150,9 +139,6 @@ class ForgetMoreLSTMCell(nn.Module):
         h = o.sigmoid() * c.tanh()
         return h, c
 
-
-
-
 def apply_nd(fn, input):
     """
     Apply fn whose output only depends on the last dimension values
@@ -160,14 +146,12 @@ def apply_nd(fn, input):
     It flattens dimensions except the last one, applies fn, and then
     restores the original size.
     """
-
     x_size = input.size()
     x_flat = input.view(-1, x_size[-1])
     output_flat = fn(x_flat)
     output_size = x_size[:-1] + (output_flat.size(-1),)
     output_flat = output_flat.view(*output_size)
     return output_flat
-
 
 def affine_nd(input, weight, bias):
     """
@@ -183,7 +167,6 @@ def affine_nd(input, weight, bias):
     Returns:
         output: The result of size (d0, ..., dn, output_dim)
     """
-
     input_size = input.size()
     input_flat = input.view(-1, input_size[-1])
     bias_expand = bias.unsqueeze(0).expand(input_flat.size(0), bias.size(0))
@@ -191,7 +174,6 @@ def affine_nd(input, weight, bias):
     output_size = input_size[:-1] + (weight.size(1),)
     output = output_flat.view(*output_size)
     return output
-
 
 def dot_nd(query, candidates):
     """
@@ -207,13 +189,11 @@ def dot_nd(query, candidates):
         output: The result of the dot product, whose size is
             (d0, d1, ..., dn)
     """
-
     cands_size = candidates.size()
     cands_flat = candidates.view(-1, cands_size[-1])
     output_flat = torch.mv(cands_flat, query)
     output = output_flat.view(*cands_size[:-1])
     return output
-
 
 def convert_to_one_hot(indices, num_classes):
     """
@@ -226,13 +206,10 @@ def convert_to_one_hot(indices, num_classes):
     Returns:
         result: The one-hot matrix of size (batch_size, num_classes).
     """
-
     batch_size = indices.size(0)
     indices = indices.unsqueeze(1)
-    one_hot = torch.Tensor(batch_size, num_classes).zero_().to(indices.device)\
-                .scatter_(1, indices.data, 1)
+    one_hot = torch.Tensor(batch_size, num_classes).zero_().to(indices.device).scatter_(1, indices.data, 1)
     return one_hot
-
 
 def masked_softmax(logits, mask=None):
     eps = 1e-20
@@ -259,10 +236,8 @@ def weighted_softmax(logits, base, mask=None, weights_mask=None):
 
 def greedy_select(logits, mask=None):
     probs = masked_softmax(logits=logits, mask=mask)
-    one_hot = convert_to_one_hot(indices=probs.max(1)[1],
-                                 num_classes=logits.size(1))
+    one_hot = convert_to_one_hot(indices=probs.max(1)[1], num_classes=logits.size(1))
     return one_hot
-
 
 def st_gumbel_softmax(logits, temperature=1.0, mask=None):
     """
@@ -285,13 +260,12 @@ def st_gumbel_softmax(logits, temperature=1.0, mask=None):
     Returns:
         y: The sampled output, which has the property explained above.
     """
-
     eps = 1e-20
     u = logits.data.new(*logits.size()).uniform_(0.001, 0.999)
     gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
     y = logits + gumbel_noise
     y = masked_softmax(logits=y / temperature, mask=mask)
-    if logits.ndimension() == 1: # no batch dimension
+    if logits.ndimension() == 1:   # no batch dimension
         y_argmax = y.max(0)[1]
         y_hard = convert_to_one_hot(indices=y_argmax, num_classes=y.size(0)).float().squeeze()
     else:
@@ -302,8 +276,7 @@ def st_gumbel_softmax(logits, temperature=1.0, mask=None):
 
 
 def sequence_mask(sequence_length, max_length=None):
-    if max_length is None:
-        max_length = sequence_length.max()
+    if max_length is None: max_length = sequence_length.max()
     batch_size = sequence_length.size(0)
     seq_range = torch.arange(0, max_length).long()
     seq_range_expand = seq_range.unsqueeze(0).expand(batch_size, max_length).to(sequence_length.device)
@@ -324,19 +297,12 @@ def reverse_padded_sequence(inputs, lengths, batch_first=False):
         A Tensor with the same size as inputs, but with each sequence
         reversed according to its length.
     """
-
-    if not batch_first:
-        inputs = inputs.transpose(0, 1)
-    if inputs.size(0) != len(lengths):
-        raise ValueError("inputs incompatible with lengths.")
-    reversed_indices = [list(range(inputs.size(1)))
-                        for _ in range(inputs.size(0))]
+    if not batch_first: inputs = inputs.transpose(0, 1)
+    if inputs.size(0) != len(lengths): raise ValueError("inputs incompatible with lengths.")
+    reversed_indices = [list(range(inputs.size(1))) for _ in range(inputs.size(0))]
     for i, length in enumerate(lengths):
-        if length > 0:
-            reversed_indices[i][:length] = reversed_indices[i][length-1::-1]
-    reversed_indices = torch.LongTensor(reversed_indices).unsqueeze(2)\
-                        .expand_as(inputs).to(inputs.device)
+        if length > 0: reversed_indices[i][:length] = reversed_indices[i][length-1::-1]
+    reversed_indices = torch.LongTensor(reversed_indices).unsqueeze(2).expand_as(inputs).to(inputs.device)
     reversed_inputs = torch.gather(inputs, 1, reversed_indices)
-    if not batch_first:
-        reversed_inputs = reversed_inputs.transpose(0, 1)
+    if not batch_first: reversed_inputs = reversed_inputs.transpose(0, 1)
     return reversed_inputs

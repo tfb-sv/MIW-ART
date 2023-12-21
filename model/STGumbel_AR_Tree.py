@@ -10,21 +10,16 @@ class STG_AR_Tree(nn.Module):
     def __init__(self, args):
         super(STG_AR_Tree,self).__init__()
         self.args = args
-        # self.temperature = 1
-        # assert args.vocab.id_to_word_l ???
         if args.leaf_rnn_type == "bilstm":
             self.leaf_rnn_cell = nn.LSTMCell(input_size=args.word_dim, hidden_size=(args.tree_hidden_dim//2)) # dim//2 per direction
             self.leaf_rnn_cell_bw = nn.LSTMCell(input_size=args.word_dim, hidden_size=(args.tree_hidden_dim//2))
-        elif args.leaf_rnn_type == "lstm":
-            self.leaf_rnn_cell = nn.LSTMCell(input_size=args.word_dim, hidden_size=args.tree_hidden_dim)
+        elif args.leaf_rnn_type == "lstm": self.leaf_rnn_cell = nn.LSTMCell(input_size=args.word_dim, hidden_size=args.tree_hidden_dim)
         self.treelstm_layer = TriPadLSTMLayer(args.tree_hidden_dim)       
-        if args.rank_input == "w":
-            rank_dim = args.word_dim
-        elif args.rank_input == "h":
-            rank_dim = args.tree_hidden_dim
+        if args.rank_input == "w": rank_dim = args.word_dim
+        elif args.rank_input == "h": rank_dim = args.tree_hidden_dim
         self.tree_rank = nn.Sequential(nn.Linear(in_features=rank_dim, out_features=128, bias=False),
-                                     nn.ReLU(),
-                                     nn.Linear(in_features=128, out_features=1, bias=False))
+                                       nn.ReLU(),
+                                       nn.Linear(in_features=128, out_features=1, bias=False))
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -43,12 +38,10 @@ class STG_AR_Tree(nn.Module):
                 self.leaf_rnn_cell_bw.bias_ih.data.chunk(4)[1].fill_(1)
         self.treelstm_layer.reset_parameters()
         for layer in self.tree_rank:
-            if type(layer)==nn.Linear:
-                init.kaiming_normal_(layer.weight.data)
+            if type(layer)==nn.Linear: init.kaiming_normal_(layer.weight.data)
 
     def calc_score(self, x):
-        s = self.tree_rank(x)
-        return s
+        return self.tree_rank(x)
 
     def build(self, sentence, embedding, hs, cs, start, end):
         """
@@ -63,29 +56,20 @@ class STG_AR_Tree(nn.Module):
             h, c: (1, hidden_dim), embedding of sentence[start:end]
             root: (Node)
         """
-        if end == start:
-            return None, None
+        if end == start: return None, None
         elif end == start+1:
             root = Node(sentence[start])
             return (hs[start].unsqueeze(0), cs[start].unsqueeze(0)), root
-        
         logits = self.calc_score(embedding[start:end])
-        
-        if self.training:
-            gate = F.gumbel_softmax(logits.t(), tau=1, hard=True) # (1, end-start)           
-        else:
-            gate = greedy_select(logits.t()) # (1, end-start)
-            
+        if self.training: gate = F.gumbel_softmax(logits.t(), tau=1, hard=True)   # (1, end-start)           
+        else: gate = greedy_select(logits.t())   # (1, end-start)  
         h = torch.matmul(gate, hs[start:end])
-        c = torch.matmul(gate, cs[start:end]) # (1, hidden_dim)
-        
+        c = torch.matmul(gate, cs[start:end])   # (1, hidden_dim)
         pos = start + torch.max(gate, dim=1)[1].item()
-
         left_state, left_tree = self.build(sentence, embedding, hs, cs, start, pos)
         right_state, right_tree = self.build(sentence, embedding, hs, cs, pos+1, end)
         output_state = self.treelstm_layer(left_state, right_state, (h, c))
         root = Node(sentence[pos], left_tree, right_tree)
-
         return output_state, root 
 
     def forward(self, sentence_embedding, sentence_word, length):
@@ -114,55 +98,36 @@ class STG_AR_Tree(nn.Module):
                 c_prev = c
             hs = torch.stack(hs, dim=1)
             cs = torch.stack(cs, dim=1)
-            
             if self.args.leaf_rnn_type == "bilstm":
                 hs_bw = []
                 cs_bw = []
                 h_bw_prev = c_bw_prev = zero_state
                 lengths_list = length.tolist()
-                # print("\nlengths_list", lengths_list) #CAN KURTARICIMM <3 LOL.
-                input_bw = reverse_padded_sequence(
-                    inputs=sentence_embedding, lengths=lengths_list, batch_first=True)
+                input_bw = reverse_padded_sequence(inputs=sentence_embedding, lengths=lengths_list, batch_first=True)
                 for i in range(max_length):
-                    h_bw, c_bw = self.leaf_rnn_cell_bw(
-                        input=input_bw[:, i, :], hx=(h_bw_prev, c_bw_prev))
+                    h_bw, c_bw = self.leaf_rnn_cell_bw(input=input_bw[:, i, :], hx=(h_bw_prev, c_bw_prev))
                     hs_bw.append(h_bw)
                     cs_bw.append(c_bw)
                     h_bw_prev = h_bw
                     c_bw_prev = c_bw
                 hs_bw = torch.stack(hs_bw, dim=1)
                 cs_bw = torch.stack(cs_bw, dim=1)
-                hs_bw = reverse_padded_sequence(
-                    inputs=hs_bw, lengths=lengths_list, batch_first=True)
-                cs_bw = reverse_padded_sequence(
-                    inputs=cs_bw, lengths=lengths_list, batch_first=True)
+                hs_bw = reverse_padded_sequence(inputs=hs_bw, lengths=lengths_list, batch_first=True)
+                cs_bw = reverse_padded_sequence(inputs=cs_bw, lengths=lengths_list, batch_first=True)
                 hs = torch.cat([hs, hs_bw], dim=2)
-                cs = torch.cat([cs, cs_bw], dim=2) # (batch_size, max_len, dim_h)
-
+                cs = torch.cat([cs, cs_bw], dim=2)   # (batch_size, max_len, dim_h)
         h_res, c_res, structure = [], [], []
         # iterate each sentence
-        for i in range(batch_size):
-        
-            if self.args.tokenization == "bpe":
-                sentence = list(map(lambda j: self.args.vocab.id_to_word_l[j], sentence_word[i].tolist()))
-            # elif self.args.tokenization == "cha":
-            #     sentence = list(map(lambda j: self.args.vocab.id_to_word_l[str(j)], sentence_word[i].tolist()))
-            
+        for i in range(batch_size):           
             sentence = [str(e) for e in sentence_word[i].tolist()]
-            
-            if self.args.rank_input == "w":
-                embedding = sentence_embedding[i]
-            elif self.args.rank_input == "h":
-                embedding = hs[i]
-
+            if self.args.rank_input == "w": embedding = sentence_embedding[i]
+            elif self.args.rank_input == "h": embedding = hs[i]
             # calculate scores for each word
             state, tree = self.build(sentence, embedding, hs[i], cs[i], 0, length[i].item())   
             h, c = state
             h_res.append(h)
             c_res.append(c)
-            structure.append(tree)
-            
+            structure.append(tree) 
         h_res, c_res = torch.stack(h_res), torch.stack(c_res)
         h_res, c_res = h_res.squeeze(1), c_res.squeeze(1)
         return h_res, c_res, structure
-

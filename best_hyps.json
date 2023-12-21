@@ -1,0 +1,119 @@
+{
+"bace_clf":    
+    {
+    "task": ["clf"],
+    "optimizer": ["adadelta"],
+    "dropout": [0.3],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [6144], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [300],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [200]
+    },
+"bbbp":
+    {
+    "task": ["clf"],
+    "optimizer": ["adadelta"],
+    "dropout": [0.3],
+    "clf_num_layers": [5],
+    "DTA_hidden_dim": [6144], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [300],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [200]
+    },
+"tox21":
+    {
+    "task": ["clf"],
+    "optimizer": ["adadelta"],
+    "dropout": [0.5],
+    "clf_num_layers": [5],
+    "DTA_hidden_dim": [2048], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [1500],
+    "use_batchnorm": [0],
+    "rank_input": ["w"],
+    "max_epoch": [100]
+    },
+"clintox":
+    {
+    "task": ["clf"],
+    "optimizer": ["adadelta"],
+    "dropout": [0.5],
+    "clf_num_layers": [3],
+    "DTA_hidden_dim": [2048], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [100],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [400]
+    },
+"sider":
+    {
+    "task": ["clf"],
+    "optimizer": ["adagrad"],
+    "dropout": [0.9],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [2048], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [500],
+    "use_batchnorm": [0],
+    "rank_input": ["w"],
+    "max_epoch": [150]
+    },
+"bace_reg":
+    {
+    "task": ["reg"],
+    "optimizer": ["adagrad"],
+    "dropout": [0.8],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [3072], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [1500],
+    "use_batchnorm": [1],
+    "rank_input": ["w"],
+    "max_epoch": [100]
+    },
+"esol":
+    {
+    "task": ["reg"],
+    "optimizer": ["adagrad"],
+    "dropout": [0.3],
+    "clf_num_layers": [3],
+    "DTA_hidden_dim": [128], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [50],
+    "use_batchnorm": [0],
+    "rank_input": ["h"],
+    "max_epoch": [200]
+    },
+"freesolv":
+    {
+    "task": ["reg"],
+    "optimizer": ["adagrad"],
+    "dropout": [0.3],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [1024], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [1500],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [100]
+    },
+"lipo":
+    {
+    "task": ["reg"],
+    "optimizer": ["adam"],
+    "dropout": [0.3],
+    "clf_num_layers": [1],
+    "DTA_hidden_dim": [512], 
+    "lr": [1e-3],
+    "tree_hidden_dim": [500],
+    "use_batchnorm": [1],
+    "rank_input": ["h"],
+    "max_epoch": [150]
+    }
+}
