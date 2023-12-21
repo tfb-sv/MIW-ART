@@ -155,12 +155,12 @@ def load_args():
 if __name__ == "__main__":
     args = load_args()
     print(f"\n")
-    print(f"\n>>  {args.data_name.upper()}  |\n")
     subfile_path = f"{args.eval_load_dir}/{args.data_name}"
     is_done = False
     for subfile in os.listdir(subfile_path):
         if is_done == True: break
         if subfile.endswith(".pkl"):
+            print(f"\n>>  {args.data_name.upper()}  |\n")
             hyp_no = subfile[:-4].split("-")[4]
             args_file_path = f"{subfile_path}/m-args-{args.data_name}-{hyp_no}.json"
             with open(args_file_path, "r") as f: model_args = json.load(f)
@@ -171,11 +171,9 @@ if __name__ == "__main__":
                     setattr(args, key, model_args[key])
             ckpt_path = f"{subfile_path}/{subfile}"
             args.ckpt = ckpt_path
-            if args.ckpt == "":
-                print("\n\n>>  !  ERROR  !  NO CKPT FILE FOUND FOR TESTING  !  <<\n\n")
-                break
             print(f"\n>>  {args.data_name.upper()} {subfile} {args.mode.upper()} STARTED.  <<")
             data = data_loader(args)
             main(args, hyp_no, data)
             is_done = True
+    if is_done == False: print("\n\n>>  !  ERROR  !  NO .PKL FILE FOUND  !  <<\n\n")
   

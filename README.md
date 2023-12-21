@@ -6,7 +6,7 @@ Here are some example commands below to run the related scripts. These can be us
 
 > conda activate yourEnv
 
-> cd C:\yourDirectory\MIW-ART
+> cd C:\yourPreDirectory\MIW-ART
 
 ## For training:
 
@@ -14,7 +14,7 @@ Here are some example commands below to run the related scripts. These can be us
 
 ## For testing the model, obtaining the Newick strings or visualizing the tree structures:
 
-You need to run firstly "training" OR you can use an available model checkpoint which should be in "results/training_results" folder.
+Firstly, you need to run "train_tree.py" script, OR you can use an available model checkpoint, which should be in "results/training_results" folder.
 
 > python eval_tree.py --mode "test" --data_names "freesolv"
 
@@ -24,9 +24,7 @@ You need to run firstly "training" OR you can use an available model checkpoint 
 
 ## For inspecting the molecular fragments:
 
-You need to run firstly "training" OR you can use an available model checkpoint which should be in "results/training_results" folder.
-
-You need to run secondly "Newicking" OR you can use an available Newick file which should be in "results/evaluation_results" folder.
+Firstly, you need to run "newick" mode of "eval_tree.py" script, OR you can use an available Newick file, which should be in "results/evaluation_results" folder.
 
 > python inspect_subtrees.py --data_names "freesolv"
 
@@ -42,5 +40,6 @@ There are lots of arguments in the related scripts, but no changes are needed to
 
 The folders in "results/training_results", "results/evaluation_results", and "results/inspection_results" are overwritten with each related run, so be careful about this. Also, if the folders within these three result directories do not exist, they will be automatically created.
 
-The publication related to this work will be made available here upon its release.
+Note that the order of fragments in the "results/inspection_results" folder may vary slightly, even when using the same model checkpoints as provided by us..
 
+The publication related to this work will be made available here upon its release.
