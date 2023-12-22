@@ -118,7 +118,7 @@ def train(args, cnt, data):
                             second_metric = roc_score
                             if second_metric > second_best_metric:
                                 second_best_metric = second_metric
-                                save_model(args, model, "roc", second_best_metric, cnt)
+                                # save_model(args, model, "roc", second_best_metric, cnt)
                             if main_metric < best_metric:
                                 best_metric = main_metric
                                 save_model(args, model, "bce", best_metric, cnt)
