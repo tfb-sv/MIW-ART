@@ -1,14 +1,14 @@
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 
-Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, the necessary libraries can be found in the "utils/environment.yml" or the "utils/requirements.txt" files.
+Here are some example commands below to run the related scripts. These can be used in Anaconda prompt. Also, various related files with environmental setup can be found in the "settings" folder.
 
 ## Firstly, indicate the environment and the project directory:
 
 The following two commands are for example purposes, you should modify these commands according to your needs.
 
-> conda activate yourEnvironment
+> conda activate <yourEnvironment>
 
-> cd C:\yourPreDirectory\MIW-ART
+> cd C:\<yourPreDirectory>\MIW-ART\code
 
 ## For training:
 
@@ -42,8 +42,10 @@ https://drive.google.com/drive/folders/1A1q138vF3G-SG-aRxiA8LbI04OZk6H7w?usp=sha
 
 There are lots of arguments in the related scripts, but no changes are needed to run them.
 
-The folders in "output/training_results", "output/evaluation_results", and "output/inspection_results" are overwritten with each related run, so be careful about this. Also, if the folders within these three output directories do not exist, they will be automatically created.
+The folders in the "output/training_results", the "output/evaluation_results", and the "output/inspection_results" are overwritten with each related run, so be careful about this. Also, if the folders within these three output directories do not exist, they will be automatically created.
 
 Note that the order of fragments in the "output/inspection_results" folder may vary slightly, even when using the same model checkpoints as provided by us.
+
+Retrieving all the outputs in the "results" folder from scratch, specifically the "training" process of all the tasks, can take days. Please keep this in mind.
 
 The publication related to this work will be made available here upon its release.

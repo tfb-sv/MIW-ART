@@ -13,16 +13,13 @@ import json
 import numpy as np
 import copy
 import itertools
-torch.manual_seed(0)
-CUDA_VISIBLE_DEVICES=1
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 from model.tree_model import ARTM_model, calc_metrics
 from utils.tree_data import data_loader
 from eval_tree import eval_iter
+torch.manual_seed(0)
+CUDA_VISIBLE_DEVICES=1
 
 def train_iter(args, batch, model, params, criterion, optimizer):
     model.train(True)
@@ -175,13 +172,13 @@ def main(args):
                         datefmt="|  %Y-%m-%d  |  %H:%M:%S  |")
     logFormatter = logging.Formatter(frmt)
     start = time.time()
-    with open("utils/best_hyps.json", "r") as f: cv_all = json.load(f)
-    cv_keys = list(cv_all[args.data_name].keys())
+    with open("utils/best_hyprs.json", "r") as f: best_hyprs = json.load(f)
+    hypr_keys = list(best_hyprs[args.data_name].keys())
     print(f">>  Constant Hyperparameters:\n")
     for k, v in vars(args).items():
-        if k not in cv_keys:
+        if k not in hypr_keys:
             if k not in ["vocab", "data_name"]: logging.info(k + " = " + str(v))
-    for key in cv_keys: setattr(args, key, cv_all[args.data_name][key][0])
+    for key in hypr_keys: setattr(args, key, best_hyprs[args.data_name][key][0])
     cv_no = 0
     log_file_name = f"{args.data_name}/stdout_{args.data_name}.log"
     rootLogger = logging.getLogger()
@@ -191,7 +188,7 @@ def main(args):
     print(f"\n\n>>  {args.data_name.upper()} Training is STARTED.  <<")
     for k, v in vars(args).items():
         if k == "data_name": logging.info(k + " = " + str(v))
-        if k in cv_keys: logging.info(k + " = " + str(v))
+        if k in hypr_keys: logging.info(k + " = " + str(v))
     data = data_loader(args)
     train(args, cv_no, data)
     end = time.time()
@@ -203,7 +200,7 @@ def load_args():
     parser.add_argument("--tqdm_off", default=False, type=bool)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)
-    parser.add_argument("--data_folder", default="data", type=str)
+    parser.add_argument("--data_folder", default="../data", type=str)
     parser.add_argument("--max_epoch", default=150, type=int)
     parser.add_argument("--max_smi_len", default=100, type=int)
     parser.add_argument("--act_func", default="ReLU", type=str)
@@ -211,7 +208,7 @@ def load_args():
     parser.add_argument("--is_scheduler", default=True)
     parser.add_argument("--is_clip", default=True)
     parser.add_argument("--data_name", required=True, type=str) 
-    parser.add_argument("--train_save_dir", default="output/training_results")
+    parser.add_argument("--train_save_dir", default="../results/training_results")
     parser.add_argument("--leaf_rnn_type", default="bilstm", choices=["bilstm", "lstm"])
     parser.add_argument("--rank_input", default="w", choices=["w", "h"], 
                         help="needed for STG, whether feed word embedding or hidden state of bilstm into score function")

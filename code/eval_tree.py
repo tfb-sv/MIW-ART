@@ -9,14 +9,11 @@ import math
 import json
 import pickle
 import shutil
-torch.manual_seed(0)
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 from model.tree_model import ARTM_model, calc_metrics
 from utils.tree_data import data_loader
+torch.manual_seed(0)
 
 def eval_iter(args, batch, model, criterion):
     model.eval()
@@ -97,7 +94,7 @@ def main(args, data):
             print(f"|>>  RMSE Loss = {test_loss_mean}\n\n")
     elif args.mode in ["newick", "visualize"]:
         task_path = f"{args.eval_save_dir}/{args.data_name}"
-        if not os.path.exists(args.eval_save_dir): os.mkdir(args.eval_save_dir, exist_ok=True)
+        if not os.path.exists(args.eval_save_dir): os.mkdir(args.eval_save_dir)
         if os.path.exists(task_path): shutil.rmtree(task_path)
         os.mkdir(task_path)
         modelX = ARTM_model
@@ -125,19 +122,20 @@ def main(args, data):
                 pbar_test.update()
         newicks_save_path = f"{args.eval_save_dir}/{args.data_name}/all_newicks_{args.data_name}.json"
         with open(newicks_save_path, "w") as f: json.dump(all_newicks, f)
-        print(f"\n\n>>  {args.data_name.upper()} Newicking is COMPLETED.  <<\n")
+        if args.mode == "newick": print(f"\n\n>>  {args.data_name.upper()} Newicking is COMPLETED.  <<\n")
+        elif args.mode == "visualize": print(f"\n\n>>  {args.data_name.upper()} Visualizing is COMPLETED.  <<\n")
 
 def load_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tqdm_off", default=False, type=bool)
     parser.add_argument("--x_label", default="smiles", type=str)
     parser.add_argument("--y_label", default="y_true", type=str)
-    parser.add_argument("--data_folder", default="data", type=str)
+    parser.add_argument("--data_folder", default="../data", type=str)
     parser.add_argument("--mode", default="test", choices=["test", "newick", "visualize"])
     parser.add_argument("--data_name", default="")
     parser.add_argument("--ckpt", default="")
-    parser.add_argument("--eval_load_dir", default="output/training_results")
-    parser.add_argument("--eval_save_dir", default="output/evaluation_results")
+    parser.add_argument("--eval_load_dir", default="../results/training_results")
+    parser.add_argument("--eval_save_dir", default="../results/evaluation_results")
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--batch_size", default=1, type=int)   
     parser.add_argument("--task", default="clf", choices=["clf", "reg"])
@@ -160,8 +158,8 @@ if __name__ == "__main__":
     args = load_args()
     print(f"\n")
     subfile_path = f"{args.eval_load_dir}/{args.data_name}"
-    with open("utils/best_hyps.json", "r") as f: cv_all = json.load(f)
-    task_type = cv_all[args.data_name]["task"][0]
+    with open("utils/best_hyprs.json", "r") as f: best_hyprs = json.load(f)
+    task_type = best_hyprs[args.data_name]["task"][0]
     all_pkls = {}
     for subfile in os.listdir(subfile_path):
         if subfile.endswith(".pkl"):

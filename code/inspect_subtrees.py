@@ -3,9 +3,6 @@ import shutil
 import argparse
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 from utils.inspection_tools import *
 
 def main(args):
@@ -20,7 +17,7 @@ def main(args):
     # LOAD NECESSARY FILES
     newicks_load_path = f"{args.load_dir}/{args.data_name}/all_newicks_{args.data_name}.json"
     with open(newicks_load_path, "r") as f: task_newicks = json.load(f)
-    encoder_load_path = f"{args.data_folder}/CHARSET.json"
+    encoder_load_path = "utils/CHARSET.json"
     with open(encoder_load_path, "r") as f: encoder = json.load(f)
     decoder = {v: k for k, v in encoder.items()}
     # CALCULATE AVERAGE TEST LOSS
@@ -52,12 +49,13 @@ def main(args):
         repeat_dict_save_path = f"{args.save_dir}/{args.data_name}/repeat_dict_{args.data_name}.json"
         with open(repeat_dict_save_path, "w") as f: json.dump(repeat_dict, f)
     _ = plot_contour(all_subtrees, repeat_dict, args)
+    print(f"\n\n>>  {args.data_name.upper()} Inspection is COMPLETED.  <<\n")
 
 def load_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_folder", default="data", type=str)
-    parser.add_argument("--load_dir", default="output/evaluation_results", type=str)
-    parser.add_argument("--save_dir", default="output/inspection_results", type=str)
+    parser.add_argument("--data_folder", default="../data", type=str)
+    parser.add_argument("--load_dir", default="../results/evaluation_results", type=str)
+    parser.add_argument("--save_dir", default="../results/inspection_results", type=str)
     parser.add_argument("--task", default="clf", type=str)
     parser.add_argument("--thr2", default=5, type=int)
     parser.add_argument("--thr", default=20, type=int)
@@ -69,7 +67,7 @@ def load_args():
 if __name__ == "__main__":
     args = load_args()
     # main_dir = os.getcwd()
-    with open(f"utils/best_hyps.json", "r") as f: best_hyps = json.load(f)
-    args.task = best_hyps[args.data_name]["task"]
+    with open("utils/best_hyprs.json", "r") as f: best_hyprs = json.load(f)
+    args.task = best_hyprs[args.data_name]["task"]
     main(args)
  

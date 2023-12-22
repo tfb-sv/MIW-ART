@@ -26,7 +26,7 @@ class data_loader(object):
         self.all_dataset.reset_index(inplace=True, drop=True)
         self.label_name = args.y_label
         self.input_name = args.x_label
-        with open(f"{args.data_folder}/CHARSET.json", "r") as f: self.word_to_id_l = json.load(f)
+        with open("utils/CHARSET.json", "r") as f: self.word_to_id_l = json.load(f)
         self.train_label = self.train_dataset[self.label_name].tolist()
         self.valid_label = self.valid_dataset[self.label_name].tolist()  
         self.test_label = self.test_dataset[self.label_name].tolist()
