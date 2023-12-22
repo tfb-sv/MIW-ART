@@ -6,9 +6,9 @@ Here are some example commands below to run the related scripts. These can be us
 
 The following two commands are for example purposes, you should modify these commands according to your needs.
 
-> conda activate <yourEnvironment>
+> conda activate yourEnvironment
 
-> cd C:\<yourPreDirectory>\MIW-ART\code
+> cd C:\yourPreDirectory\MIW-ART\code
 
 ## For training:
 
