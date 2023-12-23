@@ -1,0 +1,41 @@
+metadata_version: 1
+name: Molecular Interpretation Workflow through Attentive Recursive Tree Model
+description: To identify and interpret the significant drug molecule fragments for
+  the corresponding molecular property tasks (e.g., physiology, biophysics, and physical
+  chemistry), we propose a sequence of processes named Molecular Interpretation Workflow
+  through Attentive Recursive Tree Model (MIW-ART) by utilizing the Attention Recursive
+  Tree (AR-Tree) model.
+tags:
+- interpretation
+- molecule
+- drug
+- deep learning
+- attention
+authors:
+- name: Nural Ozel
+  affiliations:
+  - name: Boğaziçi University
+- name: Berk Atıl
+  affiliations:
+  - name: Boğaziçi University
+- name: Asu Busra Temizer
+  affiliations:
+  - name: Istanbul University
+- name: Taha Koulani
+  affiliations:
+  - name: Istanbul University
+- name: Elif Ozkirimli
+  affiliations:
+  - name: F. Hoffmann-La Roche AG
+- name: Nilgün Karalı
+  affiliations:
+  - name: Istanbul University
+- name: Kutlu O. Ulgen
+  affiliations:
+  - name: Boğaziçi University
+- name: Arzucan Özgür
+  affiliations:
+  - name: Boğaziçi University
+corresponding_contributor:
+  name: Nural Ozel
+  email: nural.ozel@boun.edu.tr
