@@ -149,7 +149,7 @@ def train(args, cnt, data):
     print(f"\n\n>>  {args.data_name.upper()} Training is COMPLETED.  <<\n")
 
 def save_model(args, model, metric, best_metric, cnt):
-    model_filename = f"{metric.upper()}-m-{args.data_name}-{best_metric:.4f}-{cnt}.pkl"
+    model_filename = f"{metric.upper()}-m-{args.data_name}-0.0001-{cnt}.pkl"   # {best_metric:.4f}
     model_path = f"{args.train_save_dir}/{args.data_name}/{model_filename}"
     torch.save(model.state_dict(), model_path)
     model_args_filename = f"m-args-{args.data_name}-{cnt}.json"
