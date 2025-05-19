@@ -1,10 +1,8 @@
 [![License: MIT][mit-shield]](./LICENSE)
 
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
-## Overview
 To identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), we propose a sequence of processes named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
 
-# Usage
 Here are some example commands below to run the related scripts. These can be used in the Anaconda prompt. Also, various files related to environmental setup can be found in the `settings` folder.
 
 ## Firstly, indicate the environment and the project directory:
