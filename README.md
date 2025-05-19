@@ -1,8 +1,10 @@
 [![License: MIT][mit-shield]](./LICENSE)
 
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
+## Overview
 To identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), we propose a sequence of processes named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
 
+# Usage
 Here are some example commands below to run the related scripts. These can be used in the Anaconda prompt. Also, various files related to environmental setup can be found in the `settings` folder.
 
 ## Firstly, indicate the environment and the project directory:
@@ -32,7 +34,7 @@ Firstly, you need to run the `newick` mode of the `eval_tree.py` script **OR** y
 ## All dataset names for the commands:
 `bace_clf`, `bbbp`, `clintox`, `tox21`, `lipo`, `esol`, `freesolv`, `bace_reg`, `sider`
 
-## Other Informations
+## Additional Information
 - The complete contents (around 1.5 GB) of the `results` folder can be accessed through [this link](https://drive.google.com/drive/folders/1A1q138vF3G-SG-aRxiA8LbI04OZk6H7w?usp=sharing), simply replacing the `results` folder is enough.
 - There are lots of arguments in the related scripts, but no changes are needed to run them.
 - The folders in the `results/training_results`, the `results/evaluation_results`, and the `results/inspection_results` are overwritten with each related run, so be careful about this. Also, if the folders within these three results directories do not exist, they will be automatically created.
