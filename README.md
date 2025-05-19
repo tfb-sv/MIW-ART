@@ -1,7 +1,9 @@
 [![License: MIT][mit-shield]](./LICENSE)
 
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
-To identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), we propose a sequence of processes named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
+This repository contains the implementation of the MIW-ART paper.
+
+**Purpose:** To identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), we propose a sequence of processes named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
 
 Here are some example commands below to run the related scripts. These can be used in the Anaconda prompt. Also, various files related to environmental setup can be found in the `settings` folder.
 
@@ -38,14 +40,13 @@ Firstly, you need to run the `newick` mode of the `eval_tree.py` script **OR** y
 - The folders in the `results/training_results`, the `results/evaluation_results`, and the `results/inspection_results` are overwritten with each related run, so be careful about this. Also, if the folders within these three results directories do not exist, they will be automatically created.
 - Note that the order of fragments in the `results/inspection_results` folder may vary slightly, even when using the same model checkpoints as provided by us.
 - Retrieving all the results in the `results` folder from scratch, specifically the **training** process of all the tasks, can take **days**. Please keep this in mind.
-- The publication related to this work will be made available here upon its release.
 
 ## License
 © 2025 [Nural Ozel](https://github.com/tfb-sv).
 
-- This work is licensed under a [MIT License](./LICENSE).
+- This work is licensed under the [MIT License](./LICENSE).
 - The **data** associated with this work is licensed under a [CC0 1.0 Universal](./data/LICENSE).
-- The **publication** associated with this work is licensed under a [Creative Commons Attribution 4.0 International License (CC BY 4.0)][cc-by].
+- The **paper** associated with this work is licensed under a [Creative Commons Attribution 4.0 International License (CC BY 4.0)][cc-by].
 
 **MIW-ART** uses the following open-source work:
 - [AR-Tree](https://github.com/shijx12/AR-Tree) by [shijx12](https://github.com/shijx12)
