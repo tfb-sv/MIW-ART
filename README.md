@@ -44,8 +44,8 @@ Firstly, you need to run the `newick` mode of the `eval_tree.py` script **OR** y
 © 2025 [Nural Ozel](https://github.com/tfb-sv).
 
 - This work is licensed under a [MIT License](./LICENSE).
-- The **data** in this work under `data` folder is licensed under a [CC0 1.0 Universal](./data/LICENSE).
-- The **preprint** associated with this work is licensed under a [Creative Commons Attribution 4.0 International License (CC BY 4.0)][cc-by].
+- The **data** associated with this work is licensed under a [CC0 1.0 Universal](./data/LICENSE).
+- The **publication** associated with this work is licensed under a [Creative Commons Attribution 4.0 International License (CC BY 4.0)][cc-by].
 
 **MIW-ART** uses the following open-source work:
 - [AR-Tree](https://github.com/shijx12/AR-Tree) by [shijx12](https://github.com/shijx12)
