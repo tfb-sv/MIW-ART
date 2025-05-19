@@ -47,3 +47,9 @@ Firstly, you need to run the `newick` mode of the `eval_tree.py` script **OR** y
 - Retrieving all the results in the `results` folder from scratch, specifically the **training** process of all the tasks, can take **days**. Please keep this in mind.
 
 - The publication related to this work will be made available here upon its release.
+
+## License
+
+- The **code** in this repository is licensed under the [MIT License](./LICENSE).
+- The **data** under `data/` is licensed under the [CC0 1.0 Universal](./data/LICENSE).
+- The **preprint** associated with this project is licensed under the [Creative Commons Attribution 4.0 International License (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
