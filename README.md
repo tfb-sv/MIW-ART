@@ -3,21 +3,29 @@
 # Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)
 This repository contains the implementation of the MIW-ART paper.
 
-**Purpose:** To identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), we propose a sequence of processes named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
+## Overview
+- Identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), a sequence of processes is proposed named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
 
-Here are some example commands below to run the related scripts. These can be used in the Anaconda prompt. Also, various files related to environmental setup can be found in the `settings` folder.
+## Dataset
+- **MoleculeNet**: A benchmark dataset collection for various molecular property prediction and classification tasks.
 
-## Firstly, indicate the environment and the project directory:
-The following two commands are for example purposes, you should modify these commands according to your needs.
+## Setup
+Install required libraries:
 
-> conda activate <env_name>
+> cd <your_directory>\MIW-ART\code
 
-> cd <project_root>\MIW-ART\code
+> pip install -r requirements.txt
 
-## For training:
+## Usage
+
+### Training:
+To train the model from scratch.
+
 > python train_tree.py --data_name "freesolv"
 
-## For testing the model checkpoints, obtaining the Newick strings, or visualizing the tree structures:
+### Evaluation:
+To evaluate the model checkpoints, obtain the Newick strings, or visualize the tree structures.
+
 Firstly, you need to run the `train_tree.py` script **OR** you can use an available model checkpoint, which is in the `results/training_results` folder.
 
 > python eval_tree.py --mode "test" --data_names "freesolv"
@@ -26,12 +34,14 @@ Firstly, you need to run the `train_tree.py` script **OR** you can use an availa
 
 > python eval_tree.py --mode "visualize" --data_names "freesolv"
 
-## For inspecting the molecular fragments:
+### Inspection:
+To inspect the molecular fragments.
+
 Firstly, you need to run the `newick` mode of the `eval_tree.py` script **OR** you can use an available Newick file, which is in the `results/evaluation_results` folder.
 
 > python inspect_subtrees.py --data_names "freesolv"
 
-## All dataset names for the commands:
+### All dataset names for the commands:
 `bace_clf`, `bbbp`, `clintox`, `tox21`, `lipo`, `esol`, `freesolv`, `bace_reg`, `sider`
 
 ## Additional Information
