@@ -7,7 +7,7 @@ This repository contains the implementation of the MIW-ART paper.
 - Identify and interpret the significant drug molecule fragments for the corresponding molecular property tasks (e.g., physiology, biophysics, and physical chemistry), a sequence of processes is proposed named **Molecular Interpretation Workflow through Attentive Recursive Tree Model (MIW-ART)** by utilizing the [Attention Recursive Tree (AR-Tree)](https://github.com/shijx12/AR-Tree) model.
 
 ## Dataset
-- **MoleculeNet**: A benchmark dataset collection for various molecular property prediction and classification tasks.
+- **[MoleculeNet](https://moleculenet.org/)**: A benchmark dataset collection for various molecular property prediction and classification tasks.
 
 ## Setup
 Install required libraries:
